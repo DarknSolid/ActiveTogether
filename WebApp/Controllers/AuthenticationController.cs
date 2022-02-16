@@ -3,14 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using WebApp.Utils.ExternalLoginProviders.Facebook;
-using WebApp.Constants;
+using ModelLib.Constants;
 using WebApp.DTOs.Authentication;
 using Microsoft.AspNetCore.Authorization;
 
 namespace WebApp.Controllers
 {
-    //[Route(ApiEndpoints.AUTHENTICATION)]
-    [Route("api/authentication")]
+    [Route(ApiEndpoints.AUTHENTICATION)]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {

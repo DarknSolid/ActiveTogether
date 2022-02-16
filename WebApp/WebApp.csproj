@@ -21,11 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Migrations\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ModelLibrary\ModelLibrary.csproj" />
+    <ProjectReference Include="..\ModelLibrary\ModelLib.csproj" />
   </ItemGroup>
 
 </Project>

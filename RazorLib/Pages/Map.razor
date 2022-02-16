@@ -1,0 +1,54 @@
+﻿@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using System.Diagnostics
+
+<PageTitle>Map</PageTitle>
+
+<h1>Google Map Markers</h1>
+
+<MudToggleIconButton Toggled="@ShouldDisplayRoadMap" ToggledChanged="OnMapTypeChanged"
+                     Icon="@Icons.Filled.SatelliteAlt" Title="Off"
+                     ToggledIcon="@Icons.Outlined.SatelliteAlt" ToggledTitle="On"/>
+
+<GoogleMap @ref="@map1" Id="map1" Options="@mapOptions"></GoogleMap>
+
+
+@code {
+    private GoogleMap map1 = default!;
+
+    private MapOptions mapOptions = default!;
+
+    public bool ShouldDisplayRoadMap { get; set; }
+
+    private string labelText = "";
+
+    public void OnMapTypeChanged(bool toggled)
+    {
+        ShouldDisplayRoadMap = !ShouldDisplayRoadMap;
+        map1.InteropObject.SetMapTypeId(GetCurrentMapType());
+    }
+
+    private MapTypeId GetCurrentMapType()
+    {
+        return ShouldDisplayRoadMap ? MapTypeId.Roadmap : MapTypeId.Satellite;
+    }
+
+
+    protected override void OnInitialized()
+    {
+        mapOptions = new MapOptions()
+        {
+            Zoom = 13,
+            Center = new LatLngLiteral()
+            {
+                Lat = 55.6570832,
+                Lng = 12.5937645
+            },
+            MapTypeId = GetCurrentMapType(),
+            DisableDefaultUI = true,
+            GestureHandling = "greedy",
+            //ZoomControl = false,
+            
+        };
+    }
+}

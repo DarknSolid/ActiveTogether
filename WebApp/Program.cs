@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using WebApp.Areas.Identity;
-using WebApp.Data;
+using WebApp.Entities;
 using WebApp.Utils.ExternalLoginProviders.Facebook;
 
 var builder = WebApplication.CreateBuilder(args);

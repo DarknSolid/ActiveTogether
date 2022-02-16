@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using WebApp.Constants;
+using ModelLib.Constants;
 using WebApp.DTOs.Authentication;
 using System.Net.Http.Json;
+using RazorLib.Interfaces;
 
 namespace MobileBlazor.Utils
 {
-    public class ApiClient
+    public class ApiClient : IApiClient
     {
 
         private readonly HttpClient _httpClient;
@@ -24,7 +25,7 @@ namespace MobileBlazor.Utils
 
         public async Task<UserInfoDTO> FacebookLogin()
         {
-            string accessToken;
+            string accessToken = "";
 
             #if __ANDROID__
                 Xamarin.Facebook.Login.LoginManager.Instance.LogInWithReadPermissions(MainActivity.Instance, new List<string> { "public_profile", "email" });

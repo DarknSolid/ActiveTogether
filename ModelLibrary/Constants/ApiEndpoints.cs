@@ -1,4 +1,4 @@
-﻿namespace WebApp.Constants
+﻿namespace ModelLib.Constants
 {
     public class ApiEndpoints
     {

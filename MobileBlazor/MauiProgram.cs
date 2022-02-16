@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.WebView.Maui;
-using MobileBlazor.Data;
 using MobileBlazor.Utils;
 using MudBlazor.Services;
-using System.Net.Http;
 
 namespace MobileBlazor
 {
@@ -22,9 +20,8 @@ namespace MobileBlazor
             builder.Services.AddBlazorWebView();
             builder.Services.AddScoped<HttpClient>();
             builder.Services.AddSingleton(new ApiClient(new HttpClient(), "http://192.168.1.129:49160/"));
-            builder.Services.AddSingleton<WeatherForecastService>();
             builder.Services.AddMudServices();
-
+            
             return builder.Build();
         }
     }

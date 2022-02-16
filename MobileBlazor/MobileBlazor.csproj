@@ -76,7 +76,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ModelLibrary\ModelLibrary.csproj" />
+	  <ProjectReference Include="..\ModelLibrary\ModelLib.csproj" />
+	  <ProjectReference Include="..\RazorLib\RazorLib.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,27 +1,4 @@
-﻿@page "/"
-@using MobileBlazor.Utils
-@using WebApp.DTOs.Authentication
-@inject ApiClient apiClient
+﻿@page "/counter"
 
-@if(UserInfo == null)
-{
-    <h1>Please Sign In</h1>
-} else
-{
-    <MudAlert Severity="Severity.Success">Welcome, @UserInfo.UserName</MudAlert>
-}
-<MudFab StartIcon="@Icons.Custom.Brands.Facebook" Style="@($"color:#4267B2;")" OnClick="@LoginWithFacebook" Label="Continue with Facebook" />
-
-Welcome to your new app.
-
-@code {
-    public UserInfoDTO UserInfo { get; set; }
-
-    public async void LoginWithFacebook()
-    {
-        UserInfo = await apiClient.FacebookLogin();
-        Console.WriteLine($"Welcome, {UserInfo.UserName}");
-        StateHasChanged();
-    }
-}
+<RazorLib.Pages.Counter></RazorLib.Pages.Counter>
 
