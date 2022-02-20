@@ -71,7 +71,6 @@
 
 	<ItemGroup>
 	  <PackageReference Include="MudBlazor" Version="6.0.6" />
-	  <PackageReference Include="Radzen.Blazor" Version="3.15.2" />
 	  <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
 	</ItemGroup>
 

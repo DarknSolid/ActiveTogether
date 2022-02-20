@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EntityLib\EntityLib.csproj" />
     <ProjectReference Include="..\ModelLibrary\ModelLib.csproj" />
   </ItemGroup>
 

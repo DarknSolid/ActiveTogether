@@ -10,6 +10,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModelLib", "ModelLibrary\Mo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorLib", "RazorLib\RazorLib.csproj", "{AC8ABAFB-3522-4417-8C4F-1FCDA45B673C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntityLib", "EntityLib\EntityLib.csproj", "{A8C865BB-A78E-4FC9-8DE8-A0846FE4E981}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSuite", "TestSuite\TestSuite.csproj", "{D87A6204-580D-4849-BFF9-CA78F2EB5BB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +38,14 @@ Global
 		{AC8ABAFB-3522-4417-8C4F-1FCDA45B673C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC8ABAFB-3522-4417-8C4F-1FCDA45B673C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC8ABAFB-3522-4417-8C4F-1FCDA45B673C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8C865BB-A78E-4FC9-8DE8-A0846FE4E981}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8C865BB-A78E-4FC9-8DE8-A0846FE4E981}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8C865BB-A78E-4FC9-8DE8-A0846FE4E981}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8C865BB-A78E-4FC9-8DE8-A0846FE4E981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D87A6204-580D-4849-BFF9-CA78F2EB5BB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D87A6204-580D-4849-BFF9-CA78F2EB5BB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D87A6204-580D-4849-BFF9-CA78F2EB5BB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D87A6204-580D-4849-BFF9-CA78F2EB5BB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
