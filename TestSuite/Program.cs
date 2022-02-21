@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ModelLib;
+using ModelLib.DTOs.DogPark;
 using NetTopologySuite.Geometries;
+using TestSuite;
 using WebApp.Entities;
 
 
@@ -19,4 +21,14 @@ var upperLeft = new Point(new Coordinate(1,2));
 var lowerRight = new Point(new Coordinate(2, 1));
 
 var result = await repo.GetInAreaAsync(upperLeft, lowerRight);
+
+//for (int i = 0; i < 1000; i++)
+//{
+//    var park = Util.GenerateDogPark();
+//    await repo.Create(park);
+//    Console.WriteLine($"{i}");
+//}
+
 Console.WriteLine("done");
+
+

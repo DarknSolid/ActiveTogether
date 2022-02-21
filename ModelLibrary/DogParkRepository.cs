@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Utilities;
 using EntityLib.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ModelLib
 {
@@ -38,7 +39,6 @@ namespace ModelLib
             };
             _context.DogParks.Add(entity);
             await _context.SaveChangesAsync();
-            return;
         }
 
         public async Task<List<DogParkDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight)
