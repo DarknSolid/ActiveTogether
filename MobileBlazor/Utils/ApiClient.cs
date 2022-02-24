@@ -37,13 +37,13 @@ namespace MobileBlazor.Utils
                 accessToken = MainActivity.Instance.FacebookAccessToken;
             #endif
 
-            var url = _baseApiUrl + ApiEndpoints.FACEBOOK_LOGIN;
+            var url = _baseApiUrl + ApiEndpoints.POST_FACEBOOK_LOGIN;
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(url, new FacebookLoginDTO() { AccessToken = accessToken });
                 if (response.IsSuccessStatusCode)
                 {
-                    url = _baseApiUrl + ApiEndpoints.USER_INFO;
+                    url = _baseApiUrl + ApiEndpoints.GET_USER_INFO;
                     return await _httpClient.GetFromJsonAsync<UserInfoDTO>(url);
                 }
             } 
@@ -56,7 +56,7 @@ namespace MobileBlazor.Utils
 
         public async Task Logout()
         {
-            await _httpClient.GetAsync(_baseApiUrl + ApiEndpoints.LOG_OUT);
+            await _httpClient.GetAsync(_baseApiUrl + ApiEndpoints.GET_LOG_OUT);
         }
     }
 }

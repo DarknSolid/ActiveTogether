@@ -14,7 +14,7 @@ namespace ModelLib
 {
     public interface IDogParkRepository
     {
-        public Task<List<DogParkDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight);
+        public Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight);
         public Task Create(DogParkCreateDTO dogParkCreateDTO);
     }
 
@@ -41,7 +41,7 @@ namespace ModelLib
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<DogParkDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight)
+        public async Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight)
         {
             Coordinate[] boundingBox = new Coordinate[]
             {
@@ -54,9 +54,10 @@ namespace ModelLib
             };
             var bb = new GeometryFactory().CreatePolygon(boundingBox);
 
-            var nearbyEntities = _context.DogParks.Where(c => c.Location.Intersects(bb)).Select(p => p);
-            var nearbyDogParks = nearbyEntities.Select(p => new DogParkDTO
+            var nearbyEntities = await _context.DogParks.Where(c => c.Location.Intersects(bb)).Select(p => p).ToListAsync();
+            var nearbyDogParks = nearbyEntities.Select(p => new DogParkListDTO
             {
+                Id = p.Id,
                 Name = p.Name,
                 Latitude = (float)p.Location.X,
                 Longitude = (float)p.Location.Y

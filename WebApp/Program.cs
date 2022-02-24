@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using EntityLib;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
+using ModelLib;
 using WebApp.Areas.Identity;
 using WebApp.Entities;
 using WebApp.Utils.ExternalLoginProviders.Facebook;
@@ -11,30 +13,41 @@ using WebApp.Utils.ExternalLoginProviders.Facebook;
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
 
 builder.Services.AddHttpClient();
-//Add facebook login provider
+
+// Third party login providers:
+//      Facebook:
 FacebookConfig facebookConfiguration = new()
 {
     AppId = config["ExternalAuthentication:Facebook:AppId"],
     AppSecret = config["ExternalAuthentication:Facebook:AppSecret"]
 };
 builder.Services.AddSingleton(facebookConfiguration);
+
+//TODO add google
+
+// utilities:
 builder.Services.AddScoped<IFacebookLoginProvider, FacebookLoginProvider>();
 
+// add database and repositories:
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<IApplicationDbContext,ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddDefaultIdentity<IdentityUser>(
-    options => {
+builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
+
+
+//others:
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
         options.SignIn.RequireConfirmedAccount = true;
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789-._@+ ÄäÖöÜüẞß";
         }
     )
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 

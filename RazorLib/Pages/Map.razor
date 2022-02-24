@@ -66,6 +66,7 @@
 
     private async Task OnAfterInitAsync()
     {
+        //TODO zoom_changed event or just bounds_changed event instead of drag and zoom
         await map1.InteropObject.AddListener("dragend", OnDragEnd);
     
     }
