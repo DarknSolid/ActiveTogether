@@ -6,6 +6,7 @@ using WebApp.Utils.ExternalLoginProviders.Facebook;
 using ModelLib.Constants;
 using WebApp.DTOs.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using ModelLib.ApiDTOs;
 
 namespace WebApp.Controllers
 {
@@ -23,6 +24,56 @@ namespace WebApp.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
             _facebookLoginProvider = facebookLoginProvider;
+        }
+
+        [HttpPost(ApiEndpoints.AUTHENTICATION_REGISTER)]
+        public async Task<ActionResult<UserInfoDTO>> Register([FromBody] RegisterDTO register)
+        {
+            if (register.Password != register.RepeatedPassword)
+            {
+                return BadRequest("passwords does not match");
+            }
+            if (register.Email != register.RepeatedEmail)
+            {
+                return BadRequest("emails does not match");
+            }
+            var user = await _userManager.FindByEmailAsync(register.Email);
+            if (user != null)
+            {
+                return BadRequest("Email already exists!");
+            }
+
+            user = new IdentityUser()
+            {
+                Email = register.Email,
+                UserName = register.Name + " " + register.LastName
+            };
+
+            var registerResult = await _userManager.CreateAsync(user, register.Password);
+            if (registerResult.Succeeded)
+            {
+                return Ok("User registered");
+            }
+            return BadRequest(registerResult.Errors.Select(e => e.Code + ": " + e.Description));
+        }
+
+        [HttpPost(ApiEndpoints.AUTHENTICATION_LOGIN)]
+        public async Task<ActionResult<UserInfoDTO>> Login([FromBody] LoginDTO login)
+        {
+            var user = await _userManager.FindByEmailAsync(login.Email);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+            
+            var signInResult = await _signInManager.PasswordSignInAsync(user, login.Password, true, false);
+            
+            if (signInResult.Succeeded)
+            {
+                return Ok();
+            }
+
+            return Unauthorized();
         }
 
         [Authorize]
@@ -46,7 +97,7 @@ namespace WebApp.Controllers
         }
 
 
-        [HttpPost(ApiEndpoints.AUTHENTICATION_FACEBOOK)]
+        [HttpPost(ApiEndpoints.AUTHENTICATION_FACEBOOK_LOGIN)]
         public async Task<IActionResult> FacebookLogin([FromBody] FacebookLoginDTO loginDto)
         {
             var isValid = await  _facebookLoginProvider.ValidateAccessToken(loginDto.AccessToken);

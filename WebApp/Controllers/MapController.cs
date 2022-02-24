@@ -20,6 +20,7 @@ namespace WebApp.Controllers
             _dogParkRepository = dogParkRepository;
         }
 
+        [Authorize]
         [HttpPost(ApiEndpoints.MAP_POINTS)]
         public async Task<ActionResult<List<DogParkListDTO>>> GetPoints([FromBody] MapSearchDTO map)
         {
