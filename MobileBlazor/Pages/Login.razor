@@ -2,6 +2,7 @@
 @using MobileBlazor.Utils
 @using WebApp.DTOs.Authentication
 @inject ApiClient apiClient
+@inject NavigationManager NavigationManager
 
 @if(UserInfo == null)
 {
@@ -10,6 +11,7 @@
 {
     <MudAlert Severity="Severity.Success">Welcome, @UserInfo.UserName</MudAlert>
 }
+<MudButton Variant="Variant.Filled" Color="@Color.Secondary" OnClick="@LoginManually" >Login</MudButton>
 <MudFab StartIcon="@Icons.Custom.Brands.Facebook" Style="@($"color:#4267B2;")" OnClick="@LoginWithFacebook" Label="Continue with Facebook" />
 
 Welcome to your new app.
@@ -20,8 +22,13 @@ Welcome to your new app.
     public async void LoginWithFacebook()
     {
         UserInfo = await apiClient.FacebookLogin();
-        Console.WriteLine($"Welcome, {UserInfo.UserName}");
-        StateHasChanged();
+        NavigationManager.NavigateTo("map");
+    }
+
+    public async void LoginManually()
+    {
+        UserInfo = await apiClient.Login("hampuswadum@hotmail.com", "Test123!");
+        NavigationManager.NavigateTo("map");
     }
 }
 

@@ -7,6 +7,7 @@ using ModelLib.Constants;
 using WebApp.DTOs.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using ModelLib.ApiDTOs;
+using EntityLib.Entities.Identity;
 
 namespace WebApp.Controllers
 {
@@ -15,11 +16,11 @@ namespace WebApp.Controllers
     public class AuthenticationController : ControllerBase
     {
 
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFacebookLoginProvider _facebookLoginProvider;
 
-        public AuthenticationController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, IFacebookLoginProvider facebookLoginProvider)
+        public AuthenticationController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IFacebookLoginProvider facebookLoginProvider)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -43,10 +44,12 @@ namespace WebApp.Controllers
                 return BadRequest("Email already exists!");
             }
 
-            user = new IdentityUser()
+            user = new ApplicationUser()
             {
                 Email = register.Email,
-                UserName = register.Name + " " + register.LastName
+                UserName = register.FirstName + " " + register.LastName,
+                FirstName = register.FirstName,
+                LastName = register.LastName,
             };
 
             var registerResult = await _userManager.CreateAsync(user, register.Password);
@@ -122,11 +125,15 @@ namespace WebApp.Controllers
             }
             else
             {
-                var newUser = new IdentityUser()
+                var newUser = new ApplicationUser()
                 {
                     Email = facebookUser.Email,
                     UserName = $"{facebookUser.FirstName} {facebookUser.LastName}",
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    FirstName = facebookUser.FirstName,
+                    LastName = facebookUser.LastName,
+                    ProfileImageUrl = facebookUser.Picture.Data.Url.ToString()
+
                 };
                 var createdResponse = await _userManager.CreateAsync(newUser);
 

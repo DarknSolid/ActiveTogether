@@ -1,6 +1,13 @@
 ﻿@using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 @using System.Diagnostics
+@using ModelLib.ApiDTOs
+@using ModelLib.DTOs.DogPark
+@using RazorLib.AbstractClasses
+@using RazorLib.Components
+@inject IDialogService DialogService
+
+@inject MapSearcher MapSearcher
 
 <PageTitle>Map</PageTitle>
 
@@ -10,44 +17,26 @@
                      Icon="@Icons.Filled.SatelliteAlt" Title="Off"
                      ToggledIcon="@Icons.Outlined.SatelliteAlt" ToggledTitle="On"/>
 
-<GoogleMap @ref="@map1" Id="map1" Options="@mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
+<GoogleMap @ref="@map" Id="map" Options="@mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 
 
 @code {
-    private GoogleMap map1 = default!;
-
+    public bool ShouldDisplayRoadMap { get; set; }
+    private GoogleMap map = default!;
     private MapOptions mapOptions = default!;
 
-    public bool ShouldDisplayRoadMap { get; set; }
+    [Parameter]
+    public MapFilterDTO MapFilterDTO { get; set; }
 
-    private string labelText = "";
-
-    public void OnMapTypeChanged(bool toggled)
-    {
-        ShouldDisplayRoadMap = !ShouldDisplayRoadMap;
-        map1.InteropObject.SetMapTypeId(GetCurrentMapType());
-
-    }
-
-    private async void OnDragEnd()
-    {
-        var bounds = await map1.InteropObject.GetBounds();
-        Console.WriteLine(bounds.North);
-    }
-
-    private async void Fetch()
-    {
-        //TODO fetch dog parks or whatever
-    }
 
     private MapTypeId GetCurrentMapType()
     {
         return ShouldDisplayRoadMap ? MapTypeId.Roadmap : MapTypeId.Satellite;
     }
 
-
-    protected async override void OnInitialized()
+    protected override void OnInitialized()
     {
+        ShouldDisplayRoadMap = true;
         mapOptions = new MapOptions()
         {
             Zoom = 13,
@@ -59,15 +48,50 @@
             MapTypeId = GetCurrentMapType(),
             DisableDefaultUI = true,
             GestureHandling = "greedy",
-            //ZoomControl = false,
-
-        };
+         };
+        if (MapFilterDTO == null)
+        {
+            MapFilterDTO = new MapFilterDTO();
+        }
+        //MapSearcher.SetMap(map);
     }
 
     private async Task OnAfterInitAsync()
     {
         //TODO zoom_changed event or just bounds_changed event instead of drag and zoom
-        await map1.InteropObject.AddListener("dragend", OnDragEnd);
-    
+        MapSearcher.SetMap(map);
+        await map.InteropObject.AddListener("dragend", OnDragEnd);
+        await map.InteropObject.AddListener("zoom_changed", OnDragEnd);
+    }
+
+    public async void OnMapTypeChanged(bool toggled)
+    {
+        ShouldDisplayRoadMap = !ShouldDisplayRoadMap;
+        await MapSearcher.ToggleMarkers();
+        await map.InteropObject.SetMapTypeId(GetCurrentMapType());
+    }
+
+    private async void OnDragEnd()
+    {
+        await UpdateMap();
+    }
+
+    private async Task UpdateMap()
+    {
+        var newMapMarkers = await MapSearcher.UpdateMapIcons(MapFilterDTO);
+        if (newMapMarkers == null)
+        {
+            return;
+        }
+        foreach ((Marker dogPark, int id) in newMapMarkers.DogParks)
+        {
+            await dogPark.AddListener("click", () =>
+            {
+                var parameters = new DialogParameters();
+                parameters.Add("Message", $"Dog park pressed with id {id}");
+		        var options = new DialogOptions { CloseOnEscapeKey = true };
+                DialogService.Show<Dialog>("Simple Dialog", parameters, options);
+            }); 
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace EntityLib
     public interface IApplicationDbContext
     {
         public DbSet<DogPark> DogParks { get; set; }
+        public DbSet<DogParkFacility> DogParkFacilities { get; set; }
+        public DbSet<DogParkRating> DogParkRatings { get; set; }
 
         public Task SaveChangesAsync();
     }

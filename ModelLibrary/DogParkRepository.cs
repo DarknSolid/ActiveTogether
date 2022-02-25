@@ -14,8 +14,9 @@ namespace ModelLib
 {
     public interface IDogParkRepository
     {
+        public Task<DogParkDetailedDTO> Get(int id);
         public Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight);
-        public Task Create(DogParkCreateDTO dogParkCreateDTO);
+        public Task<int> Create(DogParkCreateDTO dogParkCreateDTO);
     }
 
     public class DogParkRepository : IDogParkRepository
@@ -27,7 +28,7 @@ namespace ModelLib
             _context = context;
         }
 
-        public async Task Create(DogParkCreateDTO dogParkCreateDTO)
+        public async Task<int> Create(DogParkCreateDTO dogParkCreateDTO)
         {
             //TODO check for duplicate parks
             var entity = new DogPark
@@ -39,6 +40,25 @@ namespace ModelLib
             };
             _context.DogParks.Add(entity);
             await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        public async Task<DogParkDetailedDTO> Get(int id)
+        {
+            var entity = _context.DogParks
+                .Include(p => p.Facilities)
+                .Include(p => p.Ratings)
+                .Where(x => x.Id == id)
+                .Select(p => new DogParkDetailedDTO {
+                    Rating = p.Ratings.Sum(r => r.Rating) / 5,
+                    Description = p.Description,
+                    Name = p.Name,
+                    Facilities = p.Facilities,
+                    Latitude = (float) p.Location.Y,
+                    Longitude = (float) p.Location.X,
+                });
+
+            return await entity.FirstOrDefaultAsync();
         }
 
         public async Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight)
@@ -59,8 +79,8 @@ namespace ModelLib
             {
                 Id = p.Id,
                 Name = p.Name,
-                Latitude = (float)p.Location.X,
-                Longitude = (float)p.Location.Y
+                Latitude = (float)p.Location.Y,
+                Longitude = (float)p.Location.X
             }).ToList();
             return nearbyDogParks;
         }

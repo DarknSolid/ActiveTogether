@@ -1,0 +1,11 @@
+Drop table if exists "AspNetRoleClaims" Cascade;
+Drop table if exists "AspNetRoles" Cascade;
+Drop table if exists "AspNetUsers" Cascade;
+Drop table if exists "AspNetUserClaims" Cascade;
+Drop table if exists "AspNetUserLogins" Cascade;
+Drop table if exists "AspNetUserRoles" Cascade;
+Drop table if exists "AspNetUserTokens" Cascade;
+Drop table if exists "DogParkFacilities" Cascade;
+Drop table if exists "DogParks" Cascade;
+Drop table if exists "DogParkRatings" Cascade;
+Drop table if exists "__EFMigrationsHistory" Cascade;

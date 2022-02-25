@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlazorGoogleMaps" Version="1.5.3" />
+    <PackageReference Include="BlazorGoogleMaps" Version="1.5.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.2" />
     <PackageReference Include="MudBlazor" Version="6.0.6" />
   </ItemGroup>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ModelLib.ApiDTOs;
+using ModelLib.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +11,6 @@ namespace RazorLib.Interfaces
 {
     public interface IApiClient
     {
-
+        Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO);
     }
 }

@@ -14,6 +14,8 @@ namespace EntityLib.Entities
         [MaxLength(50)]
         public string Name { get; set; }
 
+        //TODO Images
+
         [Required]
         [MaxLength(500)]
         public string Description { get; set; }
@@ -23,5 +25,6 @@ namespace EntityLib.Entities
         public Point Location  { get; set; }
 
         public IEnumerable<DogParkFacility> Facilities { get; set; }
+        public IEnumerable<DogParkRating> Ratings { get; set; }
     }
 }

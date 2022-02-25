@@ -39,7 +39,7 @@ builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
 
 
 //others:
-builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+builder.Services.AddDefaultIdentity<IdentityUser<int>>(options => {
         options.SignIn.RequireConfirmedAccount = true;
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789-._@+ ÄäÖöÜüẞß";
         }
