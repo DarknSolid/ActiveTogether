@@ -8,7 +8,7 @@ using Npgsql;
 
 namespace WebApp.Entities
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser,IdentityRole<int>, int>, IApplicationDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>, IApplicationDbContext
     {
 
         static ApplicationDbContext() 

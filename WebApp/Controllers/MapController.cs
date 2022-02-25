@@ -25,9 +25,7 @@ namespace WebApp.Controllers
         [HttpPost(ApiEndpoints.MAP_POINTS)]
         public async Task<ActionResult<MapSearchResultDTO>> GetPoints([FromBody] MapSearchDTO map)
         {
-            Point upperLeft = new Point(map.West, map.North);
-            Point lowerRight = new Point(map.East, map.South);
-            var dogs = await _dogParkRepository.GetInAreaAsync(upperLeft, lowerRight);
+            var dogs = await _dogParkRepository.GetInAreaAsync(map.BoundsDTO);
             return new MapSearchResultDTO()
             {
                 DogParkListDTOs = dogs

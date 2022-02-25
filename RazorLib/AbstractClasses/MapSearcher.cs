@@ -21,7 +21,7 @@ namespace RazorLib.AbstractClasses
         private readonly string _dogParkIconUrl = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png";//"https://www.clipartmax.com/png/full/436-4367818_iconathon-dog-park-icon-flat-circle-white-on-orange-circle.png";
         private List<Marker> _markers;
         private GoogleMap _map;
-        private readonly int _minZoomLevel = 11;
+        private readonly int _minZoomLevel = 1;//11;
 
         protected MapSearcher()
         {
@@ -62,10 +62,13 @@ namespace RazorLib.AbstractClasses
             await UpdatePreviousBounds();
             var searchRequest = new MapSearchDTO()
             {
-                North = _previousNorth,
-                South = _previousSouth,
-                West = _previousWest,
-                East = _previousEast,
+                BoundsDTO = new BoundsDTO()
+                {
+                    North = _previousNorth,
+                    South = _previousSouth,
+                    East = _previousEast,
+                    West = _previousWest,
+                },
                 MapFilterDTO = filter
             };
             var mapSearchResult = await FetchNewMapEntities(searchRequest);

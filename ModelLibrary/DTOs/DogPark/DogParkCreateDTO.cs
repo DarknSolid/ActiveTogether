@@ -17,6 +17,6 @@ namespace ModelLib.DTOs.DogPark
         public float Latitude { get; set; }
         public float Longitude { get; set; }
 
-        public ICollection<DogParkFacility> Facilities { get; set; }
+        public List<DogParkFacility> Facilities { get; set; }
     }
 }

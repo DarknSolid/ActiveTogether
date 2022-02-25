@@ -10,9 +10,9 @@ namespace ModelLib.DTOs.DogPark
     public class DogParkDetailedDTO : DogParkListDTO
     {
         public string Description { get; set; }
-        public float Rating { get; set; }
-        public IEnumerable<DogParkFacility> Facilities { get; set; }
-        public IEnumerable<string> ImageUrls { get; set; }
+        public double Rating { get; set; }
+        public List<DogParkFacility> Facilities { get; set; }
+        public List<string> ImageUrls { get; set; }
 
         public DogParkDetailedDTO()
         {

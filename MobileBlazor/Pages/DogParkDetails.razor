@@ -1,0 +1,8 @@
+﻿@attribute [Route(RoutingConstants.DOG_PARK_DETAILS + "/{id:int}")]
+
+<RazorLib.Pages.DogParkDetails DogParkId=Id></RazorLib.Pages.DogParkDetails>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+}

@@ -1,0 +1,78 @@
+﻿@using RazorLib.Interfaces
+@using ModelLib.DTOs.DogPark
+@inject IApiClient ApiClient
+
+
+@if (!_isLoading)
+{
+    <MudCard style="padding=0; margin-top=0;">
+        <MudCarousel Class="mud-width-full" Style="height:200px;" ShowArrows="@false" ShowBullets="true" AutoCycle="true" TData="object">
+            @foreach (var url in _dogParkDetails.ImageUrls)
+            {
+                <MudCarouselItem Transition="Transition.Slide" Color="@Color.Primary">
+                    <div class="d-flex" style="height:100%">
+                        <MudImage ObjectFit="ObjectFit.Cover" Src="@url" Alt="Dog Park Front Page Image"/>
+                    </div>
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+        <MudCardContent>
+            <MudText Typo="Typo.h4">@_dogParkDetails.Name</MudText>
+            <MudPaper Style="align-items: center" Class="d-flex flex-row flex-grow-1 gap-2" Elevation="0">
+                <MudRating Style="align-items: center" ReadOnly=true SelectedValue=(int)_dogParkDetails.Rating />
+                <MudText Typo="Typo.body1">@_dogParkDetails.Rating</MudText>
+            </MudPaper>
+            @if (_dogParkDetails.Facilities.Count() == 0)
+            {
+                <MudText Type="Typo.h5">Ingen Faciliteter</MudText>
+            }
+            else
+            {
+                <MudText Type="Typo.h5">Faciliteter:</MudText>
+                @foreach(var f in _dogParkDetails.Facilities)
+                {
+                    <MudText Type="Typo.caption">@f.FacilityType.ToString()</MudText>
+                }
+            }
+            <MudText Typo="Typo.body2">@_dogParkDetails.Description</MudText>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudCard>
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Animation="Animation.Wave" />
+        <MudCardContent>
+            <MudSkeleton Width="30%" Height="42px;" Animation="Animation.Wave" />
+            <MudSkeleton Width="80%" Animation="Animation.Wave" />
+            <MudSkeleton Width="100%" Animation="Animation.Wave" />
+        </MudCardContent>
+    </MudCard>
+}
+
+
+@code {
+    [Parameter]
+    public int DogParkId { get; set; }
+    private bool _isLoading;
+    private DogParkDetailedDTO _dogParkDetails;
+
+    protected override async void OnInitialized()
+    {
+        _isLoading = true;
+        await Fetch();
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task Fetch()
+    {
+        _dogParkDetails = await ApiClient.GetDogPark(DogParkId);
+        if (_dogParkDetails.ImageUrls.Count() == 0)
+        {
+            _dogParkDetails.ImageUrls.Add("https://www.browncountywi.gov/i/f/Park-Management/Virtual%20Tours%20Page.png");
+            _dogParkDetails.ImageUrls.Add("https://fergusonforestdogpark.ca/wp-content/uploads/2019/12/Using-the-park-1024x699.jpg");
+            _dogParkDetails.ImageUrls.Add("https://www.cityofgreenwoodsc.com/home/showpublishedimage/1706/635624489073170https://www.cityofgreenwoodsc.com/home/showpublishedimage/1706/635624489073170000000");
+        }
+    }
+}

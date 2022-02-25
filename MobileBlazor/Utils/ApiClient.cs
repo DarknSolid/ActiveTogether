@@ -87,5 +87,10 @@ namespace MobileBlazor.Utils
             var thing = JsonConvert.DeserializeObject<MapSearchResultDTO>(str);
             return thing;
         }
+
+        public async Task<DogParkDetailedDTO> GetDogPark(int id)
+        {
+            return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
+        }
     }
 }

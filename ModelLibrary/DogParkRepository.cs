@@ -9,13 +9,14 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.Utilities;
 using EntityLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using ModelLib.ApiDTOs;
 
 namespace ModelLib
 {
     public interface IDogParkRepository
     {
         public Task<DogParkDetailedDTO> Get(int id);
-        public Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight);
+        public Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds);
         public Task<int> Create(DogParkCreateDTO dogParkCreateDTO);
     }
 
@@ -36,7 +37,7 @@ namespace ModelLib
                 Name = dogParkCreateDTO.Name,
                 Description = dogParkCreateDTO.Description,
                 Facilities = dogParkCreateDTO.Facilities,
-                Location = new Point(new Coordinate(dogParkCreateDTO.Latitude, dogParkCreateDTO.Longitude))
+                Location = new Point(new Coordinate(dogParkCreateDTO.Longitude, dogParkCreateDTO.Latitude))
             };
             _context.DogParks.Add(entity);
             await _context.SaveChangesAsync();
@@ -61,16 +62,16 @@ namespace ModelLib
             return await entity.FirstOrDefaultAsync();
         }
 
-        public async Task<List<DogParkListDTO>> GetInAreaAsync(Point upperLeft, Point lowerRight)
+        public async Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds)
         {
             Coordinate[] boundingBox = new Coordinate[]
-            {
-                new Coordinate (upperLeft.X, upperLeft.Y),
-                new Coordinate (lowerRight.X, upperLeft.Y),
-                new Coordinate(lowerRight.X, lowerRight.Y),
-                new Coordinate(upperLeft.X, lowerRight.Y),
+            { // first east/west then north/south due to north/south being the y coordinates
+                new Coordinate(bounds.East, bounds.North),
+                new Coordinate(bounds.West, bounds.North),
+                new Coordinate(bounds.West, bounds.South),
+                new Coordinate(bounds.East, bounds.South),
                 // close the geometry:
-                new Coordinate (upperLeft.X, upperLeft.Y)
+                new Coordinate(bounds.East, bounds.North)
             };
             var bb = new GeometryFactory().CreatePolygon(boundingBox);
 

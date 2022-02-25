@@ -17,11 +17,6 @@ var serviceProvider = services.BuildServiceProvider();
 var repo = serviceProvider.GetService<IDogParkRepository>();
 
 
-var upperLeft = new Point(new Coordinate(1,2));
-var lowerRight = new Point(new Coordinate(2, 1));
-
-var result = await repo.GetInAreaAsync(upperLeft, lowerRight);
-
 for (int i = 0; i < 400; i++)
 {
     var park = Util.GenerateDogPark();

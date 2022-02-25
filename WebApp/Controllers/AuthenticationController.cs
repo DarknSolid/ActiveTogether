@@ -49,7 +49,7 @@ namespace WebApp.Controllers
                 Email = register.Email,
                 UserName = register.FirstName + " " + register.LastName,
                 FirstName = register.FirstName,
-                LastName = register.LastName,
+                LastName = register.LastName
             };
 
             var registerResult = await _userManager.CreateAsync(user, register.Password);

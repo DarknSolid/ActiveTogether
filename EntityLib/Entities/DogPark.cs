@@ -24,7 +24,7 @@ namespace EntityLib.Entities
         [Column(TypeName = "geometry (point)")]
         public Point Location  { get; set; }
 
-        public IEnumerable<DogParkFacility> Facilities { get; set; }
-        public IEnumerable<DogParkRating> Ratings { get; set; }
+        public List<DogParkFacility> Facilities { get; set; }
+        public List<DogParkRating> Ratings { get; set; }
     }
 }

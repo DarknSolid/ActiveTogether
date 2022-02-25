@@ -9,7 +9,7 @@
         public const string AUTHENTICATION_REGISTER = "register/";
         public const string AUTHENTICATION_USER_INFO = "user-info/";
 
-        public const string DOG_PARKS_GET = "/";
+        public const string DOG_PARKS_GET = "";
 
         public const string MAP_POINTS = "points/";
 

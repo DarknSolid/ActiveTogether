@@ -1,4 +1,5 @@
 ﻿using EntityLib;
+using EntityLib.Entities.Identity;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -39,7 +40,7 @@ builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
 
 
 //others:
-builder.Services.AddDefaultIdentity<IdentityUser<int>>(options => {
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
         options.SignIn.RequireConfirmedAccount = true;
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789-._@+ ÄäÖöÜüẞß";
         }
@@ -58,7 +59,7 @@ builder.Services.AddAuthentication()
        options.ClientSecret = facebookConfiguration.AppSecret;
    });
 
-builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 
 var app = builder.Build();
 

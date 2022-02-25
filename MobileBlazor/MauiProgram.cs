@@ -22,7 +22,7 @@ namespace MobileBlazor
 
             builder.Services.AddBlazorWebView();
             builder.Services.AddScoped<HttpClient>();
-            var apiClient = new ApiClient(new HttpClient(), "http://192.168.1.129:49156/");
+            var apiClient = new ApiClient(new HttpClient(), "http://192.168.1.129:49166/");
             builder.Services.AddSingleton(apiClient);
             builder.Services.AddSingleton<IApiClient>(apiClient);
             builder.Services.AddScoped<MapSearcher, MapSearcherClient>();

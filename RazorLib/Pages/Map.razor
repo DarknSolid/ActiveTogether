@@ -15,7 +15,7 @@
 
 <MudToggleIconButton Toggled="@ShouldDisplayRoadMap" ToggledChanged="OnMapTypeChanged"
                      Icon="@Icons.Filled.SatelliteAlt" Title="Off"
-                     ToggledIcon="@Icons.Outlined.SatelliteAlt" ToggledTitle="On"/>
+                     ToggledIcon="@Icons.Outlined.SatelliteAlt" ToggledTitle="On" />
 
 <GoogleMap @ref="@map" Id="map" Options="@mapOptions" OnAfterInit="@(async () => await OnAfterInitAsync())"></GoogleMap>
 
@@ -28,6 +28,9 @@
     [Parameter]
     public MapFilterDTO MapFilterDTO { get; set; }
 
+    [Parameter]
+    public Action<int> OnDogParkPressed { get; set; }
+
 
     private MapTypeId GetCurrentMapType()
     {
@@ -38,22 +41,21 @@
     {
         ShouldDisplayRoadMap = true;
         mapOptions = new MapOptions()
-        {
-            Zoom = 13,
-            Center = new LatLngLiteral()
             {
-                Lat = 55.6570832,
-                Lng = 12.5937645
-            },
-            MapTypeId = GetCurrentMapType(),
-            DisableDefaultUI = true,
-            GestureHandling = "greedy",
-         };
+                Zoom = 13,
+                Center = new LatLngLiteral()
+                {
+                    Lat = 55.6570832,
+                    Lng = 12.5937645
+                },
+                MapTypeId = GetCurrentMapType(),
+                DisableDefaultUI = true,
+                GestureHandling = "greedy",
+            };
         if (MapFilterDTO == null)
         {
             MapFilterDTO = new MapFilterDTO();
         }
-        //MapSearcher.SetMap(map);
     }
 
     private async Task OnAfterInitAsync()
@@ -87,11 +89,8 @@
         {
             await dogPark.AddListener("click", () =>
             {
-                var parameters = new DialogParameters();
-                parameters.Add("Message", $"Dog park pressed with id {id}");
-		        var options = new DialogOptions { CloseOnEscapeKey = true };
-                DialogService.Show<Dialog>("Simple Dialog", parameters, options);
-            }); 
+                OnDogParkPressed(id);
+            });
         }
     }
 }
