@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace MobileBlazor.Utils
 {
-    public class ApiClient : IApiClient
+    public class ApiClient : IMobileApiClient, IApiClient
     {
 
         private readonly HttpClient _httpClient;
@@ -27,6 +27,8 @@ namespace MobileBlazor.Utils
             _httpClient = httpClient;
             _baseApiUrl = baseApiUrl;
         }
+
+        #region IMobileApiClient implementation:
 
         public async Task<UserInfoDTO> FacebookLogin()
         {
@@ -79,6 +81,11 @@ namespace MobileBlazor.Utils
             await _httpClient.GetAsync(_baseApiUrl + ApiEndpoints.GET_LOG_OUT);
         }
 
+        #endregion
+
+
+
+        #region BlazorLib Interface implementation:
         public async Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_MAP_POINTS;
@@ -92,5 +99,7 @@ namespace MobileBlazor.Utils
         {
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
         }
+
+        #endregion
     }
 }

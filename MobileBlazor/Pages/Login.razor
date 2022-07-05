@@ -1,7 +1,7 @@
 ﻿@attribute [Route(RoutingConstants.LOGIN)]
 @using MobileBlazor.Utils
 @using WebApp.DTOs.Authentication
-@inject ApiClient apiClient
+@inject IMobileApiClient apiClient
 @inject NavigationManager NavigationManager
 
 @if(UserInfo == null)
@@ -22,13 +22,13 @@ Welcome to your new app.
     public async void LoginWithFacebook()
     {
         UserInfo = await apiClient.FacebookLogin();
-        NavigationManager.NavigateTo("map");
+        NavigationManager.NavigateTo(RoutingConstants.MAP);
     }
 
     public async void LoginManually()
     {
         UserInfo = await apiClient.Login("hampuswadum@hotmail.com", "Test123!");
-        NavigationManager.NavigateTo("map");
+        NavigationManager.NavigateTo(RoutingConstants.MAP);
     }
 }
 

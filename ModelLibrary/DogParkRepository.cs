@@ -46,7 +46,7 @@ namespace ModelLib
 
         public async Task<DogParkDetailedDTO> Get(int id)
         {
-            var entity = _context.DogParks
+            var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)
                 .Include(p => p.Ratings)
                 .Where(x => x.Id == id)
@@ -54,12 +54,12 @@ namespace ModelLib
                     Rating = p.Ratings.Sum(r => r.Rating) / 5,
                     Description = p.Description,
                     Name = p.Name,
-                    Facilities = p.Facilities,
+                    Facilities = p.Facilities.Select(f => f.FacilityType),
                     Latitude = (float) p.Location.Y,
                     Longitude = (float) p.Location.X,
                 });
 
-            return await entity.FirstOrDefaultAsync();
+            return await entityQuery.FirstOrDefaultAsync();
         }
 
         public async Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds)

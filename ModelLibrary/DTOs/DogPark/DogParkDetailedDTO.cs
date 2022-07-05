@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static EntityLib.Entities.DogParkFacility;
 
 namespace ModelLib.DTOs.DogPark
 {
@@ -11,13 +12,13 @@ namespace ModelLib.DTOs.DogPark
     {
         public string Description { get; set; }
         public double Rating { get; set; }
-        public List<DogParkFacility> Facilities { get; set; }
+        public IEnumerable<DogPackFacilityType> Facilities { get; set; }
         public List<string> ImageUrls { get; set; }
 
         public DogParkDetailedDTO()
         {
             ImageUrls = new List<string>();
-            Facilities = new List<DogParkFacility>();
+            Facilities = new List<DogPackFacilityType>();
         }
     }
 }
