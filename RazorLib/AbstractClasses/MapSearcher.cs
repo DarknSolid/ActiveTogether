@@ -87,7 +87,6 @@ namespace RazorLib.AbstractClasses
             var zoomLvl = await _map.InteropObject.GetZoom();
             foreach (DogParkListDTO dogPark in mapSearchResult.DogParkListDTOs)
             {
-                dogPark.Name = "hejsa";
                 var options = new MarkerOptions()
                 {
                     Position = new LatLngLiteral() { Lat = dogPark.Latitude, Lng = dogPark.Longitude},
