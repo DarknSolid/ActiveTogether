@@ -71,7 +71,7 @@ namespace MobileBlazor.Mocks
                 Latitude = _dogParkListDTO.Latitude,
                 Longitude = _dogParkListDTO.Longitude,
                 Rating = 4,
-                ImageUrls = new List<string> { "" },
+                ImageUrls = new List<string> { "https://www.dogparkconsulting.com/wp-content/uploads/2017/01/DogParkF_sm-1024x756.jpg" },
                 Facilities = new List<DogPackFacilityType> {  DogPackFacilityType.Fenced, DogPackFacilityType.Grassfield }
             });
         }
