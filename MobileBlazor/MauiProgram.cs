@@ -4,6 +4,7 @@ using MobileBlazor.Utils;
 using MudBlazor.Services;
 using RazorLib.AbstractClasses;
 using RazorLib.Interfaces;
+using RazorLib.Models;
 
 namespace MobileBlazor
 {
@@ -34,7 +35,8 @@ namespace MobileBlazor
             builder.Services.AddSingleton<IApiClient>(mockedApiClient);
             builder.Services.AddScoped<MapSearcher, MapSearcherClient>();
             builder.Services.AddMudServices();
-            
+            builder.Services.AddScoped<ISessionStorage, SessionStorage>();
+
             return builder.Build();
         }
     }

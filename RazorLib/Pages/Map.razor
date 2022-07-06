@@ -5,9 +5,10 @@
 @using ModelLib.DTOs.DogPark
 @using RazorLib.AbstractClasses
 @using RazorLib.Components
+@using RazorLib.Models
 @inject IDialogService DialogService
-
 @inject MapSearcher MapSearcher
+@inject ISessionStorage SessionStorage
 
 <PageTitle>Map</PageTitle>
 
@@ -40,6 +41,7 @@
     protected override void OnInitialized()
     {
         ShouldDisplayRoadMap = true;
+
         mapOptions = new MapOptions()
             {
                 Zoom = 13,
@@ -52,6 +54,8 @@
                 DisableDefaultUI = true,
                 GestureHandling = "greedy",
             };
+
+
         if (MapFilterDTO == null)
         {
             MapFilterDTO = new MapFilterDTO();
@@ -62,6 +66,13 @@
     {
         //TODO zoom_changed event or just bounds_changed event instead of drag and zoom
         MapSearcher.SetMap(map);
+        if (await SessionStorage.Exists(nameof(mapOptions)))
+        {
+            mapOptions = await SessionStorage.GetItem<MapOptions>(nameof(mapOptions));
+            await map.InteropObject.SetCenter(mapOptions.Center);
+            await map.InteropObject.SetZoom(Convert.ToDouble(mapOptions.Zoom));
+            await map.InteropObject.SetMapTypeId(mapOptions.MapTypeId);
+        } 
         await map.InteropObject.AddListener("dragend", OnDragEnd);
         await map.InteropObject.AddListener("zoom_changed", OnDragEnd);
     }
@@ -71,6 +82,7 @@
         ShouldDisplayRoadMap = !ShouldDisplayRoadMap;
         await MapSearcher.ToggleMarkers();
         await map.InteropObject.SetMapTypeId(GetCurrentMapType());
+        await SaveMapStateAsync();
     }
 
     private async void OnDragEnd()
@@ -80,6 +92,8 @@
 
     private async Task UpdateMap()
     {
+        await SaveMapStateAsync();
+
         var newMapMarkers = await MapSearcher.UpdateMapIcons(MapFilterDTO);
         if (newMapMarkers == null)
         {
@@ -92,5 +106,20 @@
                 OnDogParkPressed(id);
             });
         }
+    }
+
+    private async Task SaveMapStateAsync()
+    {
+        int? newZoom = Convert.ToInt32(await map.InteropObject.GetZoom());
+        var newMapOptions = new MapOptions
+            {
+                Center = await map.InteropObject.GetCenter(),
+                Zoom = newZoom,
+                MapTypeId = GetCurrentMapType(),
+                DisableDefaultUI = mapOptions.DisableDefaultUI,
+                GestureHandling = mapOptions.GestureHandling
+
+            };
+        await SessionStorage.SetItem(nameof(mapOptions), newMapOptions);
     }
 }
