@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using MobileBlazor.Extensions
+@inherits LayoutComponentBase
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -6,6 +9,7 @@
 
 <MudLayout>
     <MudAppBar Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" OnClick="@((e) => OnBackButtonPressed())" />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
         <MudSpacer />
@@ -19,7 +23,7 @@
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="px-0"> @*{// px = padding left and right}*@
             @Body
         </MudContainer>
     </MudMainContent>
@@ -36,5 +40,10 @@
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    void OnBackButtonPressed()
+    {
+        navigationManager.GoBack(jsRuntime);
     }
 }
