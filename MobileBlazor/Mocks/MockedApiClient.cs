@@ -3,6 +3,7 @@ using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
 using RazorLib.Interfaces;
+using RazorLib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,34 @@ namespace MobileBlazor.Mocks
                 ImageUrls = new List<string> { "https://www.dogparkconsulting.com/wp-content/uploads/2017/01/DogParkF_sm-1024x756.jpg" },
                 Facilities = new List<DogPackFacilityType> {  DogPackFacilityType.Fenced, DogPackFacilityType.Grassfield }
             });
+        }
+
+        public Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        {
+            var result = new List<RatingDTO>();
+            var random = new Random();
+            var start = page * pageCount;
+            var stop = page * pageCount + pageCount;
+            for (int i = start; i < stop; i++)
+            {
+                result.Add(
+                    new RatingDTO
+                    {
+                        Author = "Author" + i,
+                        Comment = "A random comment here" + i,
+                        Date = DateTime.Now,
+                        Rating = Convert.ToInt32(random.Next(0,6))
+                    }
+                );
+            }
+
+            var paginationResult = new PaginationResult 
+            { 
+                CurrentPage = page, 
+                HasNext = true 
+            };
+
+            return Task.FromResult((paginationResult, result));
         }
         #endregion
     }

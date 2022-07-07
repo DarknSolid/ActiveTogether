@@ -1,4 +1,5 @@
-﻿@using RazorLib.Interfaces
+﻿@using RazorLib.Components
+@using RazorLib.Interfaces
 @using ModelLib.DTOs.DogPark
 @inject IApiClient ApiClient
 
@@ -22,6 +23,8 @@
                 <MudRating Style="align-items: center" ReadOnly=true SelectedValue=(int)_dogParkDetails.Rating />
                 <MudText Typo="Typo.body1">@_dogParkDetails.Rating</MudText>
             </MudPaper>
+
+            @*Display facilities:*@
             @if (_dogParkDetails.Facilities.Count() == 0)
             {
                 <MudText Type="Typo.h5">Ingen Faciliteter</MudText>
@@ -34,7 +37,11 @@
                     <MudText Type="Typo.caption">@f.ToString()</MudText>
                 }
             }
+
             <MudText Typo="Typo.body2">@_dogParkDetails.Description</MudText>
+
+            <RatingsListView/>
+
         </MudCardContent>
     </MudCard>
 }
@@ -68,11 +75,5 @@ else
     private async Task Fetch()
     {
         _dogParkDetails = await ApiClient.GetDogPark(DogParkId);
-        if (_dogParkDetails.ImageUrls.Count() == 0)
-        {
-            _dogParkDetails.ImageUrls.Add("https://www.browncountywi.gov/i/f/Park-Management/Virtual%20Tours%20Page.png");
-            _dogParkDetails.ImageUrls.Add("https://fergusonforestdogpark.ca/wp-content/uploads/2019/12/Using-the-park-1024x699.jpg");
-            _dogParkDetails.ImageUrls.Add("https://www.cityofgreenwoodsc.com/home/showpublishedimage/1706/635624489073170https://www.cityofgreenwoodsc.com/home/showpublishedimage/1706/635624489073170000000");
-        }
     }
 }

@@ -1,18 +1,14 @@
 ﻿using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WebApp.DTOs.Authentication;
+using RazorLib.Models;
 
 namespace RazorLib.Interfaces
 {
     public interface IApiClient
     {
-        Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO);
-        Task<DogParkDetailedDTO> GetDogPark(int id);
+        public Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO);
+        public Task<DogParkDetailedDTO> GetDogPark(int id);
+        public Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount); 
     }
 }

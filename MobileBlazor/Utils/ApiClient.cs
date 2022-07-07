@@ -12,6 +12,7 @@ using ModelLib.DTOs;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
+using RazorLib.Models;
 
 namespace MobileBlazor.Utils
 {
@@ -98,6 +99,11 @@ namespace MobileBlazor.Utils
         public async Task<DogParkDetailedDTO> GetDogPark(int id)
         {
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
+        }
+
+        public Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

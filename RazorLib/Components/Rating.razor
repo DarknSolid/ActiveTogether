@@ -1,0 +1,28 @@
+﻿@using RazorLib.Models
+
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">@RatingDTO.Author.First()</MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">@RatingDTO.Author</MudText>
+            <MudRating ReadOnly="true" SelectedValue="@RatingDTO.Rating" />
+            <MudText Typo="Typo.body2">@RatingDTO.Date.ToString()</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">@RatingDTO.Comment</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
+        <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+    </MudCardActions>
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public RatingDTO RatingDTO { get; set; }
+}

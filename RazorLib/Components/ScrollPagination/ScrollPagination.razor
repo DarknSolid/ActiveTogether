@@ -1,0 +1,37 @@
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+@*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
+
+@ChildContent
+
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }    
+
+    [Parameter]
+    public string ObserverTargetId { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ObservableTargetReached { get; set; }
+
+    private DotNetObjectReference<ScrollPagination> objectRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objectRef = DotNetObjectReference.Create(this);
+            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Initialize", objectRef, ObserverTargetId); // calls the "scroll-pagination-oberser.js" script
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnIntersection()
+    {
+        await ObservableTargetReached.InvokeAsync(true);
+
+    }
+
+}

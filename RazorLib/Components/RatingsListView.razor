@@ -1,0 +1,50 @@
+﻿@using RazorLib.Interfaces
+@using RazorLib.Models
+@using RazorLib.Components.ScrollPagination
+@inject IApiClient ApiClient
+
+<h3>RatingsListView</h3>
+
+<ScrollPagination ObserverTargetId="@_targetId" ObservableTargetReached="(e) => FetchRatings()">
+        @foreach (var rating in Ratings) {
+            <Rating RatingDTO=@rating />
+        }
+        <div id="@_targetId"></div>
+</ScrollPagination>
+
+@code {
+    [Parameter]
+    public int? MaxItems { get; set; }
+
+    [Parameter]
+    public int DogParkId { get; set; }
+
+    public List<RatingDTO> Ratings { get; set; }
+
+    private int _page;
+    private int _ratingsPerPage;
+    private bool _hasNext;
+
+    private string _targetId = "dogParkRatingListView";
+
+    public RatingsListView()
+    {
+        _page = 0;
+        _hasNext = true;
+        _ratingsPerPage = 10;
+        Ratings = new();
+    }
+
+    private async Task FetchRatings()
+    {
+        var hasLimitExceeded = MaxItems != null && Ratings.Count < MaxItems;
+        if (_hasNext && !hasLimitExceeded)
+        {
+            _hasNext = false;
+            var (paginationResult, ratings) = await ApiClient.GetDogParkRatings(DogParkId, _page, _ratingsPerPage);
+            Ratings.AddRange(ratings);
+            _page++;
+            _hasNext = paginationResult.HasNext;
+        }
+    }
+}
