@@ -3,20 +3,21 @@
 
 @*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
 
-@if (Orientation == PaginationOrientation.Vertical)
+@if (Orientation == PaginationOrientation.Horizontal)
 {
-    <div class="d-flex flex-column overflow-y-scroll" style="gap:@(Gap)px"> 
+    <div class="d-flex flex-column" style="gap:@(Gap)px;"> 
         @ChildContent
-        <div id="@_intersectionElementTargetId"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
     </div>
 } 
 else
 {
-    <div class="d-flex overflow-x-scroll" style="gap:@(Gap)px;">
+    <div class="d-flex flex-row" style="gap:@(Gap)px;">
         @ChildContent
-        <div id="@_intersectionElementTargetId"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
     </div>
 }
+
 
 
 
