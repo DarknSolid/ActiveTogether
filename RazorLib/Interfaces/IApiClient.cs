@@ -1,7 +1,7 @@
 ﻿using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
-using ModelLib.Reviews;
+using ModelLib.DTOs.Reviews;
 using RazorLib.Models;
 using static RazorLib.Pages.CreateReview;
 

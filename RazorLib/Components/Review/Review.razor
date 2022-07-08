@@ -1,11 +1,11 @@
-﻿@using ModelLib.Reviews
+﻿@using ModelLib.DTOs.Reviews
 @using RazorLib.Models
 
 
 <MudCard>
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudAvatar Color="Color.Secondary">@ReviewDTO.AuthorName.First()</MudAvatar>
+            <MudAvatar Color="Color.Secondary">@(ReviewDTO.AuthorFirstName.First())@(ReviewDTO.AuthorLastName.First())</MudAvatar>
         </CardHeaderAvatar>
         <CardHeaderContent>
             <MudText Typo="Typo.body1">@ReviewDTO.AuthorName</MudText>

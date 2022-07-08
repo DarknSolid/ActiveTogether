@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ModelLib;
 using ModelLib.ApiDTOs;
 using ModelLib.Constants;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
+using ModelLib.Repositories;
 using NetTopologySuite.Geometries;
 
 namespace WebApp.Controllers

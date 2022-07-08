@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ModelLib.Reviews
+namespace ModelLib.DTOs.Reviews
 {
     public class ReviewCreateDTO
     {

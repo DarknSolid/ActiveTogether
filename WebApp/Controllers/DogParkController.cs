@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ModelLib;
 using ModelLib.Constants;
 using ModelLib.DTOs.DogPark;
+using ModelLib.Repositories;
 
 namespace WebApp.Controllers
 {

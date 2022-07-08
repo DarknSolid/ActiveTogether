@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
-using ModelLib;
+using ModelLib.Repositories;
 using WebApp.Areas.Identity;
 using WebApp.Entities;
 using WebApp.Utils.ExternalLoginProviders.Facebook;

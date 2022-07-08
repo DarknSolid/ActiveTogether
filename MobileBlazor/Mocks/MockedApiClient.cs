@@ -2,7 +2,7 @@
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
-using ModelLib.Reviews;
+using ModelLib.DTOs.Reviews;
 using RazorLib.Interfaces;
 using RazorLib.Pages;
 using WebApp.DTOs.Authentication;
@@ -95,7 +95,8 @@ namespace MobileBlazor.Mocks
                 result.Add(
                     new ReviewDetailedDTO
                     {
-                        AuthorName = "Author" + i,
+                        AuthorFirstName = "John",
+                        AuthorLastName = "Doe " + i,
                         Title = "my title here",
                         Comment = "A random comment here" + i,
                         Date = DateTime.Now,

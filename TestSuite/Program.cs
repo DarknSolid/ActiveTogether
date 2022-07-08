@@ -1,8 +1,8 @@
 ﻿using EntityLib;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ModelLib;
 using ModelLib.DTOs.DogPark;
+using ModelLib.Repositories;
 using NetTopologySuite.Geometries;
 using TestSuite;
 using WebApp.Entities;

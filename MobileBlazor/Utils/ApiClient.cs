@@ -12,8 +12,8 @@ using ModelLib.DTOs;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
-using ModelLib.Reviews;
 using RazorLib.Pages;
+using ModelLib.DTOs.Reviews;
 
 namespace MobileBlazor.Utils
 {
