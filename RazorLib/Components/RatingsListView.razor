@@ -5,7 +5,7 @@
 @inject IApiClient ApiClient
 
 
-<ScrollPagination ObserverTargetId="@_intersectionElementTargetId" ObservableTargetReached="(e) => FetchRatings()">
+<ScrollPagination OnPagination="(e) => FetchRatings()">
     @foreach (var rating in Ratings) {
         <Rating RatingDTO=@rating />
     }
@@ -16,7 +16,6 @@
             <RatingSkeleton/>
         }
     }
-    <div id="@_intersectionElementTargetId"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
 </ScrollPagination>
 
 
@@ -34,8 +33,6 @@
     private int _page;
     private int _ratingsPerPage;
     private bool _hasNext;
-
-    private string _intersectionElementTargetId = "dogParkRatingListView";
 
     public RatingsListView()
     {

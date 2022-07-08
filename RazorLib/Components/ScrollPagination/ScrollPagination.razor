@@ -4,33 +4,42 @@
 @*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
 
 @ChildContent
+<div id="@_intersectionElementTargetId"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+
 
 
 @code {
     [Parameter]
-    public RenderFragment ChildContent { get; set; }    
+    public RenderFragment ChildContent { get; set; }
 
     [Parameter]
-    public string ObserverTargetId { get; set; }
+    public EventCallback<bool> OnPagination { get; set; }
 
-    [Parameter]
-    public EventCallback<bool> ObservableTargetReached { get; set; }
+    private string _intersectionElementTargetId;
 
     private DotNetObjectReference<ScrollPagination> objectRef;
+
+    public ScrollPagination()
+    {
+        // generates a unique id for the html element to be observed:
+        _intersectionElementTargetId = Guid.NewGuid().ToString();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             objectRef = DotNetObjectReference.Create(this);
-            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Initialize", objectRef, ObserverTargetId); // calls the "scroll-pagination-oberser.js" script
+            // calls the "scroll-pagination-oberser.js" script:
+            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Initialize", objectRef, _intersectionElementTargetId); 
         }
     }
 
     [JSInvokable]
+    // Invoked by the javascript code when the intersection element is entered into the viewport
     public async Task OnIntersection()
     {
-        await ObservableTargetReached.InvokeAsync(true);
+        await OnPagination.InvokeAsync(true);
 
     }
 
