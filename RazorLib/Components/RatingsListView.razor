@@ -1,16 +1,24 @@
-﻿@using RazorLib.Interfaces
+﻿@using RazorLib.Components.Rating
+@using RazorLib.Interfaces
 @using RazorLib.Models
 @using RazorLib.Components.ScrollPagination
 @inject IApiClient ApiClient
 
-<h3>RatingsListView</h3>
 
-<ScrollPagination ObserverTargetId="@_targetId" ObservableTargetReached="(e) => FetchRatings()">
-        @foreach (var rating in Ratings) {
-            <Rating RatingDTO=@rating />
+<ScrollPagination ObserverTargetId="@_intersectionElementTargetId" ObservableTargetReached="(e) => FetchRatings()">
+    @foreach (var rating in Ratings) {
+        <Rating RatingDTO=@rating />
+    }
+    @if (_loading)
+    {
+        @for (int i = 0; i < _ratingsPerPage; i++)
+        {
+            <RatingSkeleton/>
         }
-        <div id="@_targetId"></div>
+    }
+    <div id="@_intersectionElementTargetId"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
 </ScrollPagination>
+
 
 @code {
     [Parameter]
@@ -19,13 +27,15 @@
     [Parameter]
     public int DogParkId { get; set; }
 
+    private bool _loading;
+
     public List<RatingDTO> Ratings { get; set; }
 
     private int _page;
     private int _ratingsPerPage;
     private bool _hasNext;
 
-    private string _targetId = "dogParkRatingListView";
+    private string _intersectionElementTargetId = "dogParkRatingListView";
 
     public RatingsListView()
     {
@@ -40,11 +50,14 @@
         var hasLimitExceeded = MaxItems != null && Ratings.Count < MaxItems;
         if (_hasNext && !hasLimitExceeded)
         {
+            _loading = true;
             _hasNext = false;
             var (paginationResult, ratings) = await ApiClient.GetDogParkRatings(DogParkId, _page, _ratingsPerPage);
             Ratings.AddRange(ratings);
+
             _page++;
             _hasNext = paginationResult.HasNext;
+            _loading = false;
         }
     }
 }

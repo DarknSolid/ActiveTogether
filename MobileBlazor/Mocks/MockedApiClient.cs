@@ -77,12 +77,16 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        public async Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
         {
             var result = new List<RatingDTO>();
             var random = new Random();
             var start = page * pageCount;
             var stop = page * pageCount + pageCount;
+
+            // Simulate response time
+            await Task.Delay(3000);
+
             for (int i = start; i < stop; i++)
             {
                 result.Add(
@@ -102,7 +106,7 @@ namespace MobileBlazor.Mocks
                 HasNext = true 
             };
 
-            return Task.FromResult((paginationResult, result));
+            return (paginationResult, result);
         }
         #endregion
     }

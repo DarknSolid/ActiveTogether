@@ -1,0 +1,25 @@
+﻿@using RazorLib.Models
+
+
+<MudCard>
+    <MudCardHeader>
+        @*Avatar circle*@
+        <CardHeaderAvatar>
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="50px" Height="50px" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            @*Author name*@
+            <MudSkeleton Width="43%" Height="30px;" />
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @*Rating Title and Comment*@
+        <MudSkeleton Width="30%" Height="42px;" />
+        <MudSkeleton Width="80%" />
+        <MudSkeleton Width="100%" />
+    </MudCardContent>
+    <MudCardActions>
+        <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
+        <MudSkeleton Width="105px" Height="40px" Class="ml-3" />
+    </MudCardActions>
+</MudCard>
