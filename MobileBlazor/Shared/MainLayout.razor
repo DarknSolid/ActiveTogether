@@ -3,18 +3,18 @@
 @inject NavigationManager navigationManager
 @inject IJSRuntime jsRuntime
 
-<MudThemeProvider />
+<MudThemeProvider Theme="MyCustomTheme"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0">
+@*    <MudAppBar Elevation="0">
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" OnClick="@((e) => OnBackButtonPressed())" />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-    </MudAppBar>
+    </MudAppBar>*@
 
     <MudDrawer Anchor="@Anchor.Right" @bind-Open="_drawerOpen" Elevation="1">
         <MudDrawerHeader>
@@ -22,20 +22,26 @@
         </MudDrawerHeader>
         <NavMenu />
     </MudDrawer>
-    <MudMainContent>
+
+    <MudMainContent Style="padding-top:0; padding-bottom:calc(var(--mud-appbar-height) - var(--mud-appbar-height)/8);">
         <MudContainer MaxWidth="MaxWidth.Large" Class="px-0"> @*{// px = padding left and right}*@
             @Body
         </MudContainer>
     </MudMainContent>
 
-    <MudAppBar Elevation="0" Bottom=true>
-        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
-        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
+    <MudAppBar Color="@Color.Primary" Elevation="0" Bottom=true>
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" OnClick="@((e) => OnBackButtonPressed())" />
+        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+@*        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />*@
     </MudAppBar>
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true;
+    bool _drawerOpen = false;
 
     void DrawerToggle()
     {
@@ -46,4 +52,13 @@
     {
         navigationManager.GoBack(jsRuntime);
     }
+
+    MudTheme MyCustomTheme = new MudTheme()
+        {
+            Palette = new()
+            {
+                Background = "#FCFAF6",
+                Primary = "00CBA6"
+            }
+        };
 }
