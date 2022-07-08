@@ -48,10 +48,11 @@
                 </MudItem>
 
                 <MudItem xs="12">
+                    @*Review Button*@
                     <MudButton Disabled="_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn" 
                                 Color="Color.Primary" 
                                 Variant="Variant.Filled" 
-                                FullWidth="true" OnClick="(e) => OnCreateReviewPressed(_dogParkDetails.Name)">
+                                FullWidth="true" OnClick="(e) => OnCreateReviewPressed(_dogParkDetails.Name, _dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.CanUpdateReview)">
                         @if (_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.CanUpdateReview)
                         {
                             <span>Update Review</span>
@@ -61,6 +62,8 @@
                             <span>Write Review</span>
                         }
                     </MudButton>
+
+                    @*Info text*@
                     @if(_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn)
                     {
                         <MudAlert Severity="Severity.Info">Check-in to write a review</MudAlert>
@@ -103,7 +106,7 @@ else
     public int DogParkId { get; set; }
 
     [Parameter]
-    public Action<string> OnCreateReviewPressed { get; set; }
+    public Action<string, bool> OnCreateReviewPressed { get; set; }
 
     private bool _isLoading;
     private DogParkDetailedDTO _dogParkDetails;

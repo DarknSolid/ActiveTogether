@@ -4,7 +4,9 @@
 @inject IApiClient ApiClient
 
 <MudContainer>
-    <MudText Typo="Typo.h5" Align="Align.Center">Create your review of</MudText>
+
+    <MudText Typo="Typo.h5" Align="Align.Center">@_titlePrefix your review of</MudText>
+
     <MudText Typo="Typo.h5" Align="Align.Center">"@RevieweeName"</MudText>
 
     <EditForm Model="@_model" OnValidSubmit="OnSubmit">
@@ -52,13 +54,22 @@
     [Parameter]
     public Action OnReviewCreated { get; set; }
 
+    [Parameter]
+    public bool IsReviewUpdate { get; set; }
+
     private ReviewCreateDTO _model = new();
 
     private bool _loading;
+    private string _titlePrefix;
 
     public enum ReviewTypes
     {
         DogPark
+    }
+
+    protected override void OnInitialized()
+    {
+        _titlePrefix = IsReviewUpdate ? "Update" : "Write";
     }
 
     public async Task OnSubmit()
@@ -69,4 +80,6 @@
         _loading = false;
         OnReviewCreated();
     }
+
+    
 }

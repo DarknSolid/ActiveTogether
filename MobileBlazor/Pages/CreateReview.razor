@@ -1,11 +1,11 @@
-﻿@attribute [Route(RoutingConstants.CREATE_REVIEW + "{Id:int}/{ReviewType}/{RevieweeName}")]
+﻿@attribute [Route(RoutingConstants.CREATE_REVIEW + "{Id:int}/{ReviewType}/{RevieweeName}/{IsReviewUpdate:bool}")]
 @using MobileBlazor.Extensions
 @using RazorLib.Pages
 @using static RazorLib.Pages.CreateReview
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<RazorLib.Pages.CreateReview ReviewType="_reviewType" Id="Id" RevieweeName="@RevieweeName" OnReviewCreated="() => NavigationManager.GoBack(JSRuntime)"/>
+<RazorLib.Pages.CreateReview ReviewType="_reviewType" Id="Id" RevieweeName="@RevieweeName" IsReviewUpdate="IsReviewUpdate" OnReviewCreated="() => NavigationManager.GoBack(JSRuntime)"/>
 
 @code {
     [Parameter]
@@ -17,6 +17,9 @@
 
     [Parameter]
     public string RevieweeName { get; set; }
+
+    [Parameter]
+    public bool IsReviewUpdate { get; set; }
 
     protected override void OnInitialized()
     {

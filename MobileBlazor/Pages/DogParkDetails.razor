@@ -4,8 +4,8 @@
 
 <RazorLib.Pages.DogParkDetails 
     DogParkId=Id 
-    OnCreateReviewPressed="(string dogParkName) => 
-        NavigationManager.NavigateToReviewCreate(Id, RazorLib.Pages.CreateReview.ReviewTypes.DogPark, dogParkName)"
+    OnCreateReviewPressed="(string dogParkName, bool isReviewUpdate) => 
+        NavigationManager.NavigateToReviewCreate(Id, RazorLib.Pages.CreateReview.ReviewTypes.DogPark, dogParkName, isReviewUpdate)"
 />
 
 @code {
