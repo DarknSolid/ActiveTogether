@@ -8,8 +8,9 @@ namespace MobileBlazor
 {
     public class RoutingConstants
     {
-        public const string DOG_PARK_DETAILS = "/dog-park-details";
-        public const string MAP = "/map";
-        public const string LOGIN = "/login";
+        public const string DOG_PARK_DETAILS = "dog-park-details/";
+        public const string MAP = "map/";
+        public const string LOGIN = "login/";
+        public const string CREATE_REVIEW = "create-review/";
     }
 }

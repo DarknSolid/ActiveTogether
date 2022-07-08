@@ -1,6 +1,12 @@
-﻿@attribute [Route(RoutingConstants.DOG_PARK_DETAILS + "/{id:int}")]
+﻿@attribute [Route(RoutingConstants.DOG_PARK_DETAILS + "{id:int}")]
+@using MobileBlazor.Extensions
+@inject NavigationManager NavigationManager
 
-<RazorLib.Pages.DogParkDetails DogParkId=Id></RazorLib.Pages.DogParkDetails>
+<RazorLib.Pages.DogParkDetails 
+    DogParkId=Id 
+    OnCreateReviewPressed="(string dogParkName) => 
+        NavigationManager.NavigateToReviewCreate(Id, RazorLib.Pages.CreateReview.ReviewTypes.DogPark, dogParkName)"
+/>
 
 @code {
     [Parameter]

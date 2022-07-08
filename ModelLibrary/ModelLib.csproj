@@ -10,4 +10,8 @@
     <ProjectReference Include="..\EntityLib\EntityLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApiDTOs\DogParks\" />
+  </ItemGroup>
+
 </Project>

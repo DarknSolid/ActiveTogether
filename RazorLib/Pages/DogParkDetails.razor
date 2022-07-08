@@ -23,7 +23,7 @@
                     <MudText Typo="Typo.h4">@_dogParkDetails.Name</MudText>
                     <MudPaper Style="align-items: center" Class="d-flex flex-row flex-grow-1 gap-2" Elevation="0">
                         <MudRating Style="align-items: center" ReadOnly=true SelectedValue=(int)_dogParkDetails.Rating />
-                        <MudText Typo="Typo.body1">@_dogParkDetails.Rating</MudText>
+                        <MudText Typo="Typo.body1">@_dogParkDetails.Rating (@_dogParkDetails.TotalReviews reviews)</MudText>
                     </MudPaper>
                 </MudItem>
                 
@@ -48,9 +48,32 @@
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudText Typo="Typo.h5">Ratings</MudText>
+                    <MudButton Disabled="_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn" 
+                                Color="Color.Primary" 
+                                Variant="Variant.Filled" 
+                                FullWidth="true" OnClick="(e) => OnCreateReviewPressed(_dogParkDetails.Name)">
+                        @if (_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.CanUpdateReview)
+                        {
+                            <span>Update Review</span>
+
+                        } else
+                        {
+                            <span>Write Review</span>
+                        }
+                    </MudButton>
+                    @if(_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn)
+                    {
+                        <MudAlert Severity="Severity.Info">Check-in to write a review</MudAlert>
+                    }
+                    else if (_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.CanUpdateReview) {
+                        <MudAlert Severity="Severity.Info">You have already reviewed this park</MudAlert>
+                    }
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">Reviews</MudText>
                     <div style="max-height:300px; overflow:scroll">
-                        <RatingsListView/>
+                        <ReviewsListView/>
                     </div>
                 </MudItem>
 
@@ -75,8 +98,13 @@ else
 
 
 @code {
+
     [Parameter]
     public int DogParkId { get; set; }
+
+    [Parameter]
+    public Action<string> OnCreateReviewPressed { get; set; }
+
     private bool _isLoading;
     private DogParkDetailedDTO _dogParkDetails;
 

@@ -1,0 +1,25 @@
+﻿@attribute [Route(RoutingConstants.CREATE_REVIEW + "{Id:int}/{ReviewType}/{RevieweeName}")]
+@using MobileBlazor.Extensions
+@using RazorLib.Pages
+@using static RazorLib.Pages.CreateReview
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<RazorLib.Pages.CreateReview ReviewType="_reviewType" Id="Id" RevieweeName="@RevieweeName" OnReviewCreated="() => NavigationManager.GoBack(JSRuntime)"/>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string ReviewType { get; set; }
+    private ReviewTypes _reviewType;
+
+    [Parameter]
+    public string RevieweeName { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _reviewType = Enum.Parse<ReviewTypes>(ReviewType);
+    }
+}

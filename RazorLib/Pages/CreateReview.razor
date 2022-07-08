@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using ModelLib.Reviews
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+
+<MudContainer>
+    <MudText Typo="Typo.h5" Align="Align.Center">Create your review of</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">"@RevieweeName"</MudText>
+
+    <EditForm Model="@_model" OnValidSubmit="OnSubmit">
+        <DataAnnotationsValidator />
+        <MudGrid>
+            <MudItem xs="12" sm="7">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">Rating</MudText>
+                        <MudRating Label="Title" MaxValue="5" Size="Size.Large" @bind-SelectedValue="_model.Rating">
+                            Rating
+                        </MudRating>
+                        <MudTextField Label="Title" HelperText="Short summary of your experience"
+                                      @bind-Value="_model.Title" For="@(() => _model.Title)" />
+                        <MudTextField Lines="5" Label="Description" HelperText="How was your experience?"
+                                      @bind-Value="_model.Comment" For="@(() => _model.Comment)" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Disabled=@_loading FullWidth=true ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                            @if(_loading)
+                            {
+                                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+                            }else {
+                                 <span>Submit</span>
+                            }
+                            </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public ReviewTypes ReviewType { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string RevieweeName { get; set; }
+
+    [Parameter]
+    public Action OnReviewCreated { get; set; }
+
+    private ReviewCreateDTO _model = new();
+
+    private bool _loading;
+
+    public enum ReviewTypes
+    {
+        DogPark
+    }
+
+    public async Task OnSubmit()
+    {
+        _loading = true;
+        _model.DogParkId = Id;
+        await ApiClient.CreateReview(ReviewType, _model);
+        _loading = false;
+        OnReviewCreated();
+    }
+}

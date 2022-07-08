@@ -12,7 +12,8 @@ using ModelLib.DTOs;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
-using RazorLib.Models;
+using ModelLib.Reviews;
+using RazorLib.Pages;
 
 namespace MobileBlazor.Utils
 {
@@ -84,8 +85,6 @@ namespace MobileBlazor.Utils
 
         #endregion
 
-
-
         #region BlazorLib Interface implementation:
         public async Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO)
         {
@@ -101,7 +100,12 @@ namespace MobileBlazor.Utils
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
         }
 
-        public Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateReview(CreateReview.ReviewTypes reviewType, ReviewCreateDTO reviewCreateDTO)
         {
             throw new NotImplementedException();
         }

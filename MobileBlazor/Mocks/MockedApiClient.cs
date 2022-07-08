@@ -2,13 +2,9 @@
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
+using ModelLib.Reviews;
 using RazorLib.Interfaces;
-using RazorLib.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RazorLib.Pages;
 using WebApp.DTOs.Authentication;
 using static EntityLib.Entities.DogParkFacility;
 
@@ -66,9 +62,15 @@ namespace MobileBlazor.Mocks
 
         public Task<DogParkDetailedDTO> GetDogPark(int id)
         {
+            // generate a random review status enum value:
+            Array reviewValues = Enum.GetValues(typeof(DogParkDetailedDTO.ReviewStatus));
+            var reviewStatus = (DogParkDetailedDTO.ReviewStatus)reviewValues.GetValue(_random.Next(reviewValues.Length));
+
             return Task.FromResult(new DogParkDetailedDTO
             {
                 Id = id,
+                TotalReviews = 97,
+                CurrentReviewStatus = reviewStatus,
                 Description = "A mocked dog park right here! This park is so great and beautiful that you won't believe your own eyes ;D",
                 Name = _dogParkListDTO.Name,
                 Latitude = _dogParkListDTO.Latitude,
@@ -79,9 +81,9 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public async Task<(PaginationResult, List<RatingDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetDogParkRatings(int id, int page, int pageCount)
         {
-            var result = new List<RatingDTO>();
+            var result = new List<ReviewDetailedDTO>();
             var start = page * pageCount;
             var stop = page * pageCount + pageCount;
 
@@ -91,12 +93,13 @@ namespace MobileBlazor.Mocks
             for (int i = start; i < stop; i++)
             {
                 result.Add(
-                    new RatingDTO
+                    new ReviewDetailedDTO
                     {
-                        Author = "Author" + i,
+                        AuthorName = "Author" + i,
+                        Title = "my title here",
                         Comment = "A random comment here" + i,
                         Date = DateTime.Now,
-                        Rating = Convert.ToInt32(_random.Next(0,6))
+                        Rating = Convert.ToInt32(_random.Next(0,6)),
                     }
                 );
             }
@@ -113,6 +116,11 @@ namespace MobileBlazor.Mocks
         private async Task SimulateRequestDelay()
         {
             await Task.Delay(_random.Next(300, 700));
+        }
+
+        public async Task CreateReview(CreateReview.ReviewTypes reviewType, ReviewCreateDTO reviewCreateDTO)
+        {
+            await SimulateRequestDelay();
         }
         #endregion
     }

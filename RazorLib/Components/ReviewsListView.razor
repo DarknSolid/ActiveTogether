@@ -1,4 +1,5 @@
-﻿@using RazorLib.Components.Rating
+﻿@using ModelLib.Reviews
+@using RazorLib.Components.Review
 @using RazorLib.Interfaces
 @using RazorLib.Models
 @using RazorLib.Components.ScrollPagination
@@ -7,14 +8,14 @@
 
 
 <ScrollPagination Gap="20" Orientation="@PaginationOrientation.Vertical" OnPagination="(e) => FetchRatings()">
-    @foreach (var rating in Ratings) {
-        <Rating RatingDTO=@rating />
+    @foreach (var review in Reviews) {
+        <Review ReviewDTO=@review />
     }
     @if (_loading)
     {
         @for (int i = 0; i < _ratingsPerPage; i++)
         {
-            <RatingSkeleton/>
+            <ReviewSkeleton/>
         }
     }
 </ScrollPagination>
@@ -29,29 +30,29 @@
 
     private bool _loading;
 
-    public List<RatingDTO> Ratings { get; set; }
+    public List<ReviewDetailedDTO> Reviews { get; set; }
 
     private int _page;
     private int _ratingsPerPage;
     private bool _hasNext;
 
-    public RatingsListView()
+    public ReviewsListView()
     {
         _page = 0;
         _hasNext = true;
         _ratingsPerPage = 10;
-        Ratings = new();
+        Reviews = new();
     }
 
     private async Task FetchRatings()
     {
-        var hasLimitExceeded = MaxItems != null && Ratings.Count < MaxItems;
+        var hasLimitExceeded = MaxItems != null && Reviews.Count < MaxItems;
         if (_hasNext && !hasLimitExceeded)
         {
             _loading = true;
             _hasNext = false;
             var (paginationResult, ratings) = await ApiClient.GetDogParkRatings(DogParkId, _page, _ratingsPerPage);
-            Ratings.AddRange(ratings);
+            Reviews.AddRange(ratings);
 
             _page++;
             _hasNext = paginationResult.HasNext;

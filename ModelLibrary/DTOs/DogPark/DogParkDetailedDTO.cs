@@ -14,11 +14,21 @@ namespace ModelLib.DTOs.DogPark
         public double Rating { get; set; }
         public IEnumerable<DogPackFacilityType> Facilities { get; set; }
         public List<string> ImageUrls { get; set; }
+        public int TotalReviews { get; set; }
 
         public DogParkDetailedDTO()
         {
             ImageUrls = new List<string>();
             Facilities = new List<DogPackFacilityType>();
+        }
+
+        public ReviewStatus CurrentReviewStatus { get; set; }
+        public enum ReviewStatus
+        {
+            MustCheckIn,
+            CanUpdateReview,
+            CanReview
+
         }
     }
 }

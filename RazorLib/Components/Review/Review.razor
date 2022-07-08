@@ -1,0 +1,30 @@
+﻿@using ModelLib.Reviews
+@using RazorLib.Models
+
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">@ReviewDTO.AuthorName.First()</MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">@ReviewDTO.AuthorName</MudText>
+            <MudRating ReadOnly="true" SelectedValue="@ReviewDTO.Rating" />
+            <MudText Typo="Typo.body2">@ReviewDTO.Date.ToString()</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">@ReviewDTO.Title</MudText>
+        <MudText Typo="Typo.body2">@ReviewDTO.Comment</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
+        <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+    </MudCardActions>
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public ReviewDetailedDTO ReviewDTO { get; set; }
+}

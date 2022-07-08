@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static RazorLib.Pages.CreateReview;
 
 namespace MobileBlazor.Extensions
 {
@@ -13,6 +9,11 @@ namespace MobileBlazor.Extensions
         public static void GoBack(this NavigationManager navigationManager, IJSRuntime jsRuntime)
         {
             jsRuntime.InvokeVoidAsync("history.back");
+        }
+
+        public static void NavigateToReviewCreate(this NavigationManager navigationManager, int id, ReviewTypes reviewType, string revieweeName) 
+        {
+            navigationManager.NavigateTo(RoutingConstants.CREATE_REVIEW + $"{id}/{reviewType}/{revieweeName}");
         }
     }
 }
