@@ -6,7 +6,7 @@
 
 @if (!_isLoading)
 {
-    <MudCard style="padding=0; margin-top=0;">
+    <MudCard style="background-color:transparent">
         <MudCarousel Class="mud-width-full" Style="height:200px;" ShowArrows="@false" ShowBullets="true" AutoCycle="true" TData="object">
             @foreach (var url in _dogParkDetails.ImageUrls)
             {
@@ -18,29 +18,45 @@
             }
         </MudCarousel>
         <MudCardContent>
-            <MudText Typo="Typo.h4">@_dogParkDetails.Name</MudText>
-            <MudPaper Style="align-items: center" Class="d-flex flex-row flex-grow-1 gap-2" Elevation="0">
-                <MudRating Style="align-items: center" ReadOnly=true SelectedValue=(int)_dogParkDetails.Rating />
-                <MudText Typo="Typo.body1">@_dogParkDetails.Rating</MudText>
-            </MudPaper>
+            <MudGrid Spacing="40" style="grid-row-gap:20px">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h4">@_dogParkDetails.Name</MudText>
+                    <MudPaper Style="align-items: center" Class="d-flex flex-row flex-grow-1 gap-2" Elevation="0">
+                        <MudRating Style="align-items: center" ReadOnly=true SelectedValue=(int)_dogParkDetails.Rating />
+                        <MudText Typo="Typo.body1">@_dogParkDetails.Rating</MudText>
+                    </MudPaper>
+                </MudItem>
+                
+                <MudItem xs="12">
+                    @*Display facilities:*@
+                    @if (_dogParkDetails.Facilities.Count() == 0)
+                    {
+                        <MudText Type="Typo.h5">Ingen Faciliteter</MudText>
+                    }
+                    else
+                    {
+                        <MudText Type="Typo.h5">Faciliteter:</MudText>
+                        @foreach(var f in _dogParkDetails.Facilities)
+                        {
+                            <MudText Type="Typo.caption">@f.ToString()</MudText>
+                        }
+                    }
+                </MudItem>
 
-            @*Display facilities:*@
-            @if (_dogParkDetails.Facilities.Count() == 0)
-            {
-                <MudText Type="Typo.h5">Ingen Faciliteter</MudText>
-            }
-            else
-            {
-                <MudText Type="Typo.h5">Faciliteter:</MudText>
-                @foreach(var f in _dogParkDetails.Facilities)
-                {
-                    <MudText Type="Typo.caption">@f.ToString()</MudText>
-                }
-            }
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2">@_dogParkDetails.Description</MudText>
+                </MudItem>
 
-            <MudText Typo="Typo.body2">@_dogParkDetails.Description</MudText>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">Ratings</MudText>
+                    <div style="max-height:300px; overflow:scroll">
+                        <RatingsListView/>
+                    </div>
+                </MudItem>
 
-            <RatingsListView/>
+
+            </MudGrid>
+            
 
         </MudCardContent>
     </MudCard>
