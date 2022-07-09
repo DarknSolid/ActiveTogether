@@ -11,11 +11,11 @@ namespace ModelLib.Repositories
             var total = await query.CountAsync();
             var hasNext = startIndex + pagReq.ItemsPerPage < total;
 
-            query = query.Skip(startIndex).Take(startIndex + pagReq.ItemsPerPage);
+            query = query.Skip(startIndex).Take(pagReq.ItemsPerPage);
 
             var paginationResult = new PaginationResult() 
             { 
-                CurrentPage = pagReq.Page + 1, 
+                CurrentPage = pagReq.Page, 
                 HasNext = hasNext 
             };
 

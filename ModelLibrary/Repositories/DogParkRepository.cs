@@ -95,16 +95,16 @@ namespace ModelLib.Repositories
             var query = _context.DogParkRatings.Where(r => r.DogParkId == request.DogParkId).OrderByDescending(r => r.Date);
             var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
-            {
-                AuthorFirstName = r.User.FirstName,
-                AuthorLastName = r.User.LastName,
-                Comment = r.Description,
-                CreatorId = r.UserId,
-                Date = r.Date,
-                DogParkId = r.DogParkId,
-                Rating = r.Rating,
-                Title = r.Title
-            })
+                {
+                    AuthorFirstName = r.User.FirstName,
+                    AuthorLastName = r.User.LastName,
+                    Comment = r.Description,
+                    CreatorId = r.UserId,
+                    Date = r.Date,
+                    DogParkId = r.DogParkId,
+                    Rating = r.Rating,
+                    Title = r.Title
+                })
                 .ToListAsync();
 
 

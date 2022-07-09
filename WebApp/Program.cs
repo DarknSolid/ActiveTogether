@@ -34,7 +34,7 @@ builder.Services.AddScoped<IFacebookLoginProvider, FacebookLoginProvider>();
 // add database and repositories:
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<IApplicationDbContext,ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
 
 builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
 

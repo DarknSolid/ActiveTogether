@@ -41,11 +41,6 @@ namespace WebApp.Entities
             base.OnModelCreating(builder);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder builder)
-        {
-            builder.UseNpgsql(o => o.UseNetTopologySuite());
-        }
-
         public async Task SaveChangesAsync()
         {
             await SaveChangesAsync(default);
