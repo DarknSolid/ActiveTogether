@@ -4,11 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityLib.Entities
 {
-    public class DogPark
+    public class DogPark : SimplePrimaryKey
     {
-
-        [Key]
-        public int Id { get; set; }
 
         [Required]
         [MaxLength(50)]

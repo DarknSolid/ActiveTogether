@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static EntityLib.Entities.Enums;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace ModelLib.Repositories
@@ -15,7 +16,7 @@ namespace ModelLib.Repositories
     public interface IReviewsRepository
     {
         public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request);
-        public Task<(ResponseType, ReviewIdDTO?)> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
+        public Task<ReviewCreatedDTO> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
     }
 
     public class ReviewsRepository : IReviewsRepository
@@ -52,13 +53,18 @@ namespace ModelLib.Repositories
             return (paginationResult, dtoResult);
         }
 
-        public async Task<(ResponseType, ReviewIdDTO?)> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
         {
             var entity = await _context.Reviews.Where(r => 
                                             r.ReviewerId == reviewerId && 
                                             r.RevieweeId == dto.RevieweeId && 
                                             r.ReviewType == dto.ReviewType)
                 .FirstOrDefaultAsync();
+
+            if (!await RevieweeExists(dto.RevieweeId, dto.ReviewType))
+            {
+                return new ReviewCreatedDTO() { ResponseType = ResponseType.NotFound };
+            }
 
             var responseType = ResponseType.Conflict;
 
@@ -88,12 +94,28 @@ namespace ModelLib.Repositories
 
             await _context.SaveChangesAsync();
 
-            return (responseType, new ReviewIdDTO
+            return new ReviewCreatedDTO
             {
+                ResponseType = responseType,
                 RevieweeId = entity.RevieweeId,
                 ReviewerId = entity.ReviewerId,
                 ReviewType = entity.ReviewType
-            });
+            };
+        }
+
+        private async Task<bool> RevieweeExists(int revieweeId, ReviewType reviewType)
+        {
+            IQueryable<SimplePrimaryKey> query;
+            switch(reviewType)
+            {
+                case ReviewType.DogPark: 
+                    query = _context.DogParks;
+                    break;
+                default:
+                    throw new NotImplementedException($"Review type: {reviewType}");
+            }
+
+            return await query.FirstOrDefaultAsync(x => x.Id == revieweeId) != null;
         }
 
     }

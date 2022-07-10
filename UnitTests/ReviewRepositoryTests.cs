@@ -49,7 +49,7 @@ namespace UnitTests
                 Rating = 4
             };
 
-            var (response, actual) = await _repo.CreateReviewAsync(reviewerId, dto);
+            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
                 r.RevieweeId == dto.RevieweeId &&
                 r.ReviewerId == reviewerId &&
@@ -58,7 +58,7 @@ namespace UnitTests
 
             Assert.NotNull(actual);
             Assert.NotNull(actualEntity);
-            Assert.Equal(ResponseType.Created, response);
+            Assert.Equal(ResponseType.Created, actual.ResponseType);
             Assert.Equal(dto.ReviewType, actual.ReviewType);
             Assert.Equal(dto.RevieweeId, actual.RevieweeId);
             Assert.Equal(reviewerId, actual.ReviewerId);
@@ -83,7 +83,7 @@ namespace UnitTests
                 Rating = 4
             };
 
-            var (response, actual) = await _repo.CreateReviewAsync(reviewerId, dto);
+            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
                 r.RevieweeId == dto.RevieweeId &&
                 r.ReviewerId == reviewerId &&
@@ -92,7 +92,7 @@ namespace UnitTests
 
             Assert.NotNull(actual);
             Assert.NotNull(actualEntity);
-            Assert.Equal(ResponseType.Updated, response);
+            Assert.Equal(ResponseType.Updated, actual.ResponseType);
             Assert.Equal(dto.ReviewType, actual.ReviewType);
             Assert.Equal(dto.RevieweeId, actual.RevieweeId);
             Assert.Equal(reviewerId, actual.ReviewerId);
@@ -102,6 +102,28 @@ namespace UnitTests
             Assert.Equal(dto.Title, actualEntity.Title);
             Assert.Equal(dto.Description, actualEntity.Description);
             Assert.Equal(dto.Rating, actualEntity.Rating);
+        }
+
+        [Fact]
+        public async Task CreateReview_Invalid_DogPark_returns_not_found()
+        {
+            var reviewerId = 1;
+            var dto = new ReviewCreateDTO
+            {
+                ReviewType = Enums.ReviewType.DogPark,
+                RevieweeId = -1,
+                Description = "description",
+                Title = "title",
+                Rating = 4
+            };
+            var entitiesBefore = await _context.Reviews.CountAsync();
+            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
+            var entitiesAfter = await _context.Reviews.CountAsync();
+
+            Assert.Equal(entitiesBefore, entitiesAfter);
+            Assert.Equal(ResponseType.NotFound, actual.ResponseType);
+
+
         }
     }
 }

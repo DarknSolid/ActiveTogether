@@ -16,10 +16,9 @@ namespace ModelLib.Repositories
 {
     public interface IDogParkRepository
     {
-        public Task<DogParkDetailedDTO> Get(int id);
+        public Task<DogParkDetailedDTO?> GetAsync(int id);
         public Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds);
-        public Task<int> Create(DogParkCreateDTO dogParkCreateDTO);
-        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request);
+        public Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO);
     }
 
     public class DogParkRepository : IDogParkRepository
@@ -31,7 +30,7 @@ namespace ModelLib.Repositories
             _context = context;
         }
 
-        public async Task<int> Create(DogParkCreateDTO dogParkCreateDTO)
+        public async Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO)
         {
             //TODO check for duplicate parks
             var entity = new DogPark
@@ -46,21 +45,24 @@ namespace ModelLib.Repositories
             return entity.Id;
         }
 
-        public async Task<DogParkDetailedDTO> Get(int id)
+        public async Task<DogParkDetailedDTO?> GetAsync(int id)
         {
+            var reviews = _context.Reviews.Where(r => r.RevieweeId == id && r.ReviewType == Enums.ReviewType.DogPark);
+
             var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)
                 .Where(x => x.Id == id)
                 .Select(p => new DogParkDetailedDTO
                 {
-                    Rating = _context.Reviews
-                        .Where(r => r.ReviewerId == id && r.ReviewType == Enums.ReviewType.DogPark)
-                        .Sum(r => r.Rating) / 5,
+                    Rating = reviews
+                        .Sum(r => r.Rating) / reviews.Count(),
                     Description = p.Description,
                     Name = p.Name,
                     Facilities = p.Facilities.Select(f => f.FacilityType),
                     Latitude = (float)p.Location.Y,
                     Longitude = (float)p.Location.X,
+                    TotalReviews = reviews.Count(),
+                    Id = id
                 });
 
             return await entityQuery.FirstOrDefaultAsync();
@@ -88,30 +90,6 @@ namespace ModelLib.Repositories
                 Longitude = (float)p.Location.X
             }).ToList();
             return nearbyDogParks;
-        }
-
-        public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
-        {
-            var query = _context.Reviews
-                .Include(r => r.Reviewer)
-                .Where(r => r.RevieweeId == request.RevieweeId)
-                .OrderByDescending(r => r.Date);
-            var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
-            var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
-                {
-                    ReviewerFirstName = r.Reviewer.FirstName,
-                    ReviewerLastName = r.Reviewer.LastName,
-                    Description = r.Description,
-                    ReviewerId = r.ReviewerId,
-                    Date = r.Date,
-                    RevieweeId = r.RevieweeId,
-                    Rating = r.Rating,
-                    Title = r.Title
-                })
-                .ToListAsync();
-
-
-            return (paginationResult, dtoResult);
         }
     }
 }

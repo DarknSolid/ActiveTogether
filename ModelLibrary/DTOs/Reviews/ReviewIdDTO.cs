@@ -1,4 +1,5 @@
 ﻿using EntityLib.Entities;
+using ModelLib.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace ModelLib.DTOs.Reviews
 {
-    public class ReviewIdDTO
+    public class ReviewCreatedDTO
     {
+        public RepositoryEnums.ResponseType ResponseType { get; set; }
         public int RevieweeId { get; set; }
         public int ReviewerId { get; set; }
         public Enums.ReviewType ReviewType { get; set; }

@@ -12,7 +12,8 @@ namespace ModelLib.Repositories
         {
             Conflict,
             Updated,
-            Created
+            Created,
+            NotFound
         }
     }
 }

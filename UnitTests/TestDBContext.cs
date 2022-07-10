@@ -21,15 +21,6 @@ namespace UnitTests
         {
         }
 
-        public DbSet<DogPark> DogParks { get; set; }
-        public DbSet<DogParkFacility> DogParkFacilities { get; set; }
-        public DbSet<Review> DogParkReviews { get; set; }
-
-        public Task SaveChangesAsync()
-        {
-            return Task.CompletedTask;
-        }
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

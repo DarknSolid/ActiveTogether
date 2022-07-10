@@ -24,14 +24,15 @@ namespace WebApp.Controllers
 
         [Authorize]
         [HttpPost(ApiEndpoints.REVIEWS_LIST)]
-        public async Task<ActionResult<(PaginationResult, List<ReviewDetailedDTO>)>> GetReviews(ReviewsDTO dto)
+        public async Task<ActionResult<ReviewListViewDTO>> GetReviews(ReviewsDTO dto)
         {
-            return await _reviewsRepository.GetReviewsAsync(dto);
+            var (pagination, list) = await _reviewsRepository.GetReviewsAsync(dto);
+            return new ReviewListViewDTO { PaginationResult = pagination, Reviews = list };
         }
 
         [Authorize]
         [HttpPost(ApiEndpoints.REVIEWS_CREATE)]
-        public async Task<ActionResult<(RepositoryEnums.ResponseType, ReviewIdDTO?)>> CreateReview(ReviewCreateDTO dto)
+        public async Task<ActionResult<ReviewCreatedDTO>> CreateReview(ReviewCreateDTO dto)
         {
             var user = await _userManager.GetUserAsync(User);
 

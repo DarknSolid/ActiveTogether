@@ -22,7 +22,7 @@ namespace WebApp.Controllers
         [HttpGet(ApiEndpoints.DOG_PARKS_GET + "{id}")]
         public async Task<ActionResult<DogParkDetailedDTO>> GetPoints(int id)
         {
-            return await _dogParkRepository.Get(id);
+            return await _dogParkRepository.GetAsync(id);
         }
 
     }
