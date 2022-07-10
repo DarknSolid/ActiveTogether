@@ -17,7 +17,7 @@ namespace WebApp.Entities
 
         public DbSet<DogPark> DogParks { get; set; }
         public DbSet<DogParkFacility> DogParkFacilities { get; set; }
-        public DbSet<DogParkRating> DogParkRatings { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -28,15 +28,25 @@ namespace WebApp.Entities
         {
             builder.HasPostgresExtension("postgis");
 
+            #region DogParkFacility
             builder.Entity<DogParkFacility>()
                 .Property(f => f.FacilityType)
                 .HasConversion<int>();
             builder.Entity<DogParkFacility>()
                 .HasKey(f => new { f.DogParkId, f.FacilityType });
+            #endregion
 
-            builder.Entity<DogParkRating>().HasKey(d => new { d.UserId, d.DogParkId });
+            #region Review
+            builder.Entity<Review>()
+                .Property(r => r.ReviewType)
+                .HasConversion<int>();
+            builder.Entity<Review>()
+                .HasKey(d => new { d.ReviewerId, d.RevieweeId, d.ReviewType });
+            #endregion
 
-            builder.Entity<DogPark>().HasMany(d => d.Ratings).WithOne(r => r.DogPark);
+            #region DogPark
+
+            #endregion
 
             base.OnModelCreating(builder);
         }

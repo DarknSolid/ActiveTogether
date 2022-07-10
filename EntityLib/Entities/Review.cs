@@ -1,18 +1,17 @@
 ﻿using EntityLib.Entities.Identity;
-using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
+using static EntityLib.Entities.Enums;
 
 namespace EntityLib.Entities
 {
-    public class DogParkRating
+    public class Review
     {
-        public int UserId { get; set; }
-        public int DogParkId { get; set; } 
+        [Column(nameof(ReviewerId))]
+        [ForeignKey(nameof(ApplicationUser))]
+        public int ReviewerId { get; set; }
+        public int RevieweeId { get; set; } 
+        public ReviewType ReviewType { get; set; }
 
         [Required]
         [Range(0,5)]
@@ -26,7 +25,7 @@ namespace EntityLib.Entities
         [MaxLength(2000)]
         public string Description { get; set; }
         public DateTime Date { get; set; }
-        public DogPark DogPark { get; set; }
-        public ApplicationUser User { get; set; }
+        public ApplicationUser Reviewer { get; set; }
+
     }
 }

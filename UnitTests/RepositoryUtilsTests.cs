@@ -11,18 +11,8 @@ using WebApp.Entities;
 
 namespace UnitTests
 {
-    public class RepositoryUtilsTests : IDisposable
+    public class RepositoryUtilsTests : TestBase
     {
-
-        private readonly TestDBContext _context;
-
-        public RepositoryUtilsTests()
-        {
-            var builder = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "DoggoWorldUnitTest");
-            _context = new TestDBContext(builder.Options);
-            _context.Database.EnsureCreated();
-        }
 
         [Theory]
         [InlineData(1, 0, 1, 0, true, 1)]
@@ -30,7 +20,7 @@ namespace UnitTests
         [InlineData(1, 2, 3, 2, false, 1)]
         [InlineData(10, 0, 1, 0, false, 3)]
         [InlineData(10, 1, -1, 1, false, 0)]
-        public async Task GetPaginationQuery_behaves(int itemsPerPage, int page, int expectedId, int expectedPage, bool expectedHasNext, int expectedCount)
+        public async Task GetPaginationQuery_Returns_Expected_Pagination_Results(int itemsPerPage, int page, int expectedId, int expectedPage, bool expectedHasNext, int expectedCount)
         {
             var paginationRequest = new PaginationRequest() { ItemsPerPage = itemsPerPage ,Page = page};
             var query = _context.DogParks;
@@ -41,11 +31,6 @@ namespace UnitTests
             Assert.Equal(expectedPage, actualPaginationResult.CurrentPage);
             Assert.Equal(expectedId, dogParks.FirstOrDefault()?.Id ?? -1);
             Assert.Equal(expectedCount, dogParks.Count);
-        }
-
-        public void Dispose()
-        {
-            _context.Dispose();
         }
     }
 }

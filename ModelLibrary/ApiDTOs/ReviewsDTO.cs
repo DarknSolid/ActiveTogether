@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static EntityLib.Entities.Enums;
 
-namespace ModelLib.ApiDTOs.DogParks
+namespace ModelLib.ApiDTOs
 {
-    public class DogParkReviewsDTO
+    public class ReviewsDTO
     {
         public PaginationRequest PaginationRequest { get; set; } = new();
-        public int DogParkId { get; set; }
+        public int RevieweeId { get; set; }
+        public ReviewType ReviewType { get; set; }
     }
 }

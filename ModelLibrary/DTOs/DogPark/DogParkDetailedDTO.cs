@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static EntityLib.Entities.DogParkFacility;
+using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.DogPark
 {

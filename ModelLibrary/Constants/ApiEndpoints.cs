@@ -3,6 +3,11 @@
     public class ApiEndpoints
     {
 
+        private const string BASE = "api/";
+
+        public const string AUTHENTICATION = BASE + "authentication/";
+
+
         public const string AUTHENTICATION_FACEBOOK_LOGIN = "facebook-login/";
         public const string AUTHENTICATION_LOG_OUT = "log-out/";
         public const string AUTHENTICATION_LOGIN = "login/";
@@ -13,10 +18,9 @@
 
         public const string MAP_POINTS = "points/";
 
-        private const string BASE = "api/";
-        public const string AUTHENTICATION = BASE + "authentication/";
         public const string MAP = BASE + "map/";
         public const string DOG_PARKS = BASE + "dog-parks/";
+        public const string REVIEWS = BASE + "reviews/";
 
         // full api endpoints for the client to use:
         public const string POST_FACEBOOK_LOGIN = AUTHENTICATION + AUTHENTICATION_FACEBOOK_LOGIN;
@@ -28,5 +32,7 @@
         public const string POST_MAP_POINTS = MAP + MAP_POINTS;
 
         public const string GET_DOG_PARK = DOG_PARKS + DOG_PARKS_GET;
+
+        public const string GET_REVIEWS = REVIEWS;
     }
 }

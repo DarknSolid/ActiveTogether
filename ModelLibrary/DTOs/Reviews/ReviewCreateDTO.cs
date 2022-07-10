@@ -9,8 +9,8 @@ namespace ModelLib.DTOs.Reviews
 {
     public class ReviewCreateDTO
     {
-        public int DogParkId { get; set; }
-        public int CreatorId { get; set; }
+        public int RevieweeId { get; set; }
+        public int ReviwerId { get; set; }
         public int Rating { get; set; }
 
 

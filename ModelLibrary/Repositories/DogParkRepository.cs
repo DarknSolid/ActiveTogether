@@ -11,7 +11,6 @@ using EntityLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.Reviews;
-using ModelLib.ApiDTOs.DogParks;
 
 namespace ModelLib.Repositories
 {
@@ -20,7 +19,7 @@ namespace ModelLib.Repositories
         public Task<DogParkDetailedDTO> Get(int id);
         public Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds);
         public Task<int> Create(DogParkCreateDTO dogParkCreateDTO);
-        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(DogParkReviewsDTO request);
+        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request);
     }
 
     public class DogParkRepository : IDogParkRepository
@@ -51,11 +50,12 @@ namespace ModelLib.Repositories
         {
             var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)
-                .Include(p => p.Ratings)
                 .Where(x => x.Id == id)
                 .Select(p => new DogParkDetailedDTO
                 {
-                    Rating = p.Ratings.Sum(r => r.Rating) / 5,
+                    Rating = _context.Reviews
+                        .Where(r => r.ReviewerId == id && r.ReviewType == Enums.ReviewType.DogPark)
+                        .Sum(r => r.Rating) / 5,
                     Description = p.Description,
                     Name = p.Name,
                     Facilities = p.Facilities.Select(f => f.FacilityType),
@@ -90,18 +90,21 @@ namespace ModelLib.Repositories
             return nearbyDogParks;
         }
 
-        public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(DogParkReviewsDTO request)
+        public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
         {
-            var query = _context.DogParkRatings.Where(r => r.DogParkId == request.DogParkId).OrderByDescending(r => r.Date);
+            var query = _context.Reviews
+                .Include(r => r.Reviewer)
+                .Where(r => r.RevieweeId == request.RevieweeId)
+                .OrderByDescending(r => r.Date);
             var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
                 {
-                    AuthorFirstName = r.User.FirstName,
-                    AuthorLastName = r.User.LastName,
+                    AuthorFirstName = r.Reviewer.FirstName,
+                    AuthorLastName = r.Reviewer.LastName,
                     Comment = r.Description,
-                    CreatorId = r.UserId,
+                    ReviwerId = r.ReviewerId,
                     Date = r.Date,
-                    DogParkId = r.DogParkId,
+                    RevieweeId = r.RevieweeId,
                     Rating = r.Rating,
                     Title = r.Title
                 })

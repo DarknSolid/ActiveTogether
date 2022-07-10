@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ModelLib.ApiDTOs;
 using ModelLib.Constants;
 using ModelLib.DTOs.DogPark;
 using ModelLib.Repositories;
@@ -23,5 +24,6 @@ namespace WebApp.Controllers
         {
             return await _dogParkRepository.Get(id);
         }
+
     }
 }

@@ -1,6 +1,6 @@
 namespace UnitTests
 {
-    public class DogParkRepositoryTests
+    public class DogParkRepositoryTests : TestBase
     {
         [Fact]
         public void Test1()

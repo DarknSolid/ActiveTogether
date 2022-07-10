@@ -37,7 +37,7 @@ namespace EntityLib.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
-                    ProfileImageUrl = table.Column<string>(type: "text", nullable: false),
+                    ProfileImageUrl = table.Column<string>(type: "text", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -180,6 +180,29 @@ namespace EntityLib.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    ReviewerId = table.Column<int>(type: "integer", nullable: false),
+                    RevieweeId = table.Column<int>(type: "integer", nullable: false),
+                    ReviewType = table.Column<int>(type: "integer", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => new { x.ReviewerId, x.RevieweeId, x.ReviewType });
+                    table.ForeignKey(
+                        name: "FK_Reviews_AspNetUsers_ReviewerId",
+                        column: x => x.ReviewerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DogParkFacilities",
                 columns: table => new
                 {
@@ -191,32 +214,6 @@ namespace EntityLib.Migrations
                     table.PrimaryKey("PK_DogParkFacilities", x => new { x.DogParkId, x.FacilityType });
                     table.ForeignKey(
                         name: "FK_DogParkFacilities_DogParks_DogParkId",
-                        column: x => x.DogParkId,
-                        principalTable: "DogParks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DogParkRatings",
-                columns: table => new
-                {
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    DogParkId = table.Column<int>(type: "integer", nullable: false),
-                    Rating = table.Column<float>(type: "real", nullable: false),
-                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DogParkRatings", x => new { x.UserId, x.DogParkId });
-                    table.ForeignKey(
-                        name: "FK_DogParkRatings_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DogParkRatings_DogParks_DogParkId",
                         column: x => x.DogParkId,
                         principalTable: "DogParks",
                         principalColumn: "Id",
@@ -259,11 +256,6 @@ namespace EntityLib.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DogParkRatings_DogParkId",
-                table: "DogParkRatings",
-                column: "DogParkId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -287,16 +279,16 @@ namespace EntityLib.Migrations
                 name: "DogParkFacilities");
 
             migrationBuilder.DropTable(
-                name: "DogParkRatings");
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "DogParks");
 
             migrationBuilder.DropTable(
-                name: "DogParks");
+                name: "AspNetUsers");
         }
     }
 }

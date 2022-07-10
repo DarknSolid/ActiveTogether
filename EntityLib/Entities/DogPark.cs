@@ -25,6 +25,5 @@ namespace EntityLib.Entities
         public Point Location  { get; set; }
 
         public List<DogParkFacility> Facilities { get; set; }
-        public List<DogParkRating> Ratings { get; set; }
     }
 }

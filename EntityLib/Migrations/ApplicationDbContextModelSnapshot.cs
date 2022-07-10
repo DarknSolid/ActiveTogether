@@ -64,29 +64,6 @@ namespace EntityLib.Migrations
                     b.ToTable("DogParkFacilities");
                 });
 
-            modelBuilder.Entity("EntityLib.Entities.DogParkRating", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DogParkId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<float>("Rating")
-                        .HasColumnType("real");
-
-                    b.HasKey("UserId", "DogParkId");
-
-                    b.HasIndex("DogParkId");
-
-                    b.ToTable("DogParkRatings");
-                });
-
             modelBuilder.Entity("EntityLib.Entities.Identity.ApplicationUser", b =>
                 {
                     b.Property<int>("Id")
@@ -163,6 +140,39 @@ namespace EntityLib.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("EntityLib.Entities.Review", b =>
+                {
+                    b.Property<int>("ReviewerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ReviewerId");
+
+                    b.Property<int>("RevieweeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReviewType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("ReviewerId", "RevieweeId", "ReviewType");
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -310,23 +320,15 @@ namespace EntityLib.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EntityLib.Entities.DogParkRating", b =>
+            modelBuilder.Entity("EntityLib.Entities.Review", b =>
                 {
-                    b.HasOne("EntityLib.Entities.DogPark", "DogPark")
-                        .WithMany("Ratings")
-                        .HasForeignKey("DogParkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EntityLib.Entities.Identity.ApplicationUser", "User")
+                    b.HasOne("EntityLib.Entities.Identity.ApplicationUser", "Reviewer")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DogPark");
-
-                    b.Navigation("User");
+                    b.Navigation("Reviewer");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -383,8 +385,6 @@ namespace EntityLib.Migrations
             modelBuilder.Entity("EntityLib.Entities.DogPark", b =>
                 {
                     b.Navigation("Facilities");
-
-                    b.Navigation("Ratings");
                 });
 #pragma warning restore 612, 618
         }

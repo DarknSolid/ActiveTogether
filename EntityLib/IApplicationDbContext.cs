@@ -12,7 +12,7 @@ namespace EntityLib
     {
         public DbSet<DogPark> DogParks { get; set; }
         public DbSet<DogParkFacility> DogParkFacilities { get; set; }
-        public DbSet<DogParkRating> DogParkRatings { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         public Task SaveChangesAsync();
     }

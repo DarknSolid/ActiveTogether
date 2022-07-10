@@ -7,6 +7,7 @@ using RazorLib.Interfaces;
 using RazorLib.Pages;
 using WebApp.DTOs.Authentication;
 using static EntityLib.Entities.DogParkFacility;
+using static EntityLib.Entities.Enums;
 
 namespace MobileBlazor.Mocks
 {

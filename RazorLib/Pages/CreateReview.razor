@@ -75,7 +75,7 @@
     public async Task OnSubmit()
     {
         _loading = true;
-        _model.DogParkId = Id;
+        _model.RevieweeId = Id;
         await ApiClient.CreateReview(ReviewType, _model);
         _loading = false;
         OnReviewCreated();
