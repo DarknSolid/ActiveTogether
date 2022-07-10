@@ -5,17 +5,17 @@
 <MudCard>
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudAvatar Color="Color.Secondary">@(ReviewDTO.AuthorFirstName.First())@(ReviewDTO.AuthorLastName.First())</MudAvatar>
+            <MudAvatar Color="Color.Secondary">@(ReviewDTO.ReviewerFirstName.First())@(ReviewDTO.ReviewerLastName.First())</MudAvatar>
         </CardHeaderAvatar>
         <CardHeaderContent>
-            <MudText Typo="Typo.body1">@ReviewDTO.AuthorName</MudText>
+            <MudText Typo="Typo.body1">@ReviewDTO.GetFullName()</MudText>
             <MudRating ReadOnly="true" SelectedValue="@ReviewDTO.Rating" />
             <MudText Typo="Typo.body2">@ReviewDTO.Date.ToString()</MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
         <MudText Typo="Typo.body1">@ReviewDTO.Title</MudText>
-        <MudText Typo="Typo.body2">@ReviewDTO.Comment</MudText>
+        <MudText Typo="Typo.body2">@ReviewDTO.Description</MudText>
     </MudCardContent>
     <MudCardActions>
         <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />

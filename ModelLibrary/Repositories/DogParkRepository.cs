@@ -99,10 +99,10 @@ namespace ModelLib.Repositories
             var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
                 {
-                    AuthorFirstName = r.Reviewer.FirstName,
-                    AuthorLastName = r.Reviewer.LastName,
-                    Comment = r.Description,
-                    ReviwerId = r.ReviewerId,
+                    ReviewerFirstName = r.Reviewer.FirstName,
+                    ReviewerLastName = r.Reviewer.LastName,
+                    Description = r.Description,
+                    ReviewerId = r.ReviewerId,
                     Date = r.Date,
                     RevieweeId = r.RevieweeId,
                     Rating = r.Rating,

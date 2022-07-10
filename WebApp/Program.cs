@@ -1,15 +1,12 @@
 ﻿using EntityLib;
 using EntityLib.Entities.Identity;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using ModelLib.Repositories;
 using WebApp.Areas.Identity;
 using WebApp.Entities;
 using WebApp.Utils.ExternalLoginProviders.Facebook;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -37,6 +34,7 @@ builder.Services.AddDbContext<IApplicationDbContext,ApplicationDbContext>(option
     options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
 
 builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
+builder.Services.AddScoped<IReviewsRepository, ReviewsRepository>();
 
 
 //others:
@@ -51,6 +49,27 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "DoggoWorld API",
+        Description = "The DoggoWorld API to access user data",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new OpenApiContact
+        {
+            Name = "Example Contact",
+            Url = new Uri("https://example.com/contact")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Example License",
+            Url = new Uri("https://example.com/license")
+        }
+    });
+});
 
 builder.Services.AddAuthentication()
    .AddFacebook(options =>
@@ -67,6 +86,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
@@ -74,6 +95,12 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+//app.UseSwaggerUI(options =>
+//{
+//    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+//    options.RoutePrefix = "/swagger";
+//});
 
 //app.UseHttpsRedirection();
 

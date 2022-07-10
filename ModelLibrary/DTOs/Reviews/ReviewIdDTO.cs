@@ -1,0 +1,16 @@
+﻿using EntityLib.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ModelLib.DTOs.Reviews
+{
+    public class ReviewIdDTO
+    {
+        public int RevieweeId { get; set; }
+        public int ReviewerId { get; set; }
+        public Enums.ReviewType ReviewType { get; set; }
+    }
+}

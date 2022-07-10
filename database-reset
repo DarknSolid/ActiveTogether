@@ -7,5 +7,5 @@ Drop table if exists "AspNetUserRoles" Cascade;
 Drop table if exists "AspNetUserTokens" Cascade;
 Drop table if exists "DogParkFacilities" Cascade;
 Drop table if exists "DogParks" Cascade;
-Drop table if exists "DogParkRatings" Cascade;
+Drop table if exists "Reviews" Cascade;
 Drop table if exists "__EFMigrationsHistory" Cascade;

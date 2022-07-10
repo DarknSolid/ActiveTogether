@@ -1,4 +1,5 @@
 ﻿using EntityLib;
+using EntityLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.Reviews;
@@ -7,12 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ModelLib.Repositories.RepositoryEnums;
 
 namespace ModelLib.Repositories
 {
     public interface IReviewsRepository
     {
         public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request);
+        public Task<(ResponseType, ReviewIdDTO?)> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
     }
 
     public class ReviewsRepository : IReviewsRepository
@@ -23,7 +26,6 @@ namespace ModelLib.Repositories
         {
             _context = context;
         }
-
         public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
         {
             var query = _context.Reviews
@@ -35,10 +37,10 @@ namespace ModelLib.Repositories
             
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
                 {
-                    AuthorFirstName = r.Reviewer.FirstName,
-                    AuthorLastName = r.Reviewer.LastName,
-                    Comment = r.Description,
-                    ReviwerId = r.ReviewerId,
+                    ReviewerFirstName = r.Reviewer.FirstName,
+                    ReviewerLastName = r.Reviewer.LastName,
+                    Description = r.Description,
+                    ReviewerId = r.ReviewerId,
                     Date = r.Date,
                     RevieweeId = r.RevieweeId,
                     Rating = r.Rating,
@@ -49,5 +51,50 @@ namespace ModelLib.Repositories
 
             return (paginationResult, dtoResult);
         }
+
+        public async Task<(ResponseType, ReviewIdDTO?)> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
+        {
+            var entity = await _context.Reviews.Where(r => 
+                                            r.ReviewerId == reviewerId && 
+                                            r.RevieweeId == dto.RevieweeId && 
+                                            r.ReviewType == dto.ReviewType)
+                .FirstOrDefaultAsync();
+
+            var responseType = ResponseType.Conflict;
+
+            if (entity == null)
+            {
+                responseType = ResponseType.Created;
+                entity = new Review()
+                {
+                    ReviewerId = reviewerId,
+                    RevieweeId = dto.RevieweeId,
+                    ReviewType = dto.ReviewType,
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    Rating = dto.Rating,
+                    Date = DateTime.UtcNow,
+                };
+                _context.Reviews.Add(entity);
+            }
+            else
+            {
+                responseType = ResponseType.Updated;
+                entity.Title = dto.Title;
+                entity.Description = dto.Description;
+                entity.Rating = dto.Rating;
+                entity.Date = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return (responseType, new ReviewIdDTO
+            {
+                RevieweeId = entity.RevieweeId,
+                ReviewerId = entity.ReviewerId,
+                ReviewType = entity.ReviewType
+            });
+        }
+
     }
 }

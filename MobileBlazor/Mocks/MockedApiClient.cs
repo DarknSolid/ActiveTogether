@@ -96,10 +96,10 @@ namespace MobileBlazor.Mocks
                 result.Add(
                     new ReviewDetailedDTO
                     {
-                        AuthorFirstName = "John",
-                        AuthorLastName = "Doe " + i,
+                        ReviewerFirstName = "John",
+                        ReviewerLastName = "Doe " + i,
                         Title = "my title here",
-                        Comment = "A random comment here" + i,
+                        Description = "A random comment here" + i,
                         Date = DateTime.Now,
                         Rating = Convert.ToInt32(_random.Next(0,6)),
                     }
