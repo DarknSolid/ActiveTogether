@@ -15,5 +15,12 @@ namespace EntityLib.Entities
             Agility = 2,
             Fenced = 3
         }
+
+        public enum DogWeightClass
+        {
+            Small,
+            Medium,
+            Large
+        }
     }
 }

@@ -15,5 +15,15 @@ namespace MobileBlazor.Extensions
         {
             navigationManager.NavigateTo(RoutingConstants.CREATE_REVIEW + $"{id}/{reviewType}/{revieweeName}/{isReviewUpdate}");
         }
+
+        public static void NavigateToCreateDog(this NavigationManager navigationManager, int? dogId)
+        {
+            var url = RoutingConstants.CREATE_DOG;
+            if (dogId.HasValue)
+            {
+                url += dogId.Value;
+            }
+            navigationManager.NavigateTo(url);
+        }
     }
 }

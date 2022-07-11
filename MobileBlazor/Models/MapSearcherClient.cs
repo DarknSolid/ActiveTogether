@@ -21,7 +21,7 @@ namespace MobileBlazor.Models
 
         protected override async Task<MapSearchResultDTO> FetchNewMapEntities(MapSearchDTO mapSearchDTO)
         {
-            return await _apiClient.FetchMapMarkers(mapSearchDTO);
+            return await _apiClient.FetchMapMarkersAsync(mapSearchDTO);
         }
     }
 }

@@ -2,6 +2,7 @@
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
+using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Reviews;
 using ModelLib.Repositories;
 using RazorLib.Interfaces;
@@ -52,7 +53,7 @@ namespace MobileBlazor.Mocks
         #endregion
 
         #region IApiClient implementation:
-        public Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO)
+        public Task<MapSearchResultDTO> FetchMapMarkersAsync(MapSearchDTO mapSearchDTO)
         {
             return Task.FromResult<MapSearchResultDTO>(new MapSearchResultDTO
             {
@@ -60,7 +61,7 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public Task<DogParkDetailedDTO> GetDogPark(int id)
+        public Task<DogParkDetailedDTO> GetDogParkAsync(int id)
         {
             // generate a random review status enum value:
             Array reviewValues = Enum.GetValues(typeof(DogParkDetailedDTO.ReviewStatus));
@@ -81,7 +82,7 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public async Task<ReviewListViewDTO> GetReviews(int id, ReviewType reviewType, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, ReviewType reviewType, int page, int pageCount)
         {
             var result = new List<ReviewDetailedDTO>();
             var start = page * pageCount;
@@ -123,7 +124,7 @@ namespace MobileBlazor.Mocks
             await Task.Delay(_random.Next(300, 700));
         }
 
-        public async Task<ReviewCreatedDTO> CreateReview(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
         {
             await SimulateRequestDelay();
             return new ReviewCreatedDTO()
@@ -132,6 +133,72 @@ namespace MobileBlazor.Mocks
                 ReviewType = reviewType,
                 RevieweeId = reviewCreateDTO.RevieweeId,
                 ReviewerId = 0
+            };
+        }
+
+        public async Task<List<DogListDTO>> GetMyDogsAsync()
+        {
+            await SimulateRequestDelay();
+            var result = new List<DogListDTO>();
+            for (int i = 0; i < 3; i++)
+            {
+                result.Add(new DogListDTO
+                {
+                    Birth = DateTime.Now,
+                    Id = i + 1,
+                    IsGenderMale = i % 2 == 0,
+                    Name = "Dog " + (i + 1),
+                    Breed = (i + 1),
+                    BreedName = "Breed " + (i + 1)
+                });
+            }
+            return result;
+        }
+
+        public async Task<DogDetailedDTO> GetDogDetailedAsync(int id)
+        {
+            await SimulateRequestDelay();
+            return new DogDetailedDTO
+            {
+                Id = 1,
+                Birth = DateTime.Now,
+                IsGenderMale = true,
+                Name = "Dog " + 1,
+                Breed = 1,
+                BreedName = "Breed " + 1,
+                Description = "My heckin' cute doggo",
+                WeightClass = DogWeightClass.Medium,
+            };
+        }
+
+        public Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
+        {
+            return Task.FromResult(new DogCreatedDTO
+            {
+                Id = 5,
+                Response = RepositoryEnums.ResponseType.Created
+            });
+        }
+
+        public async Task<IDictionary<int, string>> GetDogBreedsAsync()
+        {
+            await SimulateRequestDelay();
+            return new Dictionary<int, string>()
+            {
+                { 1, "Labrador"},
+                { 2, "Rottweiler" },
+                { 3, "Crusty" },
+                { 4, "Chihuahua" }
+            };
+        }
+
+        public async Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
+        {
+            await SimulateRequestDelay();
+            return new DogUpdatedDTO
+            {
+                Id = dto.Id,
+                Response = RepositoryEnums.ResponseType.Updated
             };
         }
         #endregion

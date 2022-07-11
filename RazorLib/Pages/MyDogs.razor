@@ -1,0 +1,57 @@
+﻿@using ModelLib.DTOs.Dogs
+@using RazorLib.Components
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+
+
+<MudContainer>
+    <MudText Typo="Typo.h4" Align="Align.Center">My Dogs</MudText>
+
+    <MudList Clickable=@(_loading == false)>
+        @if (_loading)
+        {
+            @for (int i = 0; i < 4; i++)
+            {
+                <MudListItem Class="px-1 py-1">
+                    <DogCardSkeleton />
+                </MudListItem>
+            }
+        }
+        else
+        {
+            @foreach (var dog in _dogs)
+            {
+                <MudListItem OnClick="() => OnDogListItemClicked(dog.Id)" Class="px-2 py-1">
+                    <DogCard Dog="@dog" />
+                </MudListItem>
+            }
+        }
+    </MudList>
+
+    <MudFab  OnClick="() => OnDogCreateButtonClicked()" Style="position: absolute; bottom: 12%; right: 10%;" Color="Color.Primary" Size="Size.Large" StartIcon="@Icons.Material.Filled.Add" />
+
+</MudContainer>
+
+@code {
+    private List<DogListDTO> _dogs;
+    private bool _loading;
+
+    [Parameter]
+    public Action<int?> OnDogListItemClicked { get; set; }
+
+    [Parameter]
+    public Action OnDogCreateButtonClicked { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchDogs();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task FetchDogs()
+    {
+        _loading = true;
+        _dogs = await ApiClient.GetMyDogsAsync();
+        _loading = false;
+    }
+}

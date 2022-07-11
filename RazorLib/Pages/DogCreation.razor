@@ -1,0 +1,178 @@
+﻿@using EntityLib.Entities
+@using Microsoft.AspNetCore.Components.Forms
+@using ModelLib.DTOs.Dogs
+@using RazorLib.Interfaces
+@using System.ComponentModel.DataAnnotations
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient;
+
+<MudContainer>
+
+    <MudText Typo="Typo.h5" Align="Align.Center">@_title</MudText>
+
+    <EditForm Model="@_model" OnValidSubmit="OnSubmit">
+        <DataAnnotationsValidator />
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="7">
+                <MudTextField Label="Name" HelperText="Your dogs name"
+                              @bind-Value="_model.Name" For="@(() => _model.Name)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudTextField Lines="5" Label="Description" HelperText="Tell us about your dog"
+                              @bind-Value="_model.Description" For="@(() => _model.Description)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudSelect @bind-Value="_model.WeightClass" Label="Select weight class" HelperText="How large your dog is" OpenIcon="@Icons.Filled.Scale">
+                    @foreach (DogWeightClass item in Enum.GetValues(typeof(DogWeightClass)))
+                    {
+                        <MudSelectItem Value="@item">@item</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Primary" Label="Date of birth" @bind-Date="_birth" />
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudSelect @bind-Value="_model.IsGenderMale" Label="Select gender" HelperText="Male or female?">
+                    <MudSelectItem Value="true">
+                        <MudIcon Icon="@Icons.Filled.Male" /> Male
+                    </MudSelectItem>
+                    <MudSelectItem Value="false">
+                        <MudIcon Icon="@Icons.Filled.Female" /> Female
+                    </MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudSelect @bind-Value="_model.Breed" Text="Loading" Dense="true" Label="Breed" Variant="Variant.Text">
+                    @foreach (var key in _intToDogBreed.Keys)
+                    {
+                        <MudSelectItem Value="@key">@_intToDogBreed[key]</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudButton Disabled=@_isCreatingUpdatingDog FullWidth=true ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                    @if (_isCreatingUpdatingDog)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+                    }
+                    else
+                    {
+                        <span>@(_isUpdate ? "Update" : "Create")</span>
+                    }
+                </MudButton>
+            </MudItem>
+
+            <MudOverlay Visible="_loading" DarkBackground="true" Absolute="true">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </MudOverlay>
+        </MudGrid>
+    </EditForm>
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public int? DogId { get; set; }
+
+    [Parameter]
+    public Action OnDogCreationFinished { get; set; }
+
+    public DogCreateDTO _model { get; set; } = new()
+        {
+            WeightClass = DogWeightClass.Medium,
+            Breed = 1
+        };
+
+    private string _title;
+    private bool _loading;
+    private bool _isCreatingUpdatingDog;
+    private bool _isUpdate;
+    private IDictionary<int, string> _intToDogBreed = new Dictionary<int, string>();
+
+    [Required(ErrorMessage = "You must specify a date")]
+    private DateTime? _birth = DateTime.UtcNow;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DogId > 0)
+        {
+            _isUpdate = true;
+        }
+        _loading = true;
+        _intToDogBreed = await ApiClient.GetDogBreedsAsync();
+        _model.Breed = 1;
+        StateHasChanged();
+        if (_isUpdate)
+        {
+            await FetchExistingDog();
+            _title = "Update " + _model.Name;
+        }
+        else
+        {
+            _title = "Create Dog";
+        }
+        _loading = false;
+        base.OnParametersSet();
+    }
+
+    public async Task OnSubmit()
+    {
+        _isCreatingUpdatingDog = true;
+        if (_isUpdate)
+        {
+            await ApiClient.UpdateDogAsync(new DogUpdateDTO
+                {
+                    Birth = _birth ?? DateTime.UtcNow,
+                    Breed = _model.Breed,
+                    Description = _model.Description,
+                    Id = DogId.Value,
+                    IsGenderMale = _model.IsGenderMale,
+                    Name = _model.Name,
+                    WeightClass = _model.WeightClass
+                });
+        }
+        else
+        {
+            await ApiClient.CreateDogAsync(new DogCreateDTO
+                {
+                    Birth = _birth ?? DateTime.UtcNow,
+                    Breed = _model.Breed,
+                    Description = _model.Description,
+                    IsGenderMale = _model.IsGenderMale,
+                    Name = _model.Name,
+                    WeightClass = _model.WeightClass
+                });
+        }
+        _isCreatingUpdatingDog = false;
+        OnDogCreationFinished();
+    }
+
+
+    private async Task FetchExistingDog()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        int id = DogId ?? -1;
+        var dogDetailed = await ApiClient.GetDogDetailedAsync(id);
+        _model = new()
+            {
+                Birth = dogDetailed.Birth,
+                Breed = dogDetailed.Breed,
+                Description = dogDetailed.Description,
+                Name = dogDetailed.Name,
+                IsGenderMale = dogDetailed.IsGenderMale,
+                WeightClass = dogDetailed.WeightClass
+            };
+        _birth = _model.Birth;
+        _loading = false;
+
+    }
+}

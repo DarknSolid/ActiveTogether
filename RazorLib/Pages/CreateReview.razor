@@ -72,7 +72,7 @@
     {
         _loading = true;
         _model.RevieweeId = Id;
-        await ApiClient.CreateReview(ReviewType.DogPark, _model);
+        await ApiClient.CreateReviewAsync(ReviewType.DogPark, _model);
         _loading = false;
         OnReviewCreated();
     }

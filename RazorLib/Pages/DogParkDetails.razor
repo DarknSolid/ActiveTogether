@@ -112,16 +112,16 @@ else
     private bool _isLoading;
     private DogParkDetailedDTO _dogParkDetails;
 
-    protected override async void OnParametersSet()
+    protected override async Task OnInitializedAsync()
     {
-        _isLoading = true;
         await Fetch();
-        _isLoading = false;
-        StateHasChanged();
+        await base.OnInitializedAsync();
     }
 
     private async Task Fetch()
     {
-        _dogParkDetails = await ApiClient.GetDogPark(DogParkId);
+        _isLoading = true;
+        _dogParkDetails = await ApiClient.GetDogParkAsync(DogParkId);
+        _isLoading = false;
     }
 }

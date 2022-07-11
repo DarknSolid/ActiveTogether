@@ -23,13 +23,13 @@
         <NavMenu />
     </MudDrawer>
 
-    <MudMainContent Style="padding-top:0; padding-bottom:var(--mud-appbar-height);">
+    <MudMainContent Style="padding-top:0; height:calc(100% - var(--mud-appbar-height));">
         <MudContainer MaxWidth="MaxWidth.Large" Class="px-0"> @*{// px = padding left and right}*@
             @Body
         </MudContainer>
     </MudMainContent>
 
-    <MudAppBar Color="@Color.Primary" Elevation="0" Bottom=true>
+    <MudAppBar Color="@Color.Primary" Elevation="0" Bottom=true Style="min-height: 65px;">
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" OnClick="@((e) => OnBackButtonPressed())" />
         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />

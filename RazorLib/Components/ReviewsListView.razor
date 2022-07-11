@@ -55,7 +55,7 @@
         {
             _loading = true;
             _hasNext = false;
-            var result = await ApiClient.GetReviews(RevieweeId, ReviewType, _page, _ratingsPerPage);
+            var result = await ApiClient.GetReviewsAsync(RevieweeId, ReviewType, _page, _ratingsPerPage);
             Reviews.AddRange(result.Reviews);
 
             _page++;

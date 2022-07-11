@@ -1,0 +1,22 @@
+﻿@using ModelLib.DTOs.Dogs
+@using RazorLib.Utils
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">@Dog.Name.First()</MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <div class="d-flex flex-row justify-start gap-4">
+                <MudText Typo="Typo.body1">@Dog.Name</MudText>
+                <MudText Typo="Typo.subtitle1">@(DateUtils.AgeInYears(Dog.Birth)) years</MudText>
+            </div>
+            <MudText Typo="Typo.body2">@Dog.BreedName</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+</MudCard>
+
+@code {
+    [Parameter]
+    public DogListDTO Dog { get; set; }
+}

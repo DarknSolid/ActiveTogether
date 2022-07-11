@@ -12,9 +12,9 @@ using ModelLib.DTOs;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
-using RazorLib.Pages;
 using ModelLib.DTOs.Reviews;
 using static EntityLib.Entities.Enums;
+using ModelLib.DTOs.Dogs;
 
 namespace MobileBlazor.Utils
 {
@@ -87,18 +87,18 @@ namespace MobileBlazor.Utils
         #endregion
 
         #region BlazorLib Interface implementation:
-        public async Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO)
+        public async Task<MapSearchResultDTO> FetchMapMarkersAsync(MapSearchDTO mapSearchDTO)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_MAP_POINTS;
             return await PostAsync<MapSearchDTO, MapSearchResultDTO>(url, mapSearchDTO);
         }
 
-        public async Task<DogParkDetailedDTO> GetDogPark(int id)
+        public async Task<DogParkDetailedDTO> GetDogParkAsync(int id)
         {
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
         }
 
-        public async Task<ReviewListViewDTO> GetReviews(int id, ReviewType reviewType, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, ReviewType reviewType, int page, int pageCount)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_LIST_REVIEWS;
             var body = new ReviewsDTO
@@ -115,7 +115,7 @@ namespace MobileBlazor.Utils
             return await PostAsync<ReviewsDTO, ReviewListViewDTO>(url, body);
         }
 
-        public async Task<ReviewCreatedDTO> CreateReview(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_CREATE_REVIEW;
             return await PostAsync<ReviewCreateDTO, ReviewCreatedDTO>(url, reviewCreateDTO);
@@ -126,6 +126,31 @@ namespace MobileBlazor.Utils
             var result = await _httpClient.PostAsJsonAsync(url, body);
             var str = await result.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<O>(str);
+        }
+
+        public Task<List<DogListDTO>> GetMyDogsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DogDetailedDTO> GetDogDetailedAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IDictionary<int, string>> GetDogBreedsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
