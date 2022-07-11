@@ -1,6 +1,7 @@
 ﻿@using RazorLib.Components
 @using RazorLib.Interfaces
 @using ModelLib.DTOs.DogPark
+@using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 
 
@@ -76,7 +77,7 @@
                 <MudItem xs="12">
                     <MudText Typo="Typo.h5">Reviews</MudText>
                     <div style="max-height:300px; overflow:scroll">
-                        <ReviewsListView/>
+                        <ReviewsListView RevieweeId="@DogParkId" ReviewType="@ReviewType.DogPark"/>
                     </div>
                 </MudItem>
 
@@ -111,7 +112,7 @@ else
     private bool _isLoading;
     private DogParkDetailedDTO _dogParkDetails;
 
-    protected override async void OnInitialized()
+    protected override async void OnParametersSet()
     {
         _isLoading = true;
         await Fetch();

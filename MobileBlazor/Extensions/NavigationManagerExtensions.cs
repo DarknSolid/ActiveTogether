@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using static RazorLib.Pages.CreateReview;
+using static EntityLib.Entities.Enums;
 
 namespace MobileBlazor.Extensions
 {
@@ -11,7 +11,7 @@ namespace MobileBlazor.Extensions
             jsRuntime.InvokeVoidAsync("history.back");
         }
 
-        public static void NavigateToReviewCreate(this NavigationManager navigationManager, int id, ReviewTypes reviewType, string revieweeName, bool isReviewUpdate) 
+        public static void NavigateToReviewCreate(this NavigationManager navigationManager, int id, ReviewType reviewType, string revieweeName, bool isReviewUpdate) 
         {
             navigationManager.NavigateTo(RoutingConstants.CREATE_REVIEW + $"{id}/{reviewType}/{revieweeName}/{isReviewUpdate}");
         }

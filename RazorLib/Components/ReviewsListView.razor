@@ -3,6 +3,7 @@
 @using RazorLib.Interfaces
 @using RazorLib.Models
 @using RazorLib.Components.ScrollPagination
+@using static EntityLib.Entities.Enums
 @using static RazorLib.Components.ScrollPagination.ScrollPagination
 @inject IApiClient ApiClient
 
@@ -26,7 +27,10 @@
     public int? MaxItems { get; set; }
 
     [Parameter]
-    public int DogParkId { get; set; }
+    public int RevieweeId { get; set; }
+
+    [Parameter]
+    public ReviewType ReviewType { get; set; }
 
     private bool _loading;
 
@@ -51,11 +55,11 @@
         {
             _loading = true;
             _hasNext = false;
-            var (paginationResult, ratings) = await ApiClient.GetDogParkRatings(DogParkId, _page, _ratingsPerPage);
-            Reviews.AddRange(ratings);
+            var result = await ApiClient.GetReviews(RevieweeId, ReviewType, _page, _ratingsPerPage);
+            Reviews.AddRange(result.Reviews);
 
             _page++;
-            _hasNext = paginationResult.HasNext;
+            _hasNext = result.PaginationResult.HasNext;
             _loading = false;
         }
     }

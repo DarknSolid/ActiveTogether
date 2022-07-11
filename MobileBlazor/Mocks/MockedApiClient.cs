@@ -3,10 +3,9 @@ using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
 using ModelLib.DTOs.Reviews;
+using ModelLib.Repositories;
 using RazorLib.Interfaces;
-using RazorLib.Pages;
 using WebApp.DTOs.Authentication;
-using static EntityLib.Entities.DogParkFacility;
 using static EntityLib.Entities.Enums;
 
 namespace MobileBlazor.Mocks
@@ -22,7 +21,7 @@ namespace MobileBlazor.Mocks
         {
             _random = new();
             _user = new() { Email = "mock@user.com", ProfilePictureUrl = "", UserName = "IAmAMockUser" };
-            _dogParkListDTO = new ()
+            _dogParkListDTO = new()
             {
                 Id = 1,
                 Name = "The Mocked Dog Park",
@@ -78,11 +77,11 @@ namespace MobileBlazor.Mocks
                 Longitude = _dogParkListDTO.Longitude,
                 Rating = 4,
                 ImageUrls = new List<string> { "https://www.dogparkconsulting.com/wp-content/uploads/2017/01/DogParkF_sm-1024x756.jpg" },
-                Facilities = new List<DogPackFacilityType> {  DogPackFacilityType.Fenced, DogPackFacilityType.Grassfield }
+                Facilities = new List<DogPackFacilityType> { DogPackFacilityType.Fenced, DogPackFacilityType.Grassfield }
             });
         }
 
-        public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviews(int id, ReviewType reviewType, int page, int pageCount)
         {
             var result = new List<ReviewDetailedDTO>();
             var start = page * pageCount;
@@ -101,18 +100,22 @@ namespace MobileBlazor.Mocks
                         Title = "my title here",
                         Description = "A random comment here" + i,
                         Date = DateTime.Now,
-                        Rating = Convert.ToInt32(_random.Next(0,6)),
+                        Rating = Convert.ToInt32(_random.Next(0, 6)),
                     }
                 );
             }
 
-            var paginationResult = new PaginationResult 
-            { 
-                CurrentPage = page, 
-                HasNext = true 
+            var paginationResult = new PaginationResult
+            {
+                CurrentPage = page,
+                HasNext = true
             };
 
-            return (paginationResult, result);
+            return new ReviewListViewDTO()
+            {
+                PaginationResult = paginationResult,
+                Reviews = result
+            };
         }
 
         private async Task SimulateRequestDelay()
@@ -120,9 +123,16 @@ namespace MobileBlazor.Mocks
             await Task.Delay(_random.Next(300, 700));
         }
 
-        public async Task CreateReview(CreateReview.ReviewTypes reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReview(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
         {
             await SimulateRequestDelay();
+            return new ReviewCreatedDTO()
+            {
+                ResponseType = RepositoryEnums.ResponseType.Created,
+                ReviewType = reviewType,
+                RevieweeId = reviewCreateDTO.RevieweeId,
+                ReviewerId = 0
+            };
         }
         #endregion
     }

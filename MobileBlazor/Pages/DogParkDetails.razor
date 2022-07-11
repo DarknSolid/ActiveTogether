@@ -1,11 +1,12 @@
 ﻿@attribute [Route(RoutingConstants.DOG_PARK_DETAILS + "{id:int}")]
 @using MobileBlazor.Extensions
+@using static EntityLib.Entities.Enums
 @inject NavigationManager NavigationManager
 
 <RazorLib.Pages.DogParkDetails 
     DogParkId=Id 
     OnCreateReviewPressed="(string dogParkName, bool isReviewUpdate) => 
-        NavigationManager.NavigateToReviewCreate(Id, RazorLib.Pages.CreateReview.ReviewTypes.DogPark, dogParkName, isReviewUpdate)"
+        NavigationManager.NavigateToReviewCreate(Id, ReviewType.DogPark, dogParkName, isReviewUpdate)"
 />
 
 @code {

@@ -21,18 +21,30 @@ namespace MobileBlazor
                 });
             builder.Services.AddMauiBlazorWebView();
 
-            #if DEBUG
-                        builder.Services.AddBlazorWebViewDeveloperTools();
-            #endif
+#if DEBUG
+            builder.Services.AddBlazorWebViewDeveloperTools();
+#endif
 
-            builder.Services.AddScoped<HttpClient>();
-            //var apiClient = new ApiClient(new HttpClient(), "http://localhost:5078/");
-            //var apiClient = new ApiClient(new HttpClient(), "http://10.0.2.2:5078/");
-            var mockedApiClient = new MockedApiClient();
-            //builder.Services.AddSingleton<IMobileApiClient>(apiClient);
-            builder.Services.AddSingleton(mockedApiClient);
-            builder.Services.AddSingleton<IMobileApiClient>(mockedApiClient);
-            builder.Services.AddSingleton<IApiClient>(mockedApiClient);
+            var doMockApiClient = false;
+            if (doMockApiClient)
+            {
+                var mockedApiClient = new MockedApiClient();
+                builder.Services.AddSingleton(mockedApiClient);
+                builder.Services.AddSingleton<IMobileApiClient>(mockedApiClient);
+                builder.Services.AddSingleton<IApiClient>(mockedApiClient);
+            }
+            else
+            {
+                builder.Services.AddScoped<HttpClient>();
+                var apiClient = new ApiClient(new HttpClient(), "http://10.0.2.2:5078/"); // used on emulator device
+#if WINDOWS
+                    apiClient = new ApiClient(new HttpClient(), "http://localhost:5078/");
+#endif
+                builder.Services.AddSingleton(apiClient);
+                builder.Services.AddSingleton<IMobileApiClient>(apiClient);
+                builder.Services.AddSingleton<IApiClient>(apiClient);
+            }
+
             builder.Services.AddScoped<MapSearcher, MapSearcherClient>();
             builder.Services.AddMudServices();
             builder.Services.AddScoped<ISessionStorage, SessionStorage>();

@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 @using ModelLib.DTOs.Reviews
 @using RazorLib.Interfaces
+@using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 
 <MudContainer>
@@ -43,7 +44,7 @@
 @code {
 
     [Parameter]
-    public ReviewTypes ReviewType { get; set; }
+    public ReviewType ReviewType { get; set; }
 
     [Parameter]
     public int Id { get; set; }
@@ -62,11 +63,6 @@
     private bool _loading;
     private string _titlePrefix;
 
-    public enum ReviewTypes
-    {
-        DogPark
-    }
-
     protected override void OnInitialized()
     {
         _titlePrefix = IsReviewUpdate ? "Update" : "Write";
@@ -76,7 +72,7 @@
     {
         _loading = true;
         _model.RevieweeId = Id;
-        await ApiClient.CreateReview(ReviewType, _model);
+        await ApiClient.CreateReview(ReviewType.DogPark, _model);
         _loading = false;
         OnReviewCreated();
     }

@@ -14,6 +14,7 @@ using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
 using RazorLib.Pages;
 using ModelLib.DTOs.Reviews;
+using static EntityLib.Entities.Enums;
 
 namespace MobileBlazor.Utils
 {
@@ -36,14 +37,14 @@ namespace MobileBlazor.Utils
         {
             string accessToken = "";
 
-            #if __ANDROID__
-                Xamarin.Facebook.Login.LoginManager.Instance.LogInWithReadPermissions(MainActivity.Instance, new List<string> { "public_profile", "email" });
-                while (MainActivity.Instance.FacebookAccessToken == null)
-                {
-                    await Task.Delay(500);
-                }
-                accessToken = MainActivity.Instance.FacebookAccessToken;
-            #endif
+#if __ANDROID__
+            Xamarin.Facebook.Login.LoginManager.Instance.LogInWithReadPermissions(MainActivity.Instance, new List<string> { "public_profile", "email" });
+            while (MainActivity.Instance.FacebookAccessToken == null)
+            {
+                await Task.Delay(500);
+            }
+            accessToken = MainActivity.Instance.FacebookAccessToken;
+#endif
 
             var url = _baseApiUrl + ApiEndpoints.POST_FACEBOOK_LOGIN;
             try
@@ -53,7 +54,7 @@ namespace MobileBlazor.Utils
                 {
                     return await GetUserInfo();
                 }
-            } 
+            }
             catch (Exception e)
             {
                 Console.WriteLine(e);
@@ -89,10 +90,7 @@ namespace MobileBlazor.Utils
         public async Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_MAP_POINTS;
-            var result = await _httpClient.PostAsJsonAsync(url, mapSearchDTO);
-            var str = await result.Content.ReadAsStringAsync();
-            var thing = JsonConvert.DeserializeObject<MapSearchResultDTO>(str);
-            return thing;
+            return await PostAsync<MapSearchDTO, MapSearchResultDTO>(url, mapSearchDTO);
         }
 
         public async Task<DogParkDetailedDTO> GetDogPark(int id)
@@ -100,14 +98,34 @@ namespace MobileBlazor.Utils
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
         }
 
-        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetDogParkRatings(int id, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviews(int id, ReviewType reviewType, int page, int pageCount)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_LIST_REVIEWS;
+            var body = new ReviewsDTO
+            {
+                RevieweeId = id,
+                ReviewType = reviewType,
+                PaginationRequest = new PaginationRequest
+                {
+                    Page = page,
+                    ItemsPerPage = pageCount
+                }
+            };
+
+            return await PostAsync<ReviewsDTO, ReviewListViewDTO>(url, body);
         }
 
-        public Task CreateReview(CreateReview.ReviewTypes reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReview(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_CREATE_REVIEW;
+            return await PostAsync<ReviewCreateDTO, ReviewCreatedDTO>(url, reviewCreateDTO);
+        }
+
+        private async Task<O> PostAsync<I, O>(string url, I body)
+        {
+            var result = await _httpClient.PostAsJsonAsync(url, body);
+            var str = await result.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<O>(str);
         }
 
         #endregion

@@ -3,7 +3,7 @@ using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
 using ModelLib.DTOs.Reviews;
 using RazorLib.Models;
-using static RazorLib.Pages.CreateReview;
+using static EntityLib.Entities.Enums;
 
 namespace RazorLib.Interfaces
 {
@@ -11,7 +11,7 @@ namespace RazorLib.Interfaces
     {
         public Task<MapSearchResultDTO> FetchMapMarkers(MapSearchDTO mapSearchDTO);
         public Task<DogParkDetailedDTO> GetDogPark(int id);
-        public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetDogParkRatings(int id, int page, int pageCount);
-        public Task CreateReview(ReviewTypes reviewType, ReviewCreateDTO reviewCreateDTO);
+        public Task<ReviewListViewDTO> GetReviews(int id, ReviewType reviewType, int page, int pageCount);
+        public Task<ReviewCreatedDTO> CreateReview(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO);
     }
 }
