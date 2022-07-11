@@ -64,7 +64,7 @@
                     }
                     else
                     {
-                        <span>@(_isUpdate ? "Update" : "Create")</span>
+                        <span>@(_isUpdate ? "Update" : "Add")</span>
                     }
                 </MudButton>
             </MudItem>
@@ -84,11 +84,7 @@
     [Parameter]
     public Action OnDogCreationFinished { get; set; }
 
-    public DogCreateDTO _model { get; set; } = new()
-        {
-            WeightClass = DogWeightClass.Medium,
-            Breed = 1
-        };
+    public DogCreateDTO _model { get; set; } = new();
 
     private string _title;
     private bool _loading;
@@ -107,7 +103,6 @@
         }
         _loading = true;
         _intToDogBreed = await ApiClient.GetDogBreedsAsync();
-        _model.Breed = 1;
         StateHasChanged();
         if (_isUpdate)
         {
@@ -116,7 +111,10 @@
         }
         else
         {
-            _title = "Create Dog";
+            _title = "Add Dog";
+            // set default values:
+            _model.Breed = _intToDogBreed.Keys.First();
+            _model.WeightClass = DogWeightClass.Medium;
         }
         _loading = false;
         base.OnParametersSet();
@@ -127,7 +125,7 @@
         _isCreatingUpdatingDog = true;
         if (_isUpdate)
         {
-            await ApiClient.UpdateDogAsync(new DogUpdateDTO
+            var result = await ApiClient.UpdateDogAsync(new DogUpdateDTO
                 {
                     Birth = _birth ?? DateTime.UtcNow,
                     Breed = _model.Breed,
@@ -135,7 +133,7 @@
                     Id = DogId.Value,
                     IsGenderMale = _model.IsGenderMale,
                     Name = _model.Name,
-                    WeightClass = _model.WeightClass
+                    WeightClass = _model.WeightClass,
                 });
         }
         else

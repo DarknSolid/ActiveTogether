@@ -86,8 +86,10 @@ namespace WebApp.Controllers
             var user = await _userManager.GetUserAsync(HttpContext.User);
             return new UserInfoDTO()
             {
+                Id = user.Id,
                 Email = user.Email,
-                UserName = user.UserName
+                UserName = user.UserName,
+                ProfilePictureUrl = user.ProfileImageUrl
             };
         }
 

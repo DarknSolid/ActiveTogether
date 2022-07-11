@@ -201,6 +201,11 @@ namespace MobileBlazor.Mocks
                 Response = RepositoryEnums.ResponseType.Updated
             };
         }
+
+        public async Task<List<DogListDTO>> GetDogsAsync(int userId)
+        {
+            return await GetMyDogsAsync();
+        }
         #endregion
     }
 }

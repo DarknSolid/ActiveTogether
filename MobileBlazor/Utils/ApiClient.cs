@@ -128,29 +128,40 @@ namespace MobileBlazor.Utils
             return JsonConvert.DeserializeObject<O>(str);
         }
 
-        public Task<List<DogListDTO>> GetMyDogsAsync()
+        public async Task<List<DogListDTO>> GetMyDogsAsync()
         {
-            throw new NotImplementedException();
+            var user = await GetUserInfo();
+            return await GetDogsAsync(user.Id);
         }
 
-        public Task<DogDetailedDTO> GetDogDetailedAsync(int id)
+        public async Task<DogDetailedDTO> GetDogDetailedAsync(int id)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.GET_DETAILED_DOG + id;
+            return await _httpClient.GetFromJsonAsync<DogDetailedDTO>(url);
         }
 
-        public Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
+        public async Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_CREATE_DOG;
+            return await PostAsync<DogCreateDTO, DogCreatedDTO>(url, dto);
         }
 
-        public Task<IDictionary<int, string>> GetDogBreedsAsync()
+        public async Task<IDictionary<int, string>> GetDogBreedsAsync()
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.GET_DOG_BREEDS;
+            return await _httpClient.GetFromJsonAsync<IDictionary<int, string>>(url);
         }
 
-        public Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
+        public async Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_UPDATE_DOG;
+            return await PostAsync<DogUpdateDTO, DogUpdatedDTO>(url, dto);
+        }
+
+        public async Task<List<DogListDTO>> GetDogsAsync(int userId)
+        {
+            var url = _baseApiUrl + ApiEndpoints.GET_LIST_DOGS + userId;
+            return await _httpClient.GetFromJsonAsync<List<DogListDTO>>(url);
         }
 
         #endregion

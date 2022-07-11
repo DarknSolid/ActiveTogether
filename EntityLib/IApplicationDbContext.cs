@@ -10,7 +10,7 @@ namespace EntityLib
         public DbSet<DogParkFacility> DogParkFacilities { get; set; }
         public DbSet<Review> Reviews { get; set; }
 
-        public DbSet<DogBreed> DogRaces { get; set; }
+        public DbSet<DogBreed> DogBreeds { get; set; }
 
         public DbSet<Dog> Dogs { get; set; }
 

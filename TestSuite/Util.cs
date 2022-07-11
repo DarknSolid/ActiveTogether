@@ -64,5 +64,16 @@ namespace TestSuite
             return user;
 
         }
+
+        public static List<string> CreateDogBreeds()
+        {
+            return new List<string>()
+            {
+                "Crusty",
+                "Labrador",
+                "Golden Retriever",
+                "Rotweiler",
+            };
+        }
     }
 }
