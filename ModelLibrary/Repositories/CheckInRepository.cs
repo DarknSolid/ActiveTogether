@@ -14,7 +14,7 @@ namespace ModelLib.Repositories
         public Task<(ResponseType, int)> CheckIn(int userId, CheckInCreateDTO dto);
         public Task<(ResponseType, int)> CheckOut(int userId);
         public Task<CurrentlyCheckedInDTO?> GetCurrentlyCheckedIn(int userId);
-        public Task<CheckInListDTOPagination> GetCheckIns(PaginationRequest paginationRequest, GetCheckInListDTO dto);
+        public Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto);
     }
 
     public class CheckInRepository : ICheckInRepository
@@ -38,13 +38,14 @@ namespace ModelLib.Repositories
             }
 
             //Can only check in with user's own dogs
-            if (await AreDogsNotOwnedByUser(userId, dto.DogsToCheckIn))
+            if ( await AreDogsNotOwnedByUser(userId, dto.DogsToCheckIn))
             {
                 return new(ResponseType.Conflict, -1);
             }
 
             //Can't check in to an invalid facility
-            if (await _facilityRepository.FacilityExists(dto.FacilityId, dto.FacilityType) == false)
+            if (await _facilityRepository.FacilityExists(dto.FacilityId, dto.FacilityType) == false ||
+                await DogsExists(dto.DogsToCheckIn) == false)
             {
                 return new (ResponseType.NotFound, -1);
             }
@@ -81,7 +82,7 @@ namespace ModelLib.Repositories
             return (ResponseType.Updated, currentCheckInEntity.Id);
         }
 
-        public async Task<CheckInListDTOPagination> GetCheckIns(PaginationRequest paginationRequest, GetCheckInListDTO dto)
+        public async Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto)
         {
             var query = _context.CheckIns
                 .Include(c => c.DogCheckIns)
@@ -93,7 +94,7 @@ namespace ModelLib.Repositories
                 query = query.Where(c => c.CheckOutDate == null);
             }
 
-            var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, paginationRequest);
+            var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, dto.PaginationRequest);
             
             var result = await paginatedQuery.Select(c => new CheckInListDTO
             {
@@ -158,6 +159,12 @@ namespace ModelLib.Repositories
                 FacilityType = entity.FacilityType,
                 CheckInDate = entity.CheckInDate
             };
+        }
+
+        private async Task<bool> DogsExists(List<int> dogIds)
+        {
+            // TODO this may create N queries to the database.. Optimize the performance plz
+            return dogIds.All(id => _context.Dogs.Any(d => d.Id == id));
         }
          
         private async Task<bool> AreDogsNotOwnedByUser(int userId, List<int> dogIds)

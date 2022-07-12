@@ -42,6 +42,28 @@ namespace UnitTests
         }
 
         [Fact]
+        public async Task CheckIn_Invalid_Dog_Returns_NotFound()
+        {
+            _facilityRepositoryMock
+                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
+                .Returns(Task.FromResult(true));
+
+            var userId = 3;
+            var facilityId = 1;
+            var createDto = new CheckInCreateDTO
+            {
+                DogsToCheckIn = new() { 0},
+                FacilityId = facilityId,
+                FacilityType = FacilityType.DogPark
+            };
+
+            var (response, id) = await _repo.CheckIn(userId, createDto);
+
+            Assert.Equal(RepositoryEnums.ResponseType.NotFound, response);
+            Assert.Equal(-1, id);
+        }
+
+        [Fact]
         public async Task CheckIn_If_Checked_In_Returns_Conflict()
         {
             _facilityRepositoryMock
@@ -148,12 +170,13 @@ namespace UnitTests
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
             var dtoRequest = new GetCheckInListDTO
             {
+                PaginationRequest = paginationRequest,
                 FacilityId = facilityId,
                 FacilityType = facilityType,
                 OnlyActiveCheckIns = onlyActiveCheckIns
             };
 
-            var actual = await _repo.GetCheckIns(paginationRequest, dtoRequest);
+            var actual = await _repo.GetCheckIns(dtoRequest);
 
             Assert.Equal(3, actual.CheckIns.Count);
             Assert.True(actual.CheckIns.All(c => c.CheckedOut == null));
@@ -179,11 +202,12 @@ namespace UnitTests
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
             var dtoRequest = new GetCheckInListDTO
             {
+                PaginationRequest = paginationRequest,
                 FacilityId = facilityId,
                 FacilityType = facilityType,
                 OnlyActiveCheckIns = onlyActiveCheckIns
             };
-            var actual = await _repo.GetCheckIns(paginationRequest, dtoRequest);
+            var actual = await _repo.GetCheckIns(dtoRequest);
             var count= await _context.CheckIns.CountAsync();
 
             Assert.Equal(count, actual.CheckIns.Count);

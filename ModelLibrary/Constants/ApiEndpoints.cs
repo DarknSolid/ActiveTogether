@@ -34,11 +34,11 @@
 
         public const string DOG_BREEDS = "breeds/";
 
-        public const string CHECKINS = "checkins/";
+        public const string CHECKINS = BASE + "checkins/";
         public const string CHECKINS_CHECK_IN = "";
-        public const string CHECK_INS_CHECK_OUT = "check-out/";
+        public const string CHECKINS_CHECK_OUT = "check-out/";
         public const string CHECKINS_LIST = "list/";
-        public const string CHECKINS_CURRENT_CHECK_IN = "current-check-in/";
+        public const string CHECKINS_CURRENT_CHECK_IN = "current-checkin/";
 
 
         // full api endpoints for the client to use:
@@ -63,8 +63,8 @@
         public const string GET_DOG_BREEDS = DOGS + DOG_BREEDS;
 
         public const string POST_CHECK_IN = CHECKINS + CHECKINS_CHECK_IN;
-        public const string PUT_CHECK_OUT = CHECKINS + CHECK_INS_CHECK_OUT;
-        public const string GET_CHECKINS_LIST = CHECKINS + CHECKINS_LIST;
+        public const string PUT_CHECK_OUT = CHECKINS + CHECKINS_CHECK_OUT;
+        public const string POST_CHECKINS_LIST = CHECKINS + CHECKINS_LIST;
         public const string GET_CHECKINS_CURRENT_CHECKIN = CHECKINS + CHECKINS_CURRENT_CHECK_IN;
 
 
