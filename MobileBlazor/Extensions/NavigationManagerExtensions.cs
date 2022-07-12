@@ -25,5 +25,10 @@ namespace MobileBlazor.Extensions
             }
             navigationManager.NavigateTo(url);
         }
+
+        public static void NavigateToDogDetails(this NavigationManager navigationManager, int dogId)
+        {
+            navigationManager.NavigateTo(RoutingConstants.DOG_DETAILS + dogId);
+        }
     }
 }

@@ -14,5 +14,6 @@ namespace MobileBlazor
         public const string CREATE_REVIEW = "create-review/";
         public const string MY_DOGS = "my-dogs/";
         public const string CREATE_DOG = "create-dog/";
+        public const string DOG_DETAILS = "dog-detials/";
     }
 }

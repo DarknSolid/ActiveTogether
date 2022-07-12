@@ -1,0 +1,53 @@
+﻿@using ModelLib.DTOs.Dogs
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+
+@if (!_loading)
+{
+    <MudCard>
+        <MudCardMedia Image="https://ichef.bbci.co.uk/news/976/cpsprodpb/17638/production/_124800859_gettyimages-817514614.jpg" Height="200" />
+        <MudCardContent>
+            <MudText Typo="Typo.h5">@_dog.Name</MudText>
+            <MudText Typo="Typo.body2">@Utils.DateUtils.AgeInYears(_dog.Birth) years old</MudText>
+            <MudText Typo="Typo.body2">@(_dog.IsGenderMale ? "Male" : "Female")</MudText>
+                <MudText Typo="Typo.body2">@_dog.Description</MudText>
+                <MudText Typo="Typo.body2">@_dog.BreedName</MudText>
+                <MudText Typo="Typo.body2">Weight class: @_dog.WeightClass.ToString()</MudText>
+            </MudCardContent>
+        </MudCard>
+}
+else
+{
+    <MudCard>
+        <MudSkeleton Height="200" Width="100%" />
+        <MudCardContent>
+            <MudSkeleton Width="30%" Height="35px" />
+            <MudSkeleton Width="40%" Height="20px" />
+            <MudSkeleton Width="40%" Height="20px" />
+            <MudSkeleton Width="40%" Height="20px" />
+            <MudSkeleton Width="40%" Height="20px" />
+            <MudSkeleton Width="40%" Height="20px" />
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private bool _loading = true;
+    private DogDetailedDTO _dog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchDog();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task FetchDog()
+    {
+        _loading = true;
+        _dog = await ApiClient.GetDogDetailedAsync(Id);
+        _loading = false;
+    }
+}
