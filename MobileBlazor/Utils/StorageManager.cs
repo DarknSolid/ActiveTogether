@@ -1,17 +1,16 @@
-﻿using ModelLib.DTOs.CheckIns;
-using RazorLib.Interfaces;
+﻿using RazorLib.Interfaces;
 
 namespace MobileBlazor.Utils
 {
-    public class CheckInStorageManager : ICheckInStorageManager
+    public class StorageManager<T> : IStorageManager<T>
     {
         private readonly ISessionStorage _sessionStorage;
         private readonly string _key;
 
-        public CheckInStorageManager(ISessionStorage sessionStorage)
+        public StorageManager(ISessionStorage sessionStorage)
         {
             _sessionStorage = sessionStorage;
-            _key = "CurrentCheckInStatus";
+            _key = nameof(T);
         }
 
         public async Task DeleteCheckIn()
@@ -24,7 +23,7 @@ namespace MobileBlazor.Utils
             return await _sessionStorage.Exists(_key);
         }
 
-        public async Task SetCurrentCheckIn(CurrentlyCheckedInDTO dto)
+        public async Task SetCurrentCheckIn(T dto)
         {
             await _sessionStorage.SetItem(_key, dto);
         }

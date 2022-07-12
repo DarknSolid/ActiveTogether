@@ -2,9 +2,9 @@
 
 namespace RazorLib.Interfaces
 {
-    public interface ICheckInStorageManager
+    public interface IStorageManager<T>
     {
-        public Task SetCurrentCheckIn(CurrentlyCheckedInDTO dto);
+        public Task SetCurrentCheckIn(T dto);
         public Task DeleteCheckIn();
         public Task<bool> HasCheckIn();
     }
