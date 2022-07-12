@@ -36,6 +36,8 @@ builder.Services.AddDbContext<IApplicationDbContext,ApplicationDbContext>(option
 builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
 builder.Services.AddScoped<IReviewsRepository, ReviewsRepository>();
 builder.Services.AddScoped<IDogRepository, DogRepository>();
+builder.Services.AddScoped<IFacilityRepository, FacilityRepository>();
+builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 
 
 //others:
