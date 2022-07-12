@@ -13,5 +13,8 @@ namespace EntityLib.Entities.Identity
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string? ProfileImageUrl { get; set; }
+
+        public ICollection<CheckIn> CheckIns { get; set; }
+        public ICollection<Review> Reviews { get; set; }
     }
 }

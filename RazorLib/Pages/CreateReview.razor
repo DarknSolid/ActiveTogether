@@ -44,7 +44,7 @@
 @code {
 
     [Parameter]
-    public ReviewType ReviewType { get; set; }
+    public FacilityType ReviewType { get; set; }
 
     [Parameter]
     public int Id { get; set; }
@@ -72,7 +72,7 @@
     {
         _loading = true;
         _model.RevieweeId = Id;
-        await ApiClient.CreateReviewAsync(ReviewType.DogPark, _model);
+        await ApiClient.CreateReviewAsync(FacilityType.DogPark, _model);
         _loading = false;
         OnReviewCreated();
     }

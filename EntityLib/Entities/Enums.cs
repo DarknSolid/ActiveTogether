@@ -3,7 +3,7 @@ namespace EntityLib.Entities
 {
     public class Enums
     {
-        public enum ReviewType
+        public enum FacilityType
         {
             DogPark
         }

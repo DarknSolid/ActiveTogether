@@ -16,6 +16,9 @@ namespace EntityLib
 
         public DbSet<ApplicationUser> Users {get;set;}
 
+        public DbSet<CheckIn> CheckIns { get; set; }
+        public DbSet<DogCheckIn> DogCheckIns { get; set; }
+
         public Task SaveChangesAsync();
     }
 }

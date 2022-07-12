@@ -11,8 +11,8 @@ namespace RazorLib.Interfaces
     {
         public Task<MapSearchResultDTO> FetchMapMarkersAsync(MapSearchDTO mapSearchDTO);
         public Task<DogParkDetailedDTO> GetDogParkAsync(int id);
-        public Task<ReviewListViewDTO> GetReviewsAsync(int id, ReviewType reviewType, int page, int pageCount);
-        public Task<ReviewCreatedDTO> CreateReviewAsync(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO);
+        public Task<ReviewListViewDTO> GetReviewsAsync(int id, FacilityType reviewType, int page, int pageCount);
+        public Task<ReviewCreatedDTO> CreateReviewAsync(FacilityType reviewType, ReviewCreateDTO reviewCreateDTO);
         public Task<List<DogListDTO>> GetMyDogsAsync();
         public Task<List<DogListDTO>> GetDogsAsync(int userId);
         public Task<DogDetailedDTO> GetDogDetailedAsync(int id);

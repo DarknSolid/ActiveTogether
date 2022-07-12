@@ -20,7 +20,7 @@ namespace UnitTests
         public async Task GetReviews_DogPark_Returns_DogPark_reviews()
         {
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
-            var request = new ReviewsDTO { RevieweeId = 1, ReviewType = Enums.ReviewType.DogPark, PaginationRequest = paginationRequest };
+            var request = new ReviewsDTO { RevieweeId = 1, ReviewType = Enums.FacilityType.DogPark, PaginationRequest = paginationRequest };
             var expectedCount = 2;
 
             var (pagination, dogParkReviews) = await _repo.GetReviewsAsync(request);
@@ -30,8 +30,8 @@ namespace UnitTests
             Assert.Equal(expectedCount, dogParkReviews.Count);
             Assert.Equal(request.RevieweeId, firstDogPark.RevieweeId);
             Assert.Equal(request.RevieweeId, secondDogPark.RevieweeId);
-            Assert.Equal(Enums.ReviewType.DogPark, firstDogPark.ReviewType);
-            Assert.Equal(Enums.ReviewType.DogPark, secondDogPark.ReviewType);
+            Assert.Equal(Enums.FacilityType.DogPark, firstDogPark.ReviewType);
+            Assert.Equal(Enums.FacilityType.DogPark, secondDogPark.ReviewType);
             Assert.Equal(2, firstDogPark.ReviewerId);
             Assert.Equal(1, secondDogPark.ReviewerId);
         }
@@ -42,7 +42,7 @@ namespace UnitTests
             var reviewerId = 2;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.ReviewType.DogPark,
+                ReviewType = Enums.FacilityType.DogPark,
                 RevieweeId = 2,
                 Description = "description",
                 Title = "title",
@@ -76,7 +76,7 @@ namespace UnitTests
             var reviewerId = 1;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.ReviewType.DogPark,
+                ReviewType = Enums.FacilityType.DogPark,
                 RevieweeId = 1,
                 Description = "description",
                 Title = "title",
@@ -110,7 +110,7 @@ namespace UnitTests
             var reviewerId = 1;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.ReviewType.DogPark,
+                ReviewType = Enums.FacilityType.DogPark,
                 RevieweeId = -1,
                 Description = "description",
                 Title = "title",

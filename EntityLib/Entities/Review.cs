@@ -11,7 +11,7 @@ namespace EntityLib.Entities
         [ForeignKey(nameof(ApplicationUser))]
         public int ReviewerId { get; set; }
         public int RevieweeId { get; set; } 
-        public ReviewType ReviewType { get; set; }
+        public FacilityType ReviewType { get; set; }
 
         [Required]
         [Range(0,5)]

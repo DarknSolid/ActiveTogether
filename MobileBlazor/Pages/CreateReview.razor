@@ -13,7 +13,7 @@
 
     [Parameter]
     public string ReviewType { get; set; }
-    private ReviewType _reviewType;
+    private FacilityType _reviewType;
 
     [Parameter]
     public string RevieweeName { get; set; }
@@ -23,6 +23,6 @@
 
     protected override void OnInitialized()
     {
-        _reviewType = Enum.Parse<ReviewType>(ReviewType);
+        _reviewType = Enum.Parse<FacilityType>(ReviewType);
     }
 }

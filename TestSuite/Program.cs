@@ -86,7 +86,7 @@ using (var progressBar = new ProgressBar())
             await reviewsRepo.CreateReviewAsync(userId, new ReviewCreateDTO
             {
                 RevieweeId = id,
-                ReviewType = EntityLib.Entities.Enums.ReviewType.DogPark,
+                ReviewType = EntityLib.Entities.Enums.FacilityType.DogPark,
                 Title = $"Review {i + 1}:{j + 1}",
                 Description = "some funky description right here",
                 Rating = ((i + j) % 5) + 1

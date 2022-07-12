@@ -36,5 +36,7 @@ namespace EntityLib.Entities
 
         [Required]
         public bool IsGenderMale { get; set; }
+
+        public ICollection<DogCheckIn> CheckIns { get; set; }
     }
 }

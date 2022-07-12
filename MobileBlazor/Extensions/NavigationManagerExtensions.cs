@@ -11,7 +11,7 @@ namespace MobileBlazor.Extensions
             jsRuntime.InvokeVoidAsync("history.back");
         }
 
-        public static void NavigateToReviewCreate(this NavigationManager navigationManager, int id, ReviewType reviewType, string revieweeName, bool isReviewUpdate) 
+        public static void NavigateToReviewCreate(this NavigationManager navigationManager, int id, FacilityType reviewType, string revieweeName, bool isReviewUpdate) 
         {
             navigationManager.NavigateTo(RoutingConstants.CREATE_REVIEW + $"{id}/{reviewType}/{revieweeName}/{isReviewUpdate}");
         }

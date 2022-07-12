@@ -11,6 +11,6 @@ namespace ModelLib.ApiDTOs
     {
         public PaginationRequest PaginationRequest { get; set; } = new();
         public int RevieweeId { get; set; }
-        public ReviewType ReviewType { get; set; }
+        public FacilityType ReviewType { get; set; }
     }
 }

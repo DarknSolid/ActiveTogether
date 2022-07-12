@@ -47,7 +47,7 @@ namespace ModelLib.Repositories
 
         public async Task<DogParkDetailedDTO?> GetAsync(int id)
         {
-            var reviews = _context.Reviews.Where(r => r.RevieweeId == id && r.ReviewType == Enums.ReviewType.DogPark);
+            var reviews = _context.Reviews.Where(r => r.RevieweeId == id && r.ReviewType == Enums.FacilityType.DogPark);
 
             var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)

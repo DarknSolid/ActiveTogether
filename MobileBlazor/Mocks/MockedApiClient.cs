@@ -81,7 +81,7 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, ReviewType reviewType, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, FacilityType reviewType, int page, int pageCount)
         {
             var result = new List<ReviewDetailedDTO>();
             var start = page * pageCount;
@@ -123,7 +123,7 @@ namespace MobileBlazor.Mocks
             await Task.Delay(_random.Next(300, 700));
         }
 
-        public async Task<ReviewCreatedDTO> CreateReviewAsync(ReviewType reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(FacilityType reviewType, ReviewCreateDTO reviewCreateDTO)
         {
             await SimulateRequestDelay();
             return new ReviewCreatedDTO()

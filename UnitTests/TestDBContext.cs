@@ -37,13 +37,13 @@ namespace UnitTests
             );
 
             builder.Entity<Review>().HasData(
-                GenerateReview(1, ReviewType.DogPark, 1),
-                GenerateReview(2, ReviewType.DogPark, 1),
-                GenerateReview(1, ReviewType.DogPark, 2)
+                GenerateReview(1, FacilityType.DogPark, 1),
+                GenerateReview(2, FacilityType.DogPark, 1),
+                GenerateReview(1, FacilityType.DogPark, 2)
                 );
         }
 
-        private Review GenerateReview(int reviewerId, ReviewType reviewType, int revieweeId)
+        private Review GenerateReview(int reviewerId, FacilityType reviewType, int revieweeId)
         {
             return new Review
             {

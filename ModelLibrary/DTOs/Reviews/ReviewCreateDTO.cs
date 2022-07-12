@@ -12,7 +12,7 @@ namespace ModelLib.DTOs.Reviews
     public class ReviewCreateDTO
     {
         public int RevieweeId { get; set; }
-        public ReviewType ReviewType { get; set; }
+        public FacilityType ReviewType { get; set; }
         public int Rating { get; set; }
 
         [Required]

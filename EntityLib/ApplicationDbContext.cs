@@ -20,6 +20,8 @@ namespace WebApp.Entities
         public DbSet<Review> Reviews { get; set; }
         public DbSet<DogBreed> DogBreeds { get; set; }
         public DbSet<Dog> Dogs { get; set; }
+        public DbSet<CheckIn> CheckIns { get; set; }
+        public DbSet<DogCheckIn> DogCheckIns { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -45,10 +47,28 @@ namespace WebApp.Entities
                 .HasConversion<int>();
             builder.Entity<Review>()
                 .HasKey(d => new { d.ReviewerId, d.RevieweeId, d.ReviewType });
+
+            builder.Entity<Review>()
+                .HasOne(r => r.Reviewer)
+                .WithMany(u => u.Reviews);
             #endregion
 
             #region DogPark
 
+            #endregion
+
+            #region CheckIn
+            builder.Entity<CheckIn>()
+                .HasMany(c => c.DogCheckIns)
+                .WithOne(dc => dc.CheckIn);
+            builder.Entity<CheckIn>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.CheckIns);
+            #endregion
+
+            #region DogCheckIn
+            builder.Entity<DogCheckIn>()
+                .HasOne(dc => dc.Dog).WithMany(d => d.CheckIns);
             #endregion
 
             base.OnModelCreating(builder);

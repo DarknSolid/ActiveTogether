@@ -106,12 +106,12 @@ namespace ModelLib.Repositories
             });
         }
 
-        private async Task<bool> RevieweeExists(int revieweeId, ReviewType reviewType)
+        private async Task<bool> RevieweeExists(int revieweeId, FacilityType reviewType)
         {
             IQueryable<SimplePrimaryKey> query;
             switch (reviewType)
             {
-                case ReviewType.DogPark:
+                case FacilityType.DogPark:
                     query = _context.DogParks;
                     break;
                 default:
