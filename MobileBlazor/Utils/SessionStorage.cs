@@ -1,5 +1,5 @@
 ﻿using Microsoft.JSInterop;
-using RazorLib.Models;
+using RazorLib.Interfaces;
 using System.Text.Json;
 
 namespace MobileBlazor.Utils
@@ -28,6 +28,11 @@ namespace MobileBlazor.Utils
         public async Task<bool> Exists(string key)
         {
             return (await _jSRuntime.InvokeAsync<string>("sessionStorage.getItem", key)) != null;
+        }
+
+        public async Task DeleteItem(string key)
+        {
+            await _jSRuntime.InvokeVoidAsync("sessionStorage.removeItem", key);
         }
     }
 }
