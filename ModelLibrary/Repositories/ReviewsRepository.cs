@@ -22,10 +22,12 @@ namespace ModelLib.Repositories
     public class ReviewsRepository : IReviewsRepository
     {
         private readonly IApplicationDbContext _context;
+        private readonly IFacilityRepository _facilityRepository;
 
-        public ReviewsRepository(IApplicationDbContext context)
+        public ReviewsRepository(IApplicationDbContext context, IFacilityRepository facilityRepository)
         {
             _context = context;
+            _facilityRepository = facilityRepository;
         }
         public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
         {
@@ -61,7 +63,7 @@ namespace ModelLib.Repositories
                                             r.ReviewType == dto.ReviewType)
                 .FirstOrDefaultAsync();
 
-            if (!await RevieweeExists(dto.RevieweeId, dto.ReviewType))
+            if (!await _facilityRepository.FacilityExists(dto.RevieweeId, dto.ReviewType))
             {
                 return new
                     (
@@ -105,21 +107,5 @@ namespace ModelLib.Repositories
                 ReviewType = entity.ReviewType
             });
         }
-
-        private async Task<bool> RevieweeExists(int revieweeId, FacilityType reviewType)
-        {
-            IQueryable<SimplePrimaryKey> query;
-            switch (reviewType)
-            {
-                case FacilityType.DogPark:
-                    query = _context.DogParks;
-                    break;
-                default:
-                    throw new NotImplementedException($"Review type: {reviewType}");
-            }
-
-            return await query.FirstOrDefaultAsync(x => x.Id == revieweeId) != null;
-        }
-
     }
 }

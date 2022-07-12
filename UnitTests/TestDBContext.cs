@@ -31,19 +31,63 @@ namespace UnitTests
                 CreateDogPark(3)
             );
 
+            builder.Entity<DogBreed>().HasData(
+                new DogBreed { Id = 1, Name = "a"},
+                new DogBreed { Id = 2, Name = "b"},
+                new DogBreed { Id = 3, Name = "c"}
+            );
+
             builder.Entity<ApplicationUser>().HasData(
                 CreateApplicationUser(1),
-                CreateApplicationUser(2)
+                CreateApplicationUser(2),
+                CreateApplicationUser(3),
+                CreateApplicationUser(4),
+                CreateApplicationUser(5),
+                CreateApplicationUser(6)
             );
 
             builder.Entity<Review>().HasData(
-                GenerateReview(1, FacilityType.DogPark, 1),
-                GenerateReview(2, FacilityType.DogPark, 1),
-                GenerateReview(1, FacilityType.DogPark, 2)
+                CreateReview(1, FacilityType.DogPark, 1),
+                CreateReview(2, FacilityType.DogPark, 1),
+                CreateReview(1, FacilityType.DogPark, 2)
+            );
+
+            builder.Entity<Dog>().HasData(
+                CreateDog(1, 1),
+                CreateDog(2, 2),
+                CreateDog(3, 3),
+                CreateDog(4, 4)
+            );
+
+            builder.Entity<CheckIn>().HasData(
+                new CheckIn { Id = 1, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 1 },
+                new CheckIn { Id = 2, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 2 },
+                new CheckIn { Id = 3, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 5 },
+                new CheckIn { Id = 4, CheckInDate = DateTime.UtcNow, CheckOutDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 2 }
+            );
+
+            builder.Entity<DogCheckIn>().HasData(
+                new DogCheckIn { CheckInId=1, DogId=1},
+                new DogCheckIn { CheckInId=2, DogId=2}
                 );
         }
+        
+        private Dog CreateDog(int id, int userId)
+        {
+            return new Dog
+            {
+                Id = id,
+                UserId = userId,
+                Birth = DateTime.UtcNow,
+                Description = "",
+                Name = "dog"+id,
+                DogBreedId = 1,
+                IsGenderMale = false,
+                WeightClass = DogWeightClass.Medium,
+            };
+        }
 
-        private Review GenerateReview(int reviewerId, FacilityType reviewType, int revieweeId)
+        private Review CreateReview(int reviewerId, FacilityType reviewType, int revieweeId)
         {
             return new Review
             {
@@ -62,10 +106,11 @@ namespace UnitTests
             return new ApplicationUser
             {
                 Id = id,
-                UserName = "test"+1 + "user"+1,
+                UserName = "test" + 1 + "user" + 1,
                 PasswordHash = "",
-                FirstName = "test"+id,
-                LastName = "user"+id
+                FirstName = "test" + id,
+                LastName = "user" + id,
+                ProfileImageUrl = ""
             };
         }
 

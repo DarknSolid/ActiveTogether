@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs.Reviews;
 using ModelLib.Repositories;
+using Moq;
+using static EntityLib.Entities.Enums;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace UnitTests
@@ -10,10 +12,12 @@ namespace UnitTests
     public class ReviewRepositoryTests : TestBase
     {
         private readonly IReviewsRepository _repo;
+        private readonly Mock<IFacilityRepository> _facilityRepositoryMock;
 
         public ReviewRepositoryTests()
         {
-            _repo = new ReviewsRepository(_context);
+            _facilityRepositoryMock = new Mock<IFacilityRepository>();
+            _repo = new ReviewsRepository(_context, _facilityRepositoryMock.Object);
         }
 
         [Fact]
@@ -39,6 +43,9 @@ namespace UnitTests
         [Fact]
         public async Task CreateReview_Valid_DogPark_creates_and_returns_DogPark_id()
         {
+            _facilityRepositoryMock
+                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
+                .Returns(Task.FromResult(true));
             var reviewerId = 2;
             var dto = new ReviewCreateDTO
             {
@@ -73,6 +80,9 @@ namespace UnitTests
         [Fact]
         public async Task CreateReview_Valid_DogPark_updates_and_returns_DogPark_id()
         {
+            _facilityRepositoryMock
+                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
+                .Returns(Task.FromResult(true));
             var reviewerId = 1;
             var dto = new ReviewCreateDTO
             {

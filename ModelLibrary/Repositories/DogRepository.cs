@@ -14,7 +14,6 @@ namespace ModelLib.Repositories
         public Task<RepositoryEnums.ResponseType> DeleteDogAsync(int userId, int dogId);
         public Task<List<DogListDTO>> GetAsync(int userId);
         public Task<DogDetailedDTO?> GetDetailedAsync(int dogId);
-
         public Task<int> CreateDogBreedAsync(string breed);
         public Task<IDictionary<int, string>> GetDogBreedsAsync();
     }
@@ -132,10 +131,10 @@ namespace ModelLib.Repositories
 
         public async Task<(RepositoryEnums.ResponseType, int)> UpdateAsync(int userId, DogUpdateDTO dto)
         {
-            var entity = await _context.Dogs.Where(d => d.Id == dto.Id).FirstOrDefaultAsync();
+            var entity = await _context.Dogs.Where(d => d.Id == dto.Id && d.UserId == userId).FirstOrDefaultAsync();
 
             // if it does not exist or does not belong to the user
-            if (entity == null || entity.UserId != userId)
+            if (entity == null)
             {
                 return new(
                     RepositoryEnums.ResponseType.NotFound,
@@ -170,5 +169,7 @@ namespace ModelLib.Repositories
 {
             return await _context.DogBreeds.AnyAsync(db => db.Id == id);
         }
+
+
     }
 }

@@ -10,7 +10,7 @@ namespace UnitTests
         public TestBase()
         {
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "DoggoWorldUnitTest");
+                .UseInMemoryDatabase(databaseName: DateTime.UtcNow.ToString());
             _context = new TestDBContext(builder.Options);
             _context.Database.EnsureCreated();
         }
