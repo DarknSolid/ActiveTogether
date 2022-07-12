@@ -26,8 +26,8 @@
         public const string REVIEWS_CREATE = "create/";
 
         public const string DOGS = BASE + "dogs/";
-        public const string DOGS_CREATE = "create/";
-        public const string DOGS_UPDATE = "update/";
+        public const string DOGS_CREATE = "";
+        public const string DOGS_UPDATE = "";
         public const string DOGS_DELETE = "";
         public const string DOGS_LIST = "list/";
         public const string DOGS_DETAILED = "";
@@ -50,7 +50,7 @@
         public const string POST_CREATE_REVIEW = REVIEWS + REVIEWS_CREATE;
 
         public const string POST_CREATE_DOG = DOGS + DOGS_CREATE;
-        public const string POST_UPDATE_DOG = DOGS + DOGS_UPDATE;
+        public const string Update_DOG = DOGS + DOGS_UPDATE;
         public const string DELETE_DOG = DOGS + DOGS_DELETE;
         public const string GET_LIST_DOGS = DOGS + DOGS_LIST;
         public const string GET_DETAILED_DOG = DOGS + DOGS_DETAILED;

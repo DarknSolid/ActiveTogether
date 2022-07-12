@@ -32,7 +32,7 @@ namespace WebApp.Controllers
             return ResolveRepositoryResponse(response, id);
         }
 
-        [HttpPost(ApiEndpoints.DOGS_UPDATE)]
+        [HttpPut(ApiEndpoints.DOGS_UPDATE)]
         public async Task<ActionResult<int>> Update([FromBody] DogUpdateDTO dto)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -40,11 +40,11 @@ namespace WebApp.Controllers
             return ResolveRepositoryResponse(response, id);
         }
 
-        [HttpDelete(ApiEndpoints.DOGS_DELETE + "{id}/")]
-        public async Task<ActionResult<int>> Delete(int dogId)
+        [HttpDelete(ApiEndpoints.DOGS_DELETE + "{id}")]
+        public async Task<ActionResult<int>> Delete(int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var response = await _repository.DeleteDogAsync(user.Id, dogId);
+            var response = await _repository.DeleteDogAsync(user.Id, id);
             return ResolveRepositoryResponse(response);
         }
 

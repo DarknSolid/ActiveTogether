@@ -129,7 +129,6 @@ namespace MobileBlazor.Mocks
             await SimulateRequestDelay();
             return new ReviewCreatedDTO()
             {
-                ResponseType = RepositoryEnums.ResponseType.Created,
                 ReviewType = reviewType,
                 RevieweeId = reviewCreateDTO.RevieweeId,
                 ReviewerId = 0
@@ -171,13 +170,10 @@ namespace MobileBlazor.Mocks
             };
         }
 
-        public Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
+        public async Task<int?> CreateDogAsync(DogCreateDTO dto)
         {
-            return Task.FromResult(new DogCreatedDTO
-            {
-                Id = 5,
-                Response = RepositoryEnums.ResponseType.Created
-            });
+            await SimulateRequestDelay();
+            return 1;
         }
 
         public async Task<IDictionary<int, string>> GetDogBreedsAsync()
@@ -192,14 +188,9 @@ namespace MobileBlazor.Mocks
             };
         }
 
-        public async Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
+        public async Task UpdateDogAsync(DogUpdateDTO dto)
         {
             await SimulateRequestDelay();
-            return new DogUpdatedDTO
-            {
-                Id = dto.Id,
-                Response = RepositoryEnums.ResponseType.Updated
-            };
         }
 
         public async Task<List<DogListDTO>> GetDogsAsync(int userId)

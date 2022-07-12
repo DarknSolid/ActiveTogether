@@ -11,7 +11,7 @@ namespace WebApp.Controllers
 {
     [Route(ApiEndpoints.REVIEWS)]
     [ApiController]
-    public class ReviewsController : ControllerBase
+    public class ReviewsController : CustomControllerBase
     {
         private readonly IReviewsRepository _reviewsRepository;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -35,8 +35,8 @@ namespace WebApp.Controllers
         public async Task<ActionResult<ReviewCreatedDTO>> CreateReview(ReviewCreateDTO dto)
         {
             var user = await _userManager.GetUserAsync(User);
-
-            return await _reviewsRepository.CreateReviewAsync(user.Id, dto);
+            var (response, value) = await _reviewsRepository.CreateReviewAsync(user.Id, dto);
+            return ResolveRepositoryResponse(response, value);
         }
     }
 }

@@ -16,8 +16,8 @@ namespace RazorLib.Interfaces
         public Task<List<DogListDTO>> GetMyDogsAsync();
         public Task<List<DogListDTO>> GetDogsAsync(int userId);
         public Task<DogDetailedDTO> GetDogDetailedAsync(int id);
-        public Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto);
-        public Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto);
+        public Task<int?> CreateDogAsync(DogCreateDTO dto);
+        public Task UpdateDogAsync(DogUpdateDTO dto);
         public Task<IDictionary<int, string>> GetDogBreedsAsync();
     }
 }

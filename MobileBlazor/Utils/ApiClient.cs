@@ -140,10 +140,10 @@ namespace MobileBlazor.Utils
             return await _httpClient.GetFromJsonAsync<DogDetailedDTO>(url);
         }
 
-        public async Task<DogCreatedDTO> CreateDogAsync(DogCreateDTO dto)
+        public async Task<int?> CreateDogAsync(DogCreateDTO dto)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_CREATE_DOG;
-            return await PostAsync<DogCreateDTO, DogCreatedDTO>(url, dto);
+            return await PostAsync<DogCreateDTO, int>(url, dto);
         }
 
         public async Task<IDictionary<int, string>> GetDogBreedsAsync()
@@ -152,10 +152,10 @@ namespace MobileBlazor.Utils
             return await _httpClient.GetFromJsonAsync<IDictionary<int, string>>(url);
         }
 
-        public async Task<DogUpdatedDTO> UpdateDogAsync(DogUpdateDTO dto)
+        public async Task UpdateDogAsync(DogUpdateDTO dto)
         {
-            var url = _baseApiUrl + ApiEndpoints.POST_UPDATE_DOG;
-            return await PostAsync<DogUpdateDTO, DogUpdatedDTO>(url, dto);
+            var url = _baseApiUrl + ApiEndpoints.Update_DOG;
+            await _httpClient.PutAsJsonAsync(url, dto);
         }
 
         public async Task<List<DogListDTO>> GetDogsAsync(int userId)
