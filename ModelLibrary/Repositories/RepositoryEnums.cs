@@ -13,7 +13,8 @@ namespace ModelLib.Repositories
             Conflict,
             Updated,
             Created,
-            NotFound
+            NotFound,
+            Deleted
         }
     }
 }

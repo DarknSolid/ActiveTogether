@@ -12,7 +12,7 @@ namespace WebApp.Controllers
     [Authorize]
     [Route(ApiEndpoints.DOGS)]
     [ApiController]
-    public class DogsController : ControllerBase
+    public class DogsController : CustomControllerBase
     {
         private readonly IDogRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -25,17 +25,27 @@ namespace WebApp.Controllers
         }
 
         [HttpPost(ApiEndpoints.DOGS_CREATE)]
-        public async Task<ActionResult<DogCreatedDTO>> Create([FromBody] DogCreateDTO dto)
+        public async Task<ActionResult<int>> Create([FromBody] DogCreateDTO dto)
         {
             var user = await _userManager.GetUserAsync(User);
-            return Ok(await _repository.CreateAsync(user.Id, dto));
+            var (response, id) = await _repository.CreateAsync(user.Id, dto);
+            return ResolveRepositoryResponse(response, id);
         }
 
         [HttpPost(ApiEndpoints.DOGS_UPDATE)]
-        public async Task<ActionResult<DogUpdatedDTO>> Update([FromBody] DogUpdateDTO dto)
+        public async Task<ActionResult<int>> Update([FromBody] DogUpdateDTO dto)
         {
             var user = await _userManager.GetUserAsync(User);
-            return Ok(await _repository.UpdateAsync(user.Id, dto));
+            var (response, id) = await _repository.UpdateAsync(user.Id, dto);
+            return ResolveRepositoryResponse(response, id);
+        }
+
+        [HttpDelete(ApiEndpoints.DOGS_DELETE + "{id}/")]
+        public async Task<ActionResult<int>> Delete(int dogId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var response = await _repository.DeleteDogAsync(user.Id, dogId);
+            return ResolveRepositoryResponse(response);
         }
 
         [HttpGet(ApiEndpoints.DOGS_LIST + "{id}")]

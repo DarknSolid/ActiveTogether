@@ -10,7 +10,6 @@ namespace ModelLib.DTOs.Reviews
 {
     public class ReviewCreatedDTO
     {
-        public RepositoryEnums.ResponseType ResponseType { get; set; }
         public int RevieweeId { get; set; }
         public int ReviewerId { get; set; }
         public Enums.ReviewType ReviewType { get; set; }

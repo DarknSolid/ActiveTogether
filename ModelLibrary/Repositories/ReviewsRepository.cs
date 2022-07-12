@@ -16,7 +16,7 @@ namespace ModelLib.Repositories
     public interface IReviewsRepository
     {
         public Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request);
-        public Task<ReviewCreatedDTO> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
+        public Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
     }
 
     public class ReviewsRepository : IReviewsRepository
@@ -33,37 +33,41 @@ namespace ModelLib.Repositories
                 .Include(r => r.Reviewer)
                 .Where(r => r.RevieweeId == request.RevieweeId && r.ReviewType == request.ReviewType)
                 .OrderByDescending(r => r.Date);
-            
+
             var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
-            
+
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
-                {
-                    ReviewerFirstName = r.Reviewer.FirstName,
-                    ReviewerLastName = r.Reviewer.LastName,
-                    Description = r.Description,
-                    ReviewerId = r.ReviewerId,
-                    Date = r.Date,
-                    RevieweeId = r.RevieweeId,
-                    Rating = r.Rating,
-                    Title = r.Title,
-                    ReviewType = r.ReviewType
-                })
+            {
+                ReviewerFirstName = r.Reviewer.FirstName,
+                ReviewerLastName = r.Reviewer.LastName,
+                Description = r.Description,
+                ReviewerId = r.ReviewerId,
+                Date = r.Date,
+                RevieweeId = r.RevieweeId,
+                Rating = r.Rating,
+                Title = r.Title,
+                ReviewType = r.ReviewType
+            })
                 .ToListAsync();
 
             return (paginationResult, dtoResult);
         }
 
-        public async Task<ReviewCreatedDTO> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
+        public async Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
         {
-            var entity = await _context.Reviews.Where(r => 
-                                            r.ReviewerId == reviewerId && 
-                                            r.RevieweeId == dto.RevieweeId && 
+            var entity = await _context.Reviews.Where(r =>
+                                            r.ReviewerId == reviewerId &&
+                                            r.RevieweeId == dto.RevieweeId &&
                                             r.ReviewType == dto.ReviewType)
                 .FirstOrDefaultAsync();
 
             if (!await RevieweeExists(dto.RevieweeId, dto.ReviewType))
             {
-                return new ReviewCreatedDTO() { ResponseType = ResponseType.NotFound };
+                return new
+                    (
+                        ResponseType.NotFound,
+                        null
+                    );
             }
 
             var responseType = ResponseType.Conflict;
@@ -94,21 +98,20 @@ namespace ModelLib.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new ReviewCreatedDTO
+            return (responseType ,new ReviewCreatedDTO
             {
-                ResponseType = responseType,
                 RevieweeId = entity.RevieweeId,
                 ReviewerId = entity.ReviewerId,
                 ReviewType = entity.ReviewType
-            };
+            });
         }
 
         private async Task<bool> RevieweeExists(int revieweeId, ReviewType reviewType)
         {
             IQueryable<SimplePrimaryKey> query;
-            switch(reviewType)
+            switch (reviewType)
             {
-                case ReviewType.DogPark: 
+                case ReviewType.DogPark:
                     query = _context.DogParks;
                     break;
                 default:

@@ -49,19 +49,19 @@ namespace UnitTests
                 Rating = 4
             };
 
-            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
+            var (actualResponse, actualDto) = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
                 r.RevieweeId == dto.RevieweeId &&
                 r.ReviewerId == reviewerId &&
                 r.ReviewType == dto.ReviewType
             ).FirstOrDefaultAsync();
 
-            Assert.NotNull(actual);
+            Assert.NotNull(dto);
             Assert.NotNull(actualEntity);
-            Assert.Equal(ResponseType.Created, actual.ResponseType);
-            Assert.Equal(dto.ReviewType, actual.ReviewType);
-            Assert.Equal(dto.RevieweeId, actual.RevieweeId);
-            Assert.Equal(reviewerId, actual.ReviewerId);
+            Assert.Equal(ResponseType.Created, actualResponse);
+            Assert.Equal(dto.ReviewType, actualDto.ReviewType);
+            Assert.Equal(dto.RevieweeId, actualDto.RevieweeId);
+            Assert.Equal(reviewerId, actualDto.ReviewerId);
             Assert.Equal(dto.ReviewType, actualEntity.ReviewType);
             Assert.Equal(dto.RevieweeId, actualEntity.RevieweeId);
             Assert.Equal(reviewerId, actualEntity.ReviewerId);
@@ -83,19 +83,19 @@ namespace UnitTests
                 Rating = 4
             };
 
-            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
+            var (actualResponse, actualDto) = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
                 r.RevieweeId == dto.RevieweeId &&
                 r.ReviewerId == reviewerId &&
                 r.ReviewType == dto.ReviewType
             ).FirstOrDefaultAsync();
 
-            Assert.NotNull(actual);
+            Assert.NotNull(actualDto);
             Assert.NotNull(actualEntity);
-            Assert.Equal(ResponseType.Updated, actual.ResponseType);
-            Assert.Equal(dto.ReviewType, actual.ReviewType);
-            Assert.Equal(dto.RevieweeId, actual.RevieweeId);
-            Assert.Equal(reviewerId, actual.ReviewerId);
+            Assert.Equal(ResponseType.Updated, actualResponse);
+            Assert.Equal(dto.ReviewType, actualDto.ReviewType);
+            Assert.Equal(dto.RevieweeId, actualDto.RevieweeId);
+            Assert.Equal(reviewerId, actualDto.ReviewerId);
             Assert.Equal(dto.ReviewType, actualEntity.ReviewType);
             Assert.Equal(dto.RevieweeId, actualEntity.RevieweeId);
             Assert.Equal(reviewerId, actualEntity.ReviewerId);
@@ -117,11 +117,12 @@ namespace UnitTests
                 Rating = 4
             };
             var entitiesBefore = await _context.Reviews.CountAsync();
-            var actual = await _repo.CreateReviewAsync(reviewerId, dto);
+            var (actualResponse, actualDto) = await _repo.CreateReviewAsync(reviewerId, dto);
             var entitiesAfter = await _context.Reviews.CountAsync();
 
             Assert.Equal(entitiesBefore, entitiesAfter);
-            Assert.Equal(ResponseType.NotFound, actual.ResponseType);
+            Assert.Null(actualDto);
+            Assert.Equal(ResponseType.NotFound, actualResponse);
 
 
         }

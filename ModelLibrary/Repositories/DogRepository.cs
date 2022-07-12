@@ -9,14 +9,17 @@ namespace ModelLib.Repositories
 {
     public interface IDogRepository
     {
-        public Task<DogCreatedDTO> CreateAsync(int userId, DogCreateDTO dto);
-        public Task<DogUpdatedDTO> UpdateAsync(int userId, DogUpdateDTO dto);
+        public Task<(RepositoryEnums.ResponseType, int)> CreateAsync(int userId, DogCreateDTO dto);
+        public Task<(RepositoryEnums.ResponseType, int)> UpdateAsync(int userId, DogUpdateDTO dto);
+        public Task<RepositoryEnums.ResponseType> DeleteDogAsync(int userId, int dogId);
         public Task<List<DogListDTO>> GetAsync(int userId);
         public Task<DogDetailedDTO?> GetDetailedAsync(int dogId);
 
-        public Task<IDictionary<int, string>> GetDogBreedsAsync();
         public Task<int> CreateDogBreedAsync(string breed);
+        public Task<IDictionary<int, string>> GetDogBreedsAsync();
     }
+
+
     public class DogRepository : IDogRepository
     {
         private readonly IApplicationDbContext _context;
@@ -26,15 +29,15 @@ namespace ModelLib.Repositories
             _context = context;
         }
 
-        public async Task<DogCreatedDTO> CreateAsync(int userId, DogCreateDTO dto)
+        public async Task<(RepositoryEnums.ResponseType, int)> CreateAsync(int userId, DogCreateDTO dto)
         {
             if (await BreedExists(dto.Breed) == false)
             {
-                return new DogCreatedDTO
-                {
-                    Id = -1,
-                    Response = RepositoryEnums.ResponseType.Conflict
-                };
+                return
+                (
+                    RepositoryEnums.ResponseType.Conflict,
+                    -1
+                );
             }
             var entity = new Dog
             {
@@ -49,11 +52,11 @@ namespace ModelLib.Repositories
             _context.Dogs.Add(entity);
             await _context.SaveChangesAsync();
 
-            return new DogCreatedDTO
-            {
-                Id = entity.Id,
-                Response = RepositoryEnums.ResponseType.Created
-            };
+            return new
+            (
+                RepositoryEnums.ResponseType.Created,
+                entity.Id
+            );
         }
 
         public async Task<int> CreateDogBreedAsync(string breed)
@@ -68,6 +71,16 @@ namespace ModelLib.Repositories
             _context.DogBreeds.Add(entity);
             await _context.SaveChangesAsync();
             return entity.Id;
+        }
+
+        public async Task<RepositoryEnums.ResponseType> DeleteDogAsync(int userId, int dogId)
+        {
+            var entity = await _context.Dogs.FirstOrDefaultAsync(d => d.Id == dogId && d.UserId == userId);
+            if (entity == null)
+            {
+                return RepositoryEnums.ResponseType.NotFound;
+            }
+            return RepositoryEnums.ResponseType.Deleted;
         }
 
         public async Task<List<DogListDTO>> GetAsync(int userId)
@@ -115,27 +128,25 @@ namespace ModelLib.Repositories
             return await _context.DogBreeds.ToDictionaryAsync(d => d.Id, d => d.Name);
         }
 
-        public async Task<DogUpdatedDTO> UpdateAsync(int userId, DogUpdateDTO dto)
+        public async Task<(RepositoryEnums.ResponseType, int)> UpdateAsync(int userId, DogUpdateDTO dto)
         {
             var entity = await _context.Dogs.Where(d => d.Id == dto.Id).FirstOrDefaultAsync();
 
             // if it does not exist or does not belong to the user
             if (entity == null || entity.UserId != userId)
             {
-                return new DogUpdatedDTO
-                {
-                    Id = -1,
-                    Response = RepositoryEnums.ResponseType.NotFound
-                };
+                return new(
+                    RepositoryEnums.ResponseType.NotFound,
+                    -1
+                );
             }
 
             if (await BreedExists(dto.Breed) == false)
             {
-                return new DogUpdatedDTO
-                {
-                    Id = -1,
-                    Response = RepositoryEnums.ResponseType.Conflict
-                };
+                return new(
+                    RepositoryEnums.ResponseType.Conflict,
+                    -1
+                );
             }
 
             entity.Birth = dto.Birth.ToUniversalTime();
@@ -147,11 +158,10 @@ namespace ModelLib.Repositories
 
             _context.Dogs.Update(entity);
             await _context.SaveChangesAsync();
-            return new DogUpdatedDTO()
-            {
-                Id = entity.Id,
-                Response = RepositoryEnums.ResponseType.Updated
-            };
+            return new(
+                RepositoryEnums.ResponseType.Updated,
+                entity.Id
+            );
         }
 
         private async Task<bool> BreedExists(int id)
