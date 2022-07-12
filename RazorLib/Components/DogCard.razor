@@ -13,10 +13,16 @@
             </div>
             <MudText Typo="Typo.body2">@Dog.BreedName</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            @ChildContent
+        </CardHeaderActions>
     </MudCardHeader>
 </MudCard>
 
 @code {
     [Parameter]
     public DogListDTO Dog { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 }

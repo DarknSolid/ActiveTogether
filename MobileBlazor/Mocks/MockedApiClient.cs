@@ -4,7 +4,6 @@ using ModelLib.DTOs;
 using ModelLib.DTOs.DogPark;
 using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Reviews;
-using ModelLib.Repositories;
 using RazorLib.Interfaces;
 using WebApp.DTOs.Authentication;
 using static EntityLib.Entities.Enums;
@@ -196,6 +195,11 @@ namespace MobileBlazor.Mocks
         public async Task<List<DogListDTO>> GetDogsAsync(int userId)
         {
             return await GetMyDogsAsync();
+        }
+
+        public async Task DeleteDogAsync(int dogId)
+        {
+            await SimulateRequestDelay();
         }
         #endregion
     }

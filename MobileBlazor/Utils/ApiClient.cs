@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using ModelLib.Constants;
+﻿using ModelLib.Constants;
 using WebApp.DTOs.Authentication;
 using System.Net.Http.Json;
 using RazorLib.Interfaces;
@@ -162,6 +156,12 @@ namespace MobileBlazor.Utils
         {
             var url = _baseApiUrl + ApiEndpoints.GET_LIST_DOGS + userId;
             return await _httpClient.GetFromJsonAsync<List<DogListDTO>>(url);
+        }
+
+        public async Task DeleteDogAsync(int dogId)
+        {
+            var url = _baseApiUrl + ApiEndpoints.DELETE_DOG + dogId;
+            await _httpClient.DeleteAsync(url);
         }
 
         #endregion

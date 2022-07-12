@@ -80,6 +80,8 @@ namespace ModelLib.Repositories
             {
                 return RepositoryEnums.ResponseType.NotFound;
             }
+            _context.Dogs.Remove(entity);
+            await _context.SaveChangesAsync();
             return RepositoryEnums.ResponseType.Deleted;
         }
 

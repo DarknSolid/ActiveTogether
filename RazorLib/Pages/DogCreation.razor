@@ -125,7 +125,7 @@
         _isCreatingUpdatingDog = true;
         if (_isUpdate)
         {
-            var result = await ApiClient.UpdateDogAsync(new DogUpdateDTO
+            await ApiClient.UpdateDogAsync(new DogUpdateDTO
                 {
                     Birth = _birth ?? DateTime.UtcNow,
                     Breed = _model.Breed,

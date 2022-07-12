@@ -22,7 +22,12 @@
             @foreach (var dog in _dogs)
             {
                 <MudListItem OnClick="() => OnDogListItemClicked(dog.Id)" Class="px-2 py-1">
-                    <DogCard Dog="@dog" />
+                    <DogCard Dog="@dog" >
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                            <MudMenuItem OnClick="() => OnDogListItemClicked(dog.Id)">Edit</MudMenuItem>
+                            <MudMenuItem OnClick="() => DeleteDog(dog.Id)"><MudText Color="Color.Error">Delete</MudText></MudMenuItem>
+                        </MudMenu>
+                    </DogCard>
                 </MudListItem>
             }
         }
@@ -53,5 +58,11 @@
         _loading = true;
         _dogs = await ApiClient.GetMyDogsAsync();
         _loading = false;
+    }
+
+    private async Task DeleteDog(int id)
+    {
+        await ApiClient.DeleteDogAsync(id);
+        await FetchDogs();
     }
 }
