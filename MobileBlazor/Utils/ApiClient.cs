@@ -165,24 +165,34 @@ namespace MobileBlazor.Utils
             await _httpClient.DeleteAsync(url);
         }
 
-        public Task<int> CheckIn(CheckInCreateDTO dto)
+        public async Task<int> CheckIn(CheckInCreateDTO dto)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_CHECK_IN;
+            return await PostAsync<CheckInCreateDTO, int>(url, dto);
         }
 
-        public Task<int> CheckOut()
+        public async Task<int> CheckOut()
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.PUT_CHECK_OUT;
+            var result = await _httpClient.PutAsync(url, null);
+            return JsonConvert.DeserializeObject<int>(await result.Content.ReadAsStringAsync());
         }
 
-        public Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto)
+        public async Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto)
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.POST_CHECKINS_LIST;
+            return await PostAsync<GetCheckInListDTO, CheckInListDTOPagination>(url, dto);
         }
 
-        public Task<CurrentlyCheckedInDTO> GeturrentCheckIn()
+        public async Task<CurrentlyCheckedInDTO?> GetCurrentCheckIn()
         {
-            throw new NotImplementedException();
+            var url = _baseApiUrl + ApiEndpoints.GET_CHECKINS_CURRENT_CHECKIN;
+            var result = await _httpClient.GetAsync(url);
+            if (result.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return null;
+            }
+            return JsonConvert.DeserializeObject<CurrentlyCheckedInDTO>(await result.Content.ReadAsStringAsync());
         }
 
         #endregion

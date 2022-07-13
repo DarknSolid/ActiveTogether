@@ -6,7 +6,7 @@
 @inject IJSRuntime JS
 @inject IStorageManager<CurrentlyCheckedInDTO> CheckedInStorageManager
 
-<MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => FetchCurrentCheckInStatus())">
+<MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => OnCheckInButtonPressed())">
     @if (CanCheckIn())
     {
         <MudText Typo="Typo.body1">CHECK IN</MudText>
@@ -34,8 +34,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // On After Render guarantees JSInterop function calls to work
-        await FetchCurrentCheckInStatus();
+        _currentCheckInInfo = await ApiClient.GetCurrentCheckIn();
+        await UpdateCheckInState(_currentCheckInInfo);
         await base.OnInitializedAsync();
     }
 
@@ -62,9 +62,8 @@
         return false;
     }
 
-    public async Task FetchCurrentCheckInStatus()
+    public async Task OnCheckInButtonPressed()
     {
-        _currentCheckInInfo = await ApiClient.GeturrentCheckIn();
         if (CanCheckIn())
         {
             // show select dog dialogue
@@ -75,7 +74,7 @@
             {
                 // something went wrong
             }
-            var newCheckInState = await ApiClient.GeturrentCheckIn();
+            var newCheckInState = await ApiClient.GetCurrentCheckIn();
             await UpdateCheckInState(newCheckInState);
         }
         else if (CanCheckOut())
@@ -101,6 +100,7 @@
         }
 
         _currentCheckInInfo = dto;
-        _disabled = !CanCheckIn() && !CanCheckIn();
+        _disabled = !CanCheckIn() && !CanCheckOut();
+        StateHasChanged();
     }
 }
