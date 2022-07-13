@@ -255,7 +255,7 @@ namespace MobileBlazor.Mocks
             };
         }
 
-        public async Task<CurrentlyCheckedInDTO> GeturrentCheckIns()
+        public async Task<CurrentlyCheckedInDTO> GeturrentCheckIn()
         {
             await SimulateRequestDelay();
             return new CurrentlyCheckedInDTO

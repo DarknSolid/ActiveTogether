@@ -180,7 +180,7 @@ namespace MobileBlazor.Utils
             throw new NotImplementedException();
         }
 
-        public Task<CurrentlyCheckedInDTO> GeturrentCheckIns()
+        public Task<CurrentlyCheckedInDTO> GeturrentCheckIn()
         {
             throw new NotImplementedException();
         }

@@ -10,7 +10,7 @@ namespace MobileBlazor.Utils
         public StorageManager(ISessionStorage sessionStorage)
         {
             _sessionStorage = sessionStorage;
-            _key = nameof(T);
+            _key = nameof(this.GetType);
         }
 
         public async Task DeleteCheckIn()

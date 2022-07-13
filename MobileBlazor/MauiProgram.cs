@@ -1,6 +1,7 @@
 ﻿using MobileBlazor.Mocks;
 using MobileBlazor.Models;
 using MobileBlazor.Utils;
+using ModelLib.DTOs.CheckIns;
 using MudBlazor.Services;
 using RazorLib.AbstractClasses;
 using RazorLib.Interfaces;
@@ -46,7 +47,9 @@ namespace MobileBlazor
 
             builder.Services.AddScoped<MapSearcher, MapSearcherClient>();
             builder.Services.AddMudServices();
+            //Settings these below as singletons will crash the app with NullReferenceException errors when using JSRuntim
             builder.Services.AddScoped<ISessionStorage, SessionStorage>();
+            builder.Services.AddScoped<IStorageManager<CurrentlyCheckedInDTO>, StorageManager<CurrentlyCheckedInDTO>>();
 
             return builder.Build();
         }

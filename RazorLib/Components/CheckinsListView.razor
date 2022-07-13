@@ -11,13 +11,13 @@
 
 <ScrollPagination Gap="20" Orientation="@PaginationOrientation.Vertical" OnPagination="(e) => Fetch()">
     @foreach (var checkin in CheckIns) {
-        <CheckIn CheckInDetails=@checkin />
+        <CheckInCard CheckInDetails=@checkin />
     }
     @if (_loading)
     {
         @for (int i = 0; i < _checkInsPerPage; i++)
         {
-            <CheckInSkeleton/>
+            <CheckInCardSkeleton/>
         }
     }
 </ScrollPagination>

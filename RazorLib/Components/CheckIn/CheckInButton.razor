@@ -1,0 +1,106 @@
+﻿@using Microsoft.JSInterop
+@using ModelLib.DTOs.CheckIns
+@using RazorLib.Interfaces
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
+@inject IJSRuntime JS
+@inject IStorageManager<CurrentlyCheckedInDTO> CheckedInStorageManager
+
+<MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => FetchCurrentCheckInStatus())">
+    @if (CanCheckIn())
+    {
+        <MudText Typo="Typo.body1">CHECK IN</MudText>
+    }
+    else if (CanCheckOut())
+    {
+        <MudText Typo="Typo.body1">CHECK OUT</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1">Checked In Elsewhere</MudText>
+    }
+</MudButton>
+
+@code {
+    [Parameter]
+    public int FacilityId { get; set; }
+
+    [Parameter]
+    public FacilityType FacilityType { get; set; }
+
+    private CurrentlyCheckedInDTO? _currentCheckInInfo { get; set; }
+
+    private bool _disabled = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // On After Render guarantees JSInterop function calls to work
+        await FetchCurrentCheckInStatus();
+        await base.OnInitializedAsync();
+    }
+
+    public bool CanCheckIn()
+    {
+        if (_currentCheckInInfo == null)
+        {
+            return true;
+        }
+        else if (_currentCheckInInfo.FacilityId == FacilityId && _currentCheckInInfo.FacilityType == FacilityType)
+        {
+            return false;
+        }
+
+        return false;
+    }
+
+    public bool CanCheckOut()
+    {
+        if (_currentCheckInInfo != null)
+        {
+            return _currentCheckInInfo.FacilityId == FacilityId && _currentCheckInInfo.FacilityType == FacilityType;
+        }
+        return false;
+    }
+
+    public async Task FetchCurrentCheckInStatus()
+    {
+        _currentCheckInInfo = await ApiClient.GeturrentCheckIn();
+        if (CanCheckIn())
+        {
+            // show select dog dialogue
+            var dogsToCheckIn = new List<int>();
+            var dto = new CheckInCreateDTO { FacilityId = FacilityId, FacilityType = FacilityType, DogsToCheckIn = dogsToCheckIn };
+            var result = await ApiClient.CheckIn(dto);
+            if (result == -1)
+            {
+                // something went wrong
+            }
+            var newCheckInState = await ApiClient.GeturrentCheckIn();
+            await UpdateCheckInState(newCheckInState);
+        }
+        else if (CanCheckOut())
+        {
+            var result = await ApiClient.CheckOut();
+            if (result == -1)
+            {
+                // something went wrong
+            }
+            await UpdateCheckInState();
+        }
+    }
+
+    public async Task UpdateCheckInState(CurrentlyCheckedInDTO? dto = null)
+    {
+        if (dto == null)
+        {
+            await CheckedInStorageManager.DeleteCheckIn();
+        }
+        else
+        {
+            await CheckedInStorageManager.SetCurrentCheckIn(dto);
+        }
+
+        _currentCheckInInfo = dto;
+        _disabled = !CanCheckIn() && !CanCheckIn();
+    }
+}

@@ -32,7 +32,7 @@ namespace RazorLib.Interfaces
         public Task<int> CheckIn(CheckInCreateDTO dto);
         public Task<int> CheckOut();
         public Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto);
-        public Task<CurrentlyCheckedInDTO?> GeturrentCheckIns();
+        public Task<CurrentlyCheckedInDTO?> GeturrentCheckIn();
         #endregion
     }
 }
