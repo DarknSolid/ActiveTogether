@@ -55,7 +55,7 @@ else
         {
             objectRef = DotNetObjectReference.Create(this);
             // calls the "scroll-pagination-oberser.js" script:
-            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Initialize", objectRef, _intersectionElementTargetId); 
+            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Add", objectRef, _intersectionElementTargetId); 
         }
     }
 
