@@ -4,6 +4,8 @@ using Microsoft.UI.Windowing;
 using Windows.Graphics;
 #endif
 
+using RazorLib.Interfaces;
+
 namespace MobileBlazor
 {
     public partial class App : Application
@@ -30,6 +32,17 @@ namespace MobileBlazor
             });
 
             MainPage = new MainPage();
+        }
+
+        protected override async void OnResume()
+        {
+            //Activates when the app is running but is switched into focus.
+            //This does not trigger when the app is initially opened.
+            // App Lifecycle docs: https://docs.microsoft.com/en-us/dotnet/maui/fundamentals/app-lifecycle
+
+            //TODO check if we are logged in and fetch the current check-in status
+            Console.WriteLine("hello! I have resumed!");
+            base.OnResume();
         }
     }
 }

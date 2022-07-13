@@ -8,7 +8,7 @@
         <MudCardMedia Image="https://ichef.bbci.co.uk/news/976/cpsprodpb/17638/production/_124800859_gettyimages-817514614.jpg" Height="200" />
         <MudCardContent>
             <MudText Typo="Typo.h5">@_dog.Name</MudText>
-            <MudText Typo="Typo.body2">@Utils.DateUtils.AgeInYears(_dog.Birth) years old</MudText>
+            <MudText Typo="Typo.body2">@Utils.DateUtils.TimeInYears(_dog.Birth) years old</MudText>
             <MudText Typo="Typo.body2">@(_dog.IsGenderMale ? "Male" : "Female")</MudText>
                 <MudText Typo="Typo.body2">@_dog.Description</MudText>
                 <MudText Typo="Typo.body2">@_dog.BreedName</MudText>

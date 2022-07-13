@@ -1,0 +1,45 @@
+﻿@using ModelLib.DTOs.CheckIns
+@using RazorLib.Models
+
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">@(CheckInDetails.User.FirstName.First())@(CheckInDetails.User.LastName.First())</MudAvatar>
+            </CardHeaderAvatar>
+            <CardHeaderContent>
+                <MudText Typo="Typo.body1">@_userFullName</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2">In @CheckInDetails.CheckedIn.ToLocalTime()</MudText>
+            @if (CheckInDetails.CheckedOut != null)
+            {
+                <MudText Typo="Typo.body2">Out @CheckInDetails.CheckedOut.Value.ToLocalTime()</MudText>
+            }
+                <MudText Typo="Typo.body2">Duration: @_checkedInDuration</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public CheckInListDTO CheckInDetails { get; set; }
+
+    private string _userFullName;
+
+    private string _checkedInDuration;
+
+    protected override void OnParametersSet()
+    {
+        _userFullName = CheckInDetails.User.FirstName + " " + CheckInDetails.User.LastName;
+
+        var (hours, minutes) = Utils.DateUtils.TimeInHoursMinutes(CheckInDetails.CheckedIn, CheckInDetails.CheckedOut);
+
+        var hoursString = hours > 0 ? hours + "h" : "";
+        var minuteString = minutes + "m";
+        _checkedInDuration = hoursString + " " + minuteString;
+
+        base.OnParametersSet();
+    }
+}

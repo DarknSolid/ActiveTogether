@@ -1,6 +1,8 @@
 ﻿using MobileBlazor.Utils;
 using ModelLib.ApiDTOs;
 using ModelLib.DTOs;
+using ModelLib.DTOs.Authentication;
+using ModelLib.DTOs.CheckIns;
 using ModelLib.DTOs.DogPark;
 using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Reviews;
@@ -200,6 +202,81 @@ namespace MobileBlazor.Mocks
         public async Task DeleteDogAsync(int dogId)
         {
             await SimulateRequestDelay();
+        }
+
+        public async Task<int> CheckIn(CheckInCreateDTO dto)
+        {
+            await SimulateRequestDelay();
+            return 1;
+        }
+
+        public async Task<int> CheckOut()
+        {
+            await SimulateRequestDelay();
+            return 1;
+        }
+
+        public async Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto)
+        {
+            await SimulateRequestDelay();
+            return new CheckInListDTOPagination
+            {
+                PaginationResult = new PaginationResult
+                {
+                    CurrentPage = 0,
+                    HasNext = false
+                },
+                CheckIns = new List<CheckInListDTO>() {
+                    new CheckInListDTO()
+                    {
+                        CheckedIn = DateTime.UtcNow.AddHours(-10),
+                        CheckedOut = DateTime.UtcNow.AddHours(-9),
+                        Dogs = new List<DogListDTO>()
+                        {
+                            new DogListDTO
+                                {
+                                    Birth = DateTime.UtcNow,
+                                    Breed = 1,
+                                    BreedName = "labrador",
+                                    Id = 1 ,
+                                    IsGenderMale = false,
+                                    Name = "Luna"
+                                }
+                        },
+                        User = new UserListDTO
+                        {
+                            FirstName = "test",
+                            LastName = "user",
+                            UserId = 1 ,
+                            ProfilePictureUrl = "https://x-act.dk/wp-content/uploads/2020/05/stock-person-png-stock-photo-man-11563049686zqeb9zmqjd.png"
+                        }
+                    }
+                }
+            };
+        }
+
+        public async Task<CurrentlyCheckedInDTO> GeturrentCheckIns()
+        {
+            await SimulateRequestDelay();
+            return new CurrentlyCheckedInDTO
+            {
+                CheckInDate = DateTime.UtcNow.AddHours(-1),
+                FacilityId = 1,
+                FacilityType = FacilityType.DogPark,
+                Dogs = new List<DogListDTO>
+                {
+                    new DogListDTO
+                    {
+                        Birth = DateTime.UtcNow,
+                        Breed = 1,
+                        BreedName = "labrador",
+                        Id = 1 ,
+                        IsGenderMale = false,
+                        Name = "Luna"
+                    }
+
+                }
+            };
         }
         #endregion
     }

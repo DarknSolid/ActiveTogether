@@ -49,6 +49,13 @@
                 </MudItem>
 
                 <MudItem xs="12">
+                    <MudText Typo="Typo.h5">Currently Checked In</MudText>
+                    <div style="max-height:300px; overflow:scroll">
+                        <CheckinsListView ShowOnlyCurrentlyCheckedIn="true" FacilityId="@DogParkId" FacilityType="@FacilityType.DogPark" />
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
                     @*Review Button*@
                     <MudButton Disabled="_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn" 
                                 Color="Color.Primary" 

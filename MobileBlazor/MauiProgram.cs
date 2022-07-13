@@ -4,7 +4,6 @@ using MobileBlazor.Utils;
 using MudBlazor.Services;
 using RazorLib.AbstractClasses;
 using RazorLib.Interfaces;
-using RazorLib.Models;
 
 namespace MobileBlazor
 {
@@ -25,7 +24,7 @@ namespace MobileBlazor
             builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
 
-            var doMockApiClient = false;
+            var doMockApiClient = true;
             if (doMockApiClient)
             {
                 var mockedApiClient = new MockedApiClient();

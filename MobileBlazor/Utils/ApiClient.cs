@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using ModelLib.DTOs.Reviews;
 using static EntityLib.Entities.Enums;
 using ModelLib.DTOs.Dogs;
+using ModelLib.DTOs.CheckIns;
 
 namespace MobileBlazor.Utils
 {
@@ -162,6 +163,26 @@ namespace MobileBlazor.Utils
         {
             var url = _baseApiUrl + ApiEndpoints.DELETE_DOG + dogId;
             await _httpClient.DeleteAsync(url);
+        }
+
+        public Task<int> CheckIn(CheckInCreateDTO dto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> CheckOut()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CurrentlyCheckedInDTO> GeturrentCheckIns()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

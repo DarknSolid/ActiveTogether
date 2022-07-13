@@ -1,0 +1,81 @@
+﻿@using ModelLib.ApiDTOs
+@using ModelLib.DTOs.CheckIns
+@using RazorLib.Components.CheckIn
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@using RazorLib.Components.ScrollPagination
+@using static EntityLib.Entities.Enums
+@using static RazorLib.Components.ScrollPagination.ScrollPagination
+@inject IApiClient ApiClient
+
+
+<ScrollPagination Gap="20" Orientation="@PaginationOrientation.Vertical" OnPagination="(e) => Fetch()">
+    @foreach (var checkin in CheckIns) {
+        <CheckIn CheckInDetails=@checkin />
+    }
+    @if (_loading)
+    {
+        @for (int i = 0; i < _checkInsPerPage; i++)
+        {
+            <CheckInSkeleton/>
+        }
+    }
+</ScrollPagination>
+
+
+@code {
+    [Parameter]
+    public int? MaxItems { get; set; }
+
+    [Parameter]
+    public FacilityType FacilityType { get; set; }
+
+    [Parameter]
+    public int FacilityId { get; set; }
+
+    [Parameter]
+    public bool ShowOnlyCurrentlyCheckedIn { get; set; }
+
+    private bool _loading;
+
+    public List<CheckInListDTO> CheckIns { get; set; }
+
+    private int _page;
+    private int _checkInsPerPage;
+    private bool _hasNext;
+
+    public CheckinsListView()
+    {
+        _page = 0;
+        _hasNext = true;
+        _checkInsPerPage = 10;
+        CheckIns = new();
+    }
+
+    private async Task Fetch()
+    {
+        var hasLimitExceeded = MaxItems != null && CheckIns.Count < MaxItems;
+        if (_hasNext && !hasLimitExceeded)
+        {
+            _loading = true;
+            _hasNext = false;
+            var dto = new GetCheckInListDTO
+                {
+                    PaginationRequest = new PaginationRequest
+                    {
+                        ItemsPerPage = _checkInsPerPage,
+                        Page = _page
+                    },
+                    FacilityId = FacilityId,
+                    FacilityType = FacilityType,
+                    OnlyActiveCheckIns = ShowOnlyCurrentlyCheckedIn
+                };
+            var result = await ApiClient.GetCheckIns(dto);
+            CheckIns.AddRange(result.CheckIns);
+
+            _page++;
+            _hasNext = result.PaginationResult.HasNext;
+            _loading = false;
+        }
+    }
+}
