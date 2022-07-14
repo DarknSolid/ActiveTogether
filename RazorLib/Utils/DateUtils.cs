@@ -11,9 +11,7 @@ namespace RazorLib.Utils
         public static int TimeInYears(DateTime start)
         {
             var end = DateTime.UtcNow;
-            return (end.Year - start.Year - 1) +
-                (((end.Month > start.Month) ||
-                ((end.Month == start.Month) && (end.Day >= start.Day))) ? 1 : 0);
+            return end.Year - start.Year;
         }
 
         public static (int hours, int minutes) TimeInHoursMinutes(DateTime start, DateTime? end)

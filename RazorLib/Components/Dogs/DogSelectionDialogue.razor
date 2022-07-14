@@ -3,8 +3,11 @@
 @inject IApiClient ApiClient
 @using System.Net
 @using System.Text
+@using static RazorLib.Components.ListViewBase
 
-@*Returns a list of the selected dog's ids *@
+@*Returns a list of the selected dog's ids 
+    TODO make this selection dialogue generic and reusable
+*@
 
 <MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
     <DialogContent>
@@ -15,14 +18,16 @@
             }
             else
             {
-                <div class="d-flex flex-column gap-4" >
+                <ListView ItemGap="20" Orientation="ListViewOrientation.Vertical" >
                     @foreach (var dog in _dogs)
                     {
-                        <DogCard Dog="dog">
-                            <MudCheckBox @bind-Checked="@_isDogChecked[dog.Id]" Color="Color.Primary"></MudCheckBox>
-                        </DogCard>
+                        <ListViewItem ClickAble="true" OnClicked="@(() => UpdateSelection(dog.Id))">
+                            <DogCard Dog="dog">
+                                <MudCheckBox @bind-Checked="@_isDogChecked[dog.Id]" Color="Color.Primary"></MudCheckBox>
+                            </DogCard>
+                        </ListViewItem>
                     }
-                </div>
+                </ListView>
             }
         </MudContainer>
     </DialogContent>
@@ -71,5 +76,11 @@
         _dogs = await ApiClient.GetMyDogsAsync();
         _isDogChecked = _dogs.ToDictionary(d => d.Id, d => false);
         _loading = false;
+    }
+
+    private void UpdateSelection(int id)
+    {
+        _isDogChecked[id] = !_isDogChecked[id];
+        StateHasChanged();
     }
 }

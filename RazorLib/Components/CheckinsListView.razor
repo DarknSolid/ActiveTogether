@@ -6,11 +6,10 @@
 @using RazorLib.Components.ScrollPagination
 @using static RazorLib.Components.ListViewBase
 @using static EntityLib.Entities.Enums
-@using static RazorLib.Components.ScrollPagination.ScrollPagination
 @inject IApiClient ApiClient
 
 
-<ScrollPagination ItemGap="20" Orientation="@ListViewOrientation.Horizontal" OnPagination="(e) => Fetch()">
+<ListViewScrollPagination ItemGap="20" Orientation="@ListViewOrientation.Horizontal" OnPagination="(e) => Fetch()">
     @foreach (var checkin in CheckIns) {
         <CheckInCard CheckInDetails=@checkin />
     }
@@ -21,7 +20,7 @@
             <CheckInCardSkeleton/>
         }
     }
-</ScrollPagination>
+</ListViewScrollPagination>
 
 
 @code {
