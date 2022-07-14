@@ -1,47 +1,25 @@
 ﻿@using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
+@inherits ListViewBase
 
 @*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
 
-@if (Orientation == PaginationOrientation.Horizontal)
-{
-    <div class="d-flex flex-column" style="gap:@(Gap)px;"> 
-        @ChildContent
-        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
-    </div>
-} 
-else
-{
-    <div class="d-flex flex-row" style="gap:@(Gap)px;">
-        @ChildContent
-        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
-    </div>
-}
+<div class=@base._class style=@base._style> 
+    @ChildContent
+    <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+</div>
 
 
 
 
 @code {
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
 
     [Parameter]
     public EventCallback<bool> OnPagination { get; set; }
 
-    [Parameter]
-    public PaginationOrientation Orientation { get; set; }
-
-    [Parameter]
-    public int Gap { get; set; }
-
     private string _intersectionElementTargetId;
 
     private DotNetObjectReference<ScrollPagination> objectRef;
-
-    public enum PaginationOrientation{
-        Horizontal,
-        Vertical
-    }
 
     public ScrollPagination()
     {

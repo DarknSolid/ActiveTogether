@@ -3,12 +3,13 @@
 @using RazorLib.Interfaces
 @using RazorLib.Models
 @using RazorLib.Components.ScrollPagination
+@using static RazorLib.Components.ListViewBase
 @using static EntityLib.Entities.Enums
 @using static RazorLib.Components.ScrollPagination.ScrollPagination
 @inject IApiClient ApiClient
 
 
-<ScrollPagination Gap="20" Orientation="@PaginationOrientation.Vertical" OnPagination="(e) => FetchRatings()">
+<ScrollPagination ItemGap="20" Orientation="@ListViewOrientation.Horizontal" OnPagination="(e) => FetchRatings()">
     @foreach (var review in Reviews) {
         <Review ReviewDTO=@review />
     }
