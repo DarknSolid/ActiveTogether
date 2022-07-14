@@ -1,15 +1,17 @@
 ﻿@using Microsoft.JSInterop
 @using ModelLib.DTOs.CheckIns
+@using RazorLib.Components.Dogs
 @using RazorLib.Interfaces
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 @inject IJSRuntime JS
 @inject IStorageManager<CurrentlyCheckedInDTO> CheckedInStorageManager
+@inject IDialogService DialogService
 
 <MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => OnCheckInButtonPressed())">
     @if (CanCheckIn())
     {
-        <MudText Typo="Typo.body1">CHECK IN</MudText>
+        <MudText  Typo="Typo.body1">CHECK IN</MudText>
     }
     else if (CanCheckOut())
     {
@@ -67,7 +69,9 @@
         if (CanCheckIn())
         {
             // show select dog dialogue
-            var dogsToCheckIn = new List<int>();
+
+            var (dogsToCheckIn, didCancel) = await OpenDogSelectionDialogue();
+            if (didCancel) return;
             var dto = new CheckInCreateDTO { FacilityId = FacilityId, FacilityType = FacilityType, DogsToCheckIn = dogsToCheckIn };
             var result = await ApiClient.CheckIn(dto);
             if (result == -1)
@@ -86,6 +90,22 @@
             }
             await UpdateCheckInState();
         }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns>The list of dog ids and if the selection menu was cancelled</returns>
+    private async Task<(List<int>, bool)> OpenDogSelectionDialogue()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<DogSelectionDialogue>("Which dogs did you bring?", options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            return ((List<int>)result.Data, false);
+        }
+        return (new List<int>(), true);
     }
 
     public async Task UpdateCheckInState(CurrentlyCheckedInDTO? dto = null)

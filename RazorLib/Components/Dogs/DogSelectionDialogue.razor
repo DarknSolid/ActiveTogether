@@ -1,0 +1,75 @@
+﻿@using ModelLib.DTOs.Dogs
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+@using System.Net
+@using System.Text
+
+@*Returns a list of the selected dog's ids *@
+
+<MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+    <DialogContent>
+        <MudContainer Style="min-height: 300px; max-height:500px; overflow-y: scroll" Class="pb-4">
+            @if (_loading)
+            {
+                <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-4" >
+                    @foreach (var dog in _dogs)
+                    {
+                        <DogCard Dog="dog">
+                            <MudCheckBox @bind-Checked="@_isDogChecked[dog.Id]" Color="Color.Primary"></MudCheckBox>
+                        </DogCard>
+                    }
+                </div>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <div style="width:100%; display:flex; justify-content:space-around">
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton OnClick="() => Ok()" Variant="Variant.Filled" Color="Color.Primary">
+                Submit
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private List<DogListDTO> _dogs;
+    private Dictionary<int, bool> _isDogChecked;
+    private bool _loading;
+
+    public DogSelectionDialogue()
+    {
+        _dogs = new();
+        _isDogChecked = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _loading = true;
+        await Fetch();
+        _loading = false;
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private void Ok()
+    {
+        var selectedDogIds = _isDogChecked.Where(kv => kv.Value == true).Select(kv => kv.Key).ToList();
+        MudDialog.Close(DialogResult.Ok<List<int>>(selectedDogIds));
+    }
+
+    private async Task Fetch()
+    {
+        _loading = true;
+        _dogs = await ApiClient.GetMyDogsAsync();
+        _isDogChecked = _dogs.ToDictionary(d => d.Id, d => false);
+        _loading = false;
+    }
+}

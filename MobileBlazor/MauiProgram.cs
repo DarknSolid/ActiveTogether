@@ -25,7 +25,7 @@ namespace MobileBlazor
             builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
 
-            var doMockApiClient = false;
+            var doMockApiClient = true;
             if (doMockApiClient)
             {
                 var mockedApiClient = new MockedApiClient();
