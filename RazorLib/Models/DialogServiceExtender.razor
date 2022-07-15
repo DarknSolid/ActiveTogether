@@ -1,0 +1,61 @@
+﻿@using ModelLib.DTOs.Dogs
+@using RazorLib.Components.Dogs
+@using RazorLib.Interfaces
+
+@code {
+    public static async Task<(bool, List<int>)> ShowMyDogsListViewSelection(IDialogService service, IApiClient apiClient, string title, string btnAcceptText)
+    {
+        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent"/>);
+
+        return await ShowListViewSelection<ItemSelectionDialogue<DogListDTO>, DogListDTO>(
+            service,
+            title,
+            btnAcceptText,
+            (async () => await apiClient.GetMyDogsAsync()),
+            dogCardBuilder,
+            ((DogListDTO dto) => dto.Id)
+        );
+    }
+
+    /// <summary>
+    /// A helper function to create a list view dialogue that allows the user to select multiple items.
+    /// </summary>
+    /// <typeparam name="TComponent"></typeparam>
+    /// <typeparam name="TItem"></typeparam>
+    /// <param name="service"></param>
+    /// <param name="title">The title of the dialogue</param>
+    /// <param name="functionFetchItems">A function that fetches the list item objects to be displayed</param>
+    /// <param name="functionBuildListItemContent">A function that builds the content of each list item. E.g. builds a DogCard with its parameters.</param>
+    /// <param name="functionExtractItemId">A function that returns the id of the object given. E.g. the id of a DogListDTO</param>
+    /// <returns>Returns the dialogue task which contains a list of ids of the selected items</returns>
+    public static async Task<(bool, List<int>)> ShowListViewSelection<TComponent, TItem>(
+            IDialogService service,
+            string title,
+            string btnAcceptText,
+            Func<Task<List<TItem>>> functionFetchItems,
+            Func<TItem, RenderFragment, RenderFragment> functionBuildListItemContent,
+            Func<TItem, int> functionExtractItemId
+        )
+        where TComponent : ComponentBase
+    {
+
+        var parameters = new DialogParameters
+            {
+                [nameof(ItemSelectionDialogue<TItem>.BtnAcceptText)] = btnAcceptText,
+                [nameof(ItemSelectionDialogue<TItem>.ItemFetch)] = functionFetchItems,
+                [nameof(ItemSelectionDialogue<TItem>.BuildListItemContent)] = functionBuildListItemContent,
+                [nameof(ItemSelectionDialogue<TItem>.ExtractItemId)] = functionExtractItemId
+            };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = service.Show<TComponent>(title, parameters, options);
+
+        var result = await dialog.Result;
+        if (result.Cancelled)
+        {
+            return (false, new List<int>());
+        }
+        return (true, (List<int>)result.Data);
+    }
+}

@@ -2,8 +2,8 @@
 @using ModelLib.DTOs.CheckIns
 @using ModelLib.DTOs.Dogs
 @using RazorLib.Components.Dogs
-@using RazorLib.Extensions
 @using RazorLib.Interfaces
+@using RazorLib.Models
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 @inject IJSRuntime JS
@@ -71,9 +71,15 @@
         if (CanCheckIn())
         {
             // show select dog dialogue
+            var (didAccept, dogsToCheckIn) = await DialogServiceExtender
+                .ShowMyDogsListViewSelection(
+                    DialogService,
+                    ApiClient,
+                    "Which dogs did you bring?",
+                    "Check In"
+                );
 
-            var (dogsToCheckIn, didCancel) = await OpenListViewSelectionDialogue();
-            if (didCancel) return;
+            if (!didAccept) return;
             var dto = new CheckInCreateDTO { FacilityId = FacilityId, FacilityType = FacilityType, DogsToCheckIn = dogsToCheckIn };
             var result = await ApiClient.CheckIn(dto);
             if (result == -1)
@@ -94,32 +100,9 @@
         }
     }
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <returns>The list of dog ids and if the selection menu was cancelled</returns>
-    private async Task<(List<int>, bool)> OpenListViewSelectionDialogue()
-    {
-        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent" />);
-
-        var dialog = DialogueServiceExtenstions.ShowListViewSelection<ItemSelectionDialogue<DogListDTO>, DogListDTO>(
-            DialogService,
-            "Which dogs did you bring?",
-            (async () => await ApiClient.GetMyDogsAsync()),
-            dogCardBuilder,
-            ((DogListDTO dto) => dto.Id)
-        );
-
-        var result = await dialog.Result;
-        if (!result.Cancelled)
-        {
-            return ((List<int>)result.Data, false);
-        }
-        return (new List<int>(), true);
-    }
-
     public async Task UpdateCheckInState(CurrentlyCheckedInDTO? dto = null)
     {
+
         if (dto == null)
         {
             await CheckedInStorageManager.DeleteCheckIn();
@@ -133,4 +116,4 @@
         _disabled = !CanCheckIn() && !CanCheckOut();
         StateHasChanged();
     }
-        }
+}

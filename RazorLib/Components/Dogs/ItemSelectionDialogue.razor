@@ -33,7 +33,7 @@
         <div style="width:100%; display:flex; justify-content:space-around">
             <MudButton OnClick="Cancel">Cancel</MudButton>
             <MudButton OnClick="() => Ok()" Variant="Variant.Filled" Color="Color.Primary">
-                Submit
+                @BtnAcceptText
             </MudButton>
         </div>
     </DialogActions>
@@ -41,6 +41,9 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string BtnAcceptText { get; set; }
 
     [Parameter]
     public Func<Task<List<TItem>>> ItemFetch {get;set;}
