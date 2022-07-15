@@ -1,4 +1,4 @@
-﻿@using ModelLib.DTOs.Dogs
+﻿@typeparam TItem
 @using RazorLib.Interfaces
 @inject IApiClient ApiClient
 @using System.Net
@@ -19,12 +19,10 @@
             else
             {
                 <ListView ItemGap="20" Orientation="ListViewOrientation.Vertical" >
-                    @foreach (var dog in _dogs)
+                    @foreach (var dog in _items)
                     {
-                        <ListViewItem ClickAble="true" OnClicked="@(() => UpdateSelection(dog.Id))">
-                            <DogCard Dog="dog">
-                                <MudCheckBox @bind-Checked="@_isDogChecked[dog.Id]" Color="Color.Primary"></MudCheckBox>
-                            </DogCard>
+                        <ListViewItem ClickAble="true" OnClicked="@(() => UpdateSelection(ExtractItemId(dog)))">
+                            @BuildListItemContent(dog, @<MudCheckBox @bind-Checked="@_itemChecked[ExtractItemId(dog)]" Color="Color.Primary"/>)
                         </ListViewItem>
                     }
                 </ListView>
@@ -44,21 +42,31 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-    private List<DogListDTO> _dogs;
-    private Dictionary<int, bool> _isDogChecked;
+    [Parameter]
+    public Func<Task<List<TItem>>> ItemFetch {get;set;}
+
+    [Parameter] 
+    public Func<TItem, int> ExtractItemId {get;set;}
+
+    [Parameter]
+    public Func<TItem, RenderFragment,RenderFragment> BuildListItemContent { get; set; }
+
+    private List<TItem> _items;
+    private Dictionary<int, bool> _itemChecked;
     private bool _loading;
 
-    public DogSelectionDialogue()
+    public ItemSelectionDialogue()
     {
-        _dogs = new();
-        _isDogChecked = new();
+        _items = new();
+        _itemChecked = new();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _loading = true;
-        await Fetch();
+        _items = await ItemFetch();
+        _itemChecked = _items.ToDictionary(d => ExtractItemId(d), d => false);
         _loading = false;
     }
 
@@ -66,21 +74,13 @@
 
     private void Ok()
     {
-        var selectedDogIds = _isDogChecked.Where(kv => kv.Value == true).Select(kv => kv.Key).ToList();
+        var selectedDogIds = _itemChecked.Where(kv => kv.Value == true).Select(kv => kv.Key).ToList();
         MudDialog.Close(DialogResult.Ok<List<int>>(selectedDogIds));
-    }
-
-    private async Task Fetch()
-    {
-        _loading = true;
-        _dogs = await ApiClient.GetMyDogsAsync();
-        _isDogChecked = _dogs.ToDictionary(d => d.Id, d => false);
-        _loading = false;
     }
 
     private void UpdateSelection(int id)
     {
-        _isDogChecked[id] = !_isDogChecked[id];
+        _itemChecked[id] = !_itemChecked[id];
         StateHasChanged();
     }
 }

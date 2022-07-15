@@ -1,6 +1,8 @@
 ﻿@using Microsoft.JSInterop
 @using ModelLib.DTOs.CheckIns
+@using ModelLib.DTOs.Dogs
 @using RazorLib.Components.Dogs
+@using RazorLib.Extensions
 @using RazorLib.Interfaces
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
@@ -11,7 +13,7 @@
 <MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => OnCheckInButtonPressed())">
     @if (CanCheckIn())
     {
-        <MudText  Typo="Typo.body1">CHECK IN</MudText>
+        <MudText Typo="Typo.body1">CHECK IN</MudText>
     }
     else if (CanCheckOut())
     {
@@ -93,13 +95,21 @@
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <returns>The list of dog ids and if the selection menu was cancelled</returns>
     private async Task<(List<int>, bool)> OpenDogSelectionDialogue()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = DialogService.Show<DogSelectionDialogue>("Which dogs did you bring?", options);
+        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent" />);
+
+        var dialog = DialogueServiceExtenstions.ShowListViewSelection<ItemSelectionDialogue<DogListDTO>, DogListDTO>(
+            DialogService,
+            "Which dogs did you bring?",
+            (async () => await ApiClient.GetMyDogsAsync()),
+            dogCardBuilder,
+            ((DogListDTO dto) => dto.Id)
+        );
+
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
@@ -123,4 +133,4 @@
         _disabled = !CanCheckIn() && !CanCheckOut();
         StateHasChanged();
     }
-}
+        }
