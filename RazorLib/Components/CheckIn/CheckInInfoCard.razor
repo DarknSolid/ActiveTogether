@@ -1,0 +1,47 @@
+﻿@using Microsoft.JSInterop
+@using ModelLib.DTOs.CheckIns
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@inject IStorageManager<CurrentlyCheckedInDTO> StorageManager 
+@inject ITopicBroker TopicBroker
+@inject IJSRuntime JSRuntime
+
+
+@if (CurrentlyCheckedInDTO != null)
+{
+    <MudPaper Height="200px" Width="100%" Class="mud-theme-primary">
+        <MudText Color="Color.Surface" Typo="Typo.body1">Checked in:</MudText>
+        <MudText Color="Color.Surface" Typo="Typo.body2">@CurrentlyCheckedInDTO.CheckInDate</MudText>
+        <MudText Color="Color.Surface" Typo="Typo.body2">Duration: @_duration</MudText>
+    </MudPaper>
+}
+
+@code {
+
+    public CurrentlyCheckedInDTO CurrentlyCheckedInDTO { get; set; }
+
+    private string _duration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TopicBroker.Subscribe(StorageManager.GetBrokerTopicString(), async () => await OnCheckInStateChanged());
+        await Fetch();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task OnCheckInStateChanged()
+    {
+        await Fetch();
+    }
+
+    public async Task Fetch()
+    {
+        CurrentlyCheckedInDTO = await StorageManager.Get();
+        if (CurrentlyCheckedInDTO != null)
+        {
+            var (hours, minutes) = Utils.DateUtils.TimeInHoursMinutes(CurrentlyCheckedInDTO.CheckInDate, null);
+            _duration = $"{hours}h {minutes} m";
+        }
+        StateHasChanged();
+    }
+}

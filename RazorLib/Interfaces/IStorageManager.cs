@@ -4,8 +4,11 @@ namespace RazorLib.Interfaces
 {
     public interface IStorageManager<T>
     {
-        public Task SetCurrentCheckIn(T dto);
-        public Task DeleteCheckIn();
-        public Task<bool> HasCheckIn();
+        public Task Set(T dto);
+        public Task Delete();
+        public Task<bool> Exists();
+        public Task<T?> Get();
+
+        public string GetBrokerTopicString();
     }
 }

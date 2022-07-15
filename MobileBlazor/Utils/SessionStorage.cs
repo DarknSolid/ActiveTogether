@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using RazorLib.Interfaces;
 using System.Text.Json;
 
@@ -19,7 +20,7 @@ namespace MobileBlazor.Utils
             await _jSRuntime.InvokeVoidAsync("sessionStorage.setItem", key, jsonString);
         }
 
-        public async Task<T> GetItem<T>(string key)
+        public async Task<T?> GetItem<T>(string key)
         {
             var json = await _jSRuntime.InvokeAsync<string>("sessionStorage.getItem", key);
             return JsonSerializer.Deserialize<T>(json);

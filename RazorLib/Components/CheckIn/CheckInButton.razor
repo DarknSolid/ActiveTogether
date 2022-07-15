@@ -105,11 +105,11 @@
 
         if (dto == null)
         {
-            await CheckedInStorageManager.DeleteCheckIn();
+            await CheckedInStorageManager.Delete();
         }
         else
         {
-            await CheckedInStorageManager.SetCurrentCheckIn(dto);
+            await CheckedInStorageManager.Set(dto);
         }
 
         _currentCheckInInfo = dto;
