@@ -72,7 +72,7 @@
         {
             // show select dog dialogue
 
-            var (dogsToCheckIn, didCancel) = await OpenDogSelectionDialogue();
+            var (dogsToCheckIn, didCancel) = await OpenListViewSelectionDialogue();
             if (didCancel) return;
             var dto = new CheckInCreateDTO { FacilityId = FacilityId, FacilityType = FacilityType, DogsToCheckIn = dogsToCheckIn };
             var result = await ApiClient.CheckIn(dto);
@@ -98,7 +98,7 @@
     ///
     /// </summary>
     /// <returns>The list of dog ids and if the selection menu was cancelled</returns>
-    private async Task<(List<int>, bool)> OpenDogSelectionDialogue()
+    private async Task<(List<int>, bool)> OpenListViewSelectionDialogue()
     {
         Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent" />);
 
