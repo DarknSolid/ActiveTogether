@@ -6,7 +6,6 @@ namespace EntityLib.Entities
     public class DogCheckIn
     {
         [Required]
-        [Key]
         [ForeignKey(nameof(CheckIn))]
         public int CheckInId { get; set; }
 

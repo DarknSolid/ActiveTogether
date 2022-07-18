@@ -68,6 +68,8 @@ namespace WebApp.Entities
 
             #region DogCheckIn
             builder.Entity<DogCheckIn>()
+                .HasKey(d => new { d.DogId, d.CheckInId });
+            builder.Entity<DogCheckIn>()
                 .HasOne(dc => dc.Dog).WithMany(d => d.CheckIns);
             #endregion
 
