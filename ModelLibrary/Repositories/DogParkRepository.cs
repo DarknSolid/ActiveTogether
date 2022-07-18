@@ -16,7 +16,7 @@ namespace ModelLib.Repositories
 {
     public interface IDogParkRepository
     {
-        public Task<DogParkDetailedDTO?> GetAsync(int id);
+        public Task<DogParkDetailedDTO?> GetAsync(int userId, int id);
         public Task<List<DogParkListDTO>> GetInAreaAsync(BoundsDTO bounds);
         public Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO);
     }
@@ -33,34 +33,44 @@ namespace ModelLib.Repositories
         public async Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO)
         {
             //TODO check for duplicate parks
-            var entity = new DogPark
+            var placeEntity = new Place
             {
                 Name = dogParkCreateDTO.Name,
                 Description = dogParkCreateDTO.Description,
-                Facilities = dogParkCreateDTO.Facilities,
                 Location = new Point(new Coordinate(dogParkCreateDTO.Longitude, dogParkCreateDTO.Latitude))
             };
-            _context.DogParks.Add(entity);
+
+
+            _context.Places.Add(placeEntity);
             await _context.SaveChangesAsync();
-            return entity.Id;
+
+            var dogparkEntity = new DogPark
+            {
+                PlaceId = placeEntity.Id,
+                Facilities = dogParkCreateDTO.Facilities,
+            };
+            _context.DogParks.Add(dogparkEntity);
+            await _context.SaveChangesAsync();
+            return dogparkEntity.PlaceId;
         }
 
-        public async Task<DogParkDetailedDTO?> GetAsync(int id)
+        public async Task<DogParkDetailedDTO?> GetAsync(int userId, int id)
         {
-            var reviews = _context.Reviews.Where(r => r.RevieweeId == id && r.ReviewType == Enums.FacilityType.DogPark);
+            var reviews = _context.Reviews.Where(r => r.PlaceId == id);
 
             var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)
-                .Where(x => x.Id == id)
+                .Include(p => p.Place)
+                .Where(x => x.PlaceId == id)
                 .Select(p => new DogParkDetailedDTO
                 {
                     Rating = reviews
                         .Sum(r => r.Rating) / reviews.Count(),
-                    Description = p.Description,
-                    Name = p.Name,
+                    Description = p.Place.Description,
+                    Name = p.Place.Name,
                     Facilities = p.Facilities.Select(f => f.FacilityType),
-                    Latitude = (float)p.Location.Y,
-                    Longitude = (float)p.Location.X,
+                    Latitude = (float)p.Place.Location.Y,
+                    Longitude = (float)p.Place.Location.X,
                     TotalReviews = reviews.Count(),
                     Id = id
                 });
@@ -81,13 +91,13 @@ namespace ModelLib.Repositories
             };
             var bb = new GeometryFactory().CreatePolygon(boundingBox);
 
-            var nearbyEntities = await _context.DogParks.Where(c => c.Location.Intersects(bb)).Select(p => p).ToListAsync();
+            var nearbyEntities = await _context.DogParks.Include(p => p.Place).Where(c => c.Place.Location.Intersects(bb)).Select(p => p).ToListAsync();
             var nearbyDogParks = nearbyEntities.Select(p => new DogParkListDTO
             {
-                Id = p.Id,
-                Name = p.Name,
-                Latitude = (float)p.Location.Y,
-                Longitude = (float)p.Location.X
+                Id = p.PlaceId,
+                Name = p.Place.Name,
+                Latitude = (float)p.Place.Location.Y,
+                Longitude = (float)p.Place.Location.X
             }).ToList();
             return nearbyDogParks;
         }

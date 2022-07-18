@@ -2,17 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.Reviews
 {
     public class ReviewCreateDTO
     {
-        public int RevieweeId { get; set; }
-        public FacilityType ReviewType { get; set; }
+        public int PlaceId { get; set; }
         public int Rating { get; set; }
 
         [Required]

@@ -83,7 +83,7 @@ namespace MobileBlazor.Mocks
             });
         }
 
-        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, FacilityType reviewType, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, int page, int pageCount)
         {
             var result = new List<ReviewDetailedDTO>();
             var start = page * pageCount;
@@ -125,13 +125,12 @@ namespace MobileBlazor.Mocks
             await Task.Delay(_random.Next(300, 700));
         }
 
-        public async Task<ReviewCreatedDTO> CreateReviewAsync(FacilityType reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(ReviewCreateDTO reviewCreateDTO)
         {
             await SimulateRequestDelay();
             return new ReviewCreatedDTO()
             {
-                ReviewType = reviewType,
-                RevieweeId = reviewCreateDTO.RevieweeId,
+                RevieweeId = reviewCreateDTO.PlaceId,
                 ReviewerId = 0
             };
         }
@@ -261,7 +260,7 @@ namespace MobileBlazor.Mocks
             return new CurrentlyCheckedInDTO
             {
                 CheckInDate = DateTime.UtcNow.AddHours(-1),
-                FacilityId = 1,
+                PlaceId = 1,
                 FacilityType = FacilityType.DogPark,
                 Dogs = new List<DogListDTO>
                 {

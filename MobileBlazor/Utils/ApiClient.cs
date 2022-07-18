@@ -93,13 +93,12 @@ namespace MobileBlazor.Utils
             return await _httpClient.GetFromJsonAsync<DogParkDetailedDTO>(_baseApiUrl + ApiEndpoints.GET_DOG_PARK + id);
         }
 
-        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, FacilityType reviewType, int page, int pageCount)
+        public async Task<ReviewListViewDTO> GetReviewsAsync(int id, int page, int pageCount)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_LIST_REVIEWS;
             var body = new ReviewsDTO
             {
-                RevieweeId = id,
-                ReviewType = reviewType,
+                PlaceId = id,
                 PaginationRequest = new PaginationRequest
                 {
                     Page = page,
@@ -110,7 +109,7 @@ namespace MobileBlazor.Utils
             return await PostAsync<ReviewsDTO, ReviewListViewDTO>(url, body);
         }
 
-        public async Task<ReviewCreatedDTO> CreateReviewAsync(FacilityType reviewType, ReviewCreateDTO reviewCreateDTO)
+        public async Task<ReviewCreatedDTO> CreateReviewAsync(ReviewCreateDTO reviewCreateDTO)
         {
             var url = _baseApiUrl + ApiEndpoints.POST_CREATE_REVIEW;
             return await PostAsync<ReviewCreateDTO, ReviewCreatedDTO>(url, reviewCreateDTO);

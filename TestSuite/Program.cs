@@ -3,11 +3,9 @@ using EntityLib.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ModelLib.DTOs.DogPark;
 using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Reviews;
 using ModelLib.Repositories;
-using NetTopologySuite.Geometries;
 using TestSuite;
 using WebApp.Entities;
 using static EntityLib.Entities.Enums;
@@ -19,6 +17,8 @@ services.AddDbContext<IApplicationDbContext,ApplicationDbContext>(options =>
 services.AddScoped<IDogParkRepository, DogParkRepository>();
 services.AddScoped<IReviewsRepository, ReviewsRepository>();
 services.AddScoped<IDogRepository, DogRepository>();
+services.AddScoped<ICheckInRepository, CheckInRepository>();
+services.AddScoped<IPlacesRepository, PlacesRepository>();
 
 var serviceProvider = services.BuildServiceProvider();
 var dogParkRepo = serviceProvider.GetService<IDogParkRepository>();
@@ -33,6 +33,7 @@ context.Dogs.RemoveRange(context.Dogs);
 context.DogBreeds.RemoveRange(context.DogBreeds);
 context.Reviews.RemoveRange(context.Reviews);
 context.DogParks.RemoveRange(context.DogParks);
+context.Places.RemoveRange(context.Places);
 context.Users.RemoveRange(context.Users);
 await context.SaveChangesAsync();
 Console.WriteLine("done");
@@ -41,7 +42,7 @@ var maxUsers = 3;
 var maxDogParks = 400;
 var testUserId = 1;
 
-Console.WriteLine("Creaint Users");
+Console.WriteLine("Creating Users");
 var devUser = Util.CreateDeveloperUser("developer_user@hotmail.com", "Test123!", passwordHasher);
 context.Users.Add(devUser);
 
@@ -85,8 +86,7 @@ using (var progressBar = new ProgressBar())
             var userId = dummyUsers[j].Id;
             await reviewsRepo.CreateReviewAsync(userId, new ReviewCreateDTO
             {
-                RevieweeId = id,
-                ReviewType = EntityLib.Entities.Enums.FacilityType.DogPark,
+                PlaceId = id,
                 Title = $"Review {i + 1}:{j + 1}",
                 Description = "some funky description right here",
                 Rating = ((i + j) % 5) + 1

@@ -1,17 +1,17 @@
 ﻿using EntityLib.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static EntityLib.Entities.Enums;
 
 namespace EntityLib.Entities
 {
     public class Review
     {
-        [Column(nameof(ReviewerId))]
         [ForeignKey(nameof(ApplicationUser))]
-        public int ReviewerId { get; set; }
-        public int RevieweeId { get; set; } 
-        public FacilityType ReviewType { get; set; }
+        public int UserId { get; set; }
+
+        [Required]
+        [ForeignKey(nameof(Place))]
+        public int PlaceId { get; set; } 
 
         [Required]
         [Range(0,5)]
@@ -25,7 +25,8 @@ namespace EntityLib.Entities
         [MaxLength(2000)]
         public string Description { get; set; }
         public DateTime Date { get; set; }
-        public ApplicationUser Reviewer { get; set; }
+        public ApplicationUser User { get; set; }
+        public Place Place { get; set; }
 
     }
 }

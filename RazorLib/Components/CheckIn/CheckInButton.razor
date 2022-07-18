@@ -29,9 +29,6 @@
     [Parameter]
     public int FacilityId { get; set; }
 
-    [Parameter]
-    public FacilityType FacilityType { get; set; }
-
     private CurrentlyCheckedInDTO? _currentCheckInInfo { get; set; }
 
     private bool _disabled = true;
@@ -49,7 +46,7 @@
         {
             return true;
         }
-        else if (_currentCheckInInfo.FacilityId == FacilityId && _currentCheckInInfo.FacilityType == FacilityType)
+        else if (_currentCheckInInfo.PlaceId == FacilityId)
         {
             return false;
         }
@@ -61,7 +58,7 @@
     {
         if (_currentCheckInInfo != null)
         {
-            return _currentCheckInInfo.FacilityId == FacilityId && _currentCheckInInfo.FacilityType == FacilityType;
+            return _currentCheckInInfo.PlaceId == FacilityId;
         }
         return false;
     }
@@ -80,7 +77,7 @@
                 );
 
             if (!didAccept) return;
-            var dto = new CheckInCreateDTO { FacilityId = FacilityId, FacilityType = FacilityType, DogsToCheckIn = dogsToCheckIn };
+            var dto = new CheckInCreateDTO { PlaceId = FacilityId, DogsToCheckIn = dogsToCheckIn };
             var result = await ApiClient.CheckIn(dto);
             if (result == -1)
             {

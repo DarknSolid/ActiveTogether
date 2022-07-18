@@ -11,7 +11,7 @@ namespace ModelLib.DTOs.CheckIns
     public class CurrentlyCheckedInDTO
     {
         public List<DogListDTO> Dogs { get; set; }
-        public int FacilityId { get; set; }
+        public int PlaceId { get; set; }
         public FacilityType FacilityType { get; set; }
         public DateTime CheckInDate { get; set; }
     }

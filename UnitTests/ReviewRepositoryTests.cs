@@ -12,19 +12,17 @@ namespace UnitTests
     public class ReviewRepositoryTests : TestBase
     {
         private readonly IReviewsRepository _repo;
-        private readonly Mock<IFacilityRepository> _facilityRepositoryMock;
 
         public ReviewRepositoryTests()
         {
-            _facilityRepositoryMock = new Mock<IFacilityRepository>();
-            _repo = new ReviewsRepository(_context, _facilityRepositoryMock.Object);
+            _repo = new ReviewsRepository(_context);
         }
 
         [Fact]
         public async Task GetReviews_DogPark_Returns_DogPark_reviews()
         {
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
-            var request = new ReviewsDTO { RevieweeId = 1, ReviewType = Enums.FacilityType.DogPark, PaginationRequest = paginationRequest };
+            var request = new ReviewsDTO { PlaceId = 1, PaginationRequest = paginationRequest };
             var expectedCount = 2;
 
             var (pagination, dogParkReviews) = await _repo.GetReviewsAsync(request);
@@ -32,10 +30,8 @@ namespace UnitTests
             var secondDogPark = dogParkReviews[1];
 
             Assert.Equal(expectedCount, dogParkReviews.Count);
-            Assert.Equal(request.RevieweeId, firstDogPark.RevieweeId);
-            Assert.Equal(request.RevieweeId, secondDogPark.RevieweeId);
-            Assert.Equal(Enums.FacilityType.DogPark, firstDogPark.ReviewType);
-            Assert.Equal(Enums.FacilityType.DogPark, secondDogPark.ReviewType);
+            Assert.Equal(request.PlaceId, firstDogPark.PlaceId);
+            Assert.Equal(request.PlaceId, secondDogPark.PlaceId);
             Assert.Equal(2, firstDogPark.ReviewerId);
             Assert.Equal(1, secondDogPark.ReviewerId);
         }
@@ -43,14 +39,10 @@ namespace UnitTests
         [Fact]
         public async Task CreateReview_Valid_DogPark_creates_and_returns_DogPark_id()
         {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(true));
             var reviewerId = 2;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.FacilityType.DogPark,
-                RevieweeId = 2,
+                PlaceId = 2,
                 Description = "description",
                 Title = "title",
                 Rating = 4
@@ -58,20 +50,17 @@ namespace UnitTests
 
             var (actualResponse, actualDto) = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
-                r.RevieweeId == dto.RevieweeId &&
-                r.ReviewerId == reviewerId &&
-                r.ReviewType == dto.ReviewType
+                r.PlaceId == dto.PlaceId &&
+                r.UserId == reviewerId
             ).FirstOrDefaultAsync();
 
             Assert.NotNull(dto);
             Assert.NotNull(actualEntity);
             Assert.Equal(ResponseType.Created, actualResponse);
-            Assert.Equal(dto.ReviewType, actualDto.ReviewType);
-            Assert.Equal(dto.RevieweeId, actualDto.RevieweeId);
+            Assert.Equal(dto.PlaceId, actualDto.RevieweeId);
             Assert.Equal(reviewerId, actualDto.ReviewerId);
-            Assert.Equal(dto.ReviewType, actualEntity.ReviewType);
-            Assert.Equal(dto.RevieweeId, actualEntity.RevieweeId);
-            Assert.Equal(reviewerId, actualEntity.ReviewerId);
+            Assert.Equal(dto.PlaceId, actualEntity.PlaceId);
+            Assert.Equal(reviewerId, actualEntity.UserId);
             Assert.Equal(dto.Title, actualEntity.Title);
             Assert.Equal(dto.Description, actualEntity.Description);
             Assert.Equal(dto.Rating, actualEntity.Rating);
@@ -80,14 +69,10 @@ namespace UnitTests
         [Fact]
         public async Task CreateReview_Valid_DogPark_updates_and_returns_DogPark_id()
         {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(true));
             var reviewerId = 1;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.FacilityType.DogPark,
-                RevieweeId = 1,
+                PlaceId = 1,
                 Description = "description",
                 Title = "title",
                 Rating = 4
@@ -95,20 +80,17 @@ namespace UnitTests
 
             var (actualResponse, actualDto) = await _repo.CreateReviewAsync(reviewerId, dto);
             var actualEntity = await _context.Reviews.Where(r =>
-                r.RevieweeId == dto.RevieweeId &&
-                r.ReviewerId == reviewerId &&
-                r.ReviewType == dto.ReviewType
+                r.PlaceId == dto.PlaceId &&
+                r.UserId == reviewerId
             ).FirstOrDefaultAsync();
 
             Assert.NotNull(actualDto);
             Assert.NotNull(actualEntity);
             Assert.Equal(ResponseType.Updated, actualResponse);
-            Assert.Equal(dto.ReviewType, actualDto.ReviewType);
-            Assert.Equal(dto.RevieweeId, actualDto.RevieweeId);
+            Assert.Equal(dto.PlaceId, actualDto.RevieweeId);
             Assert.Equal(reviewerId, actualDto.ReviewerId);
-            Assert.Equal(dto.ReviewType, actualEntity.ReviewType);
-            Assert.Equal(dto.RevieweeId, actualEntity.RevieweeId);
-            Assert.Equal(reviewerId, actualEntity.ReviewerId);
+            Assert.Equal(dto.PlaceId, actualEntity.PlaceId);
+            Assert.Equal(reviewerId, actualEntity.UserId);
             Assert.Equal(dto.Title, actualEntity.Title);
             Assert.Equal(dto.Description, actualEntity.Description);
             Assert.Equal(dto.Rating, actualEntity.Rating);
@@ -120,8 +102,7 @@ namespace UnitTests
             var reviewerId = 1;
             var dto = new ReviewCreateDTO
             {
-                ReviewType = Enums.FacilityType.DogPark,
-                RevieweeId = -1,
+                PlaceId = -1,
                 Description = "description",
                 Title = "title",
                 Rating = 4

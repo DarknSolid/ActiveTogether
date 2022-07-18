@@ -1,5 +1,6 @@
 ﻿using EntityLib.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityLib.Entities
 {
@@ -9,18 +10,17 @@ namespace EntityLib.Entities
         public int Id { get; set; }
         [Required]
         public int UserId { get; set; }
-        public ApplicationUser User { get; set; }
 
         [Required]
         public DateTime CheckInDate { get; set; }
         public DateTime? CheckOutDate { get; set; }
 
         [Required]
-        public int FacilityId { get; set; }
+        [ForeignKey(nameof(Place))]
+        public int PlaceId { get; set; }
 
-        [Required]
-        public Enums.FacilityType FacilityType { get; set; }
-
+        public ApplicationUser User { get; set; }
+        public Place Place { get; set; }
         public ICollection<DogCheckIn> DogCheckIns { get; set; }
     }
 }

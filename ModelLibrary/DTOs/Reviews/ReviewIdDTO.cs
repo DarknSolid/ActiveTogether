@@ -12,6 +12,5 @@ namespace ModelLib.DTOs.Reviews
     {
         public int RevieweeId { get; set; }
         public int ReviewerId { get; set; }
-        public Enums.FacilityType ReviewType { get; set; }
     }
 }

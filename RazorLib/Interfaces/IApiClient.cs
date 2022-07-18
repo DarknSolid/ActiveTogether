@@ -14,8 +14,8 @@ namespace RazorLib.Interfaces
         public Task<DogParkDetailedDTO> GetDogParkAsync(int id);
 
         #region Reviews
-        public Task<ReviewListViewDTO> GetReviewsAsync(int id, FacilityType reviewType, int page, int pageCount);
-        public Task<ReviewCreatedDTO> CreateReviewAsync(FacilityType reviewType, ReviewCreateDTO reviewCreateDTO);
+        public Task<ReviewListViewDTO> GetReviewsAsync(int id, int page, int pageCount);
+        public Task<ReviewCreatedDTO> CreateReviewAsync(ReviewCreateDTO reviewCreateDTO);
         #endregion
 
         #region Dogs

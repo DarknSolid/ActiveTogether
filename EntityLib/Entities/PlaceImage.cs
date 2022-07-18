@@ -3,18 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityLib.Entities
 {
-    public class DogPark
+    public class PlaceImages
     {
-
-        //TODO Images
-
         [Key]
         [ForeignKey(nameof(Place))]
         public int PlaceId { get; set; }
 
+        [Required]
+        public string ImageKey { get; set; }
+
         public Place Place { get; set; }
-
-        public List<DogParkFacility> Facilities { get; set; }
-
     }
 }

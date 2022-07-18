@@ -6,6 +6,7 @@ namespace EntityLib
 {
     public interface IApplicationDbContext
     {
+        public DbSet<Place> Places { get; set; }
         public DbSet<DogPark> DogParks { get; set; }
         public DbSet<DogParkFacility> DogParkFacilities { get; set; }
         public DbSet<Review> Reviews { get; set; }

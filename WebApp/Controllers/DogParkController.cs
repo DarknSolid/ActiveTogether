@@ -13,17 +13,20 @@ namespace WebApp.Controllers
     public class DogParkController : ControllerBase
     {
         private readonly IDogParkRepository _dogParkRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DogParkController(IDogParkRepository dogParkRepository)
+        public DogParkController(IDogParkRepository dogParkRepository, UserManager<ApplicationUser> userManager)
         {
             _dogParkRepository = dogParkRepository;
+            _userManager = userManager;
         }
 
         [Authorize]
         [HttpGet(ApiEndpoints.DOG_PARKS_GET + "{id}")]
         public async Task<ActionResult<DogParkDetailedDTO?>> GetPoints(int id)
         {
-            return await _dogParkRepository.GetAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            return await _dogParkRepository.GetAsync(user.Id, id);
         }
 
     }

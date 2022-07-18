@@ -22,48 +22,39 @@ namespace ModelLib.Repositories
     public class ReviewsRepository : IReviewsRepository
     {
         private readonly IApplicationDbContext _context;
-        private readonly IFacilityRepository _facilityRepository;
 
-        public ReviewsRepository(IApplicationDbContext context, IFacilityRepository facilityRepository)
+        public ReviewsRepository(IApplicationDbContext context)
         {
             _context = context;
-            _facilityRepository = facilityRepository;
         }
         public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
         {
             var query = _context.Reviews
-                .Include(r => r.Reviewer)
-                .Where(r => r.RevieweeId == request.RevieweeId && r.ReviewType == request.ReviewType)
+                .Include(r => r.User)
+                .Where(r => r.PlaceId == request.PlaceId)
                 .OrderByDescending(r => r.Date);
 
             var (paginationResult, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(query, request.PaginationRequest);
 
             var dtoResult = await paginatedQuery.Select(r => new ReviewDetailedDTO
             {
-                ReviewerFirstName = r.Reviewer.FirstName,
-                ReviewerLastName = r.Reviewer.LastName,
+                ReviewerFirstName = r.User.FirstName,
+                ReviewerLastName = r.User.LastName,
                 Description = r.Description,
-                ReviewerId = r.ReviewerId,
+                ReviewerId = r.UserId,
                 Date = r.Date,
-                RevieweeId = r.RevieweeId,
+                PlaceId = r.PlaceId,
                 Rating = r.Rating,
                 Title = r.Title,
-                ReviewType = r.ReviewType
             })
-                .ToListAsync();
+            .ToListAsync();
 
             return (paginationResult, dtoResult);
         }
 
         public async Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
         {
-            var entity = await _context.Reviews.Where(r =>
-                                            r.ReviewerId == reviewerId &&
-                                            r.RevieweeId == dto.RevieweeId &&
-                                            r.ReviewType == dto.ReviewType)
-                .FirstOrDefaultAsync();
-
-            if (!await _facilityRepository.FacilityExists(dto.RevieweeId, dto.ReviewType))
+            if (!await _context.Places.AnyAsync(p => p.Id == dto.PlaceId))
             {
                 return new
                     (
@@ -72,6 +63,14 @@ namespace ModelLib.Repositories
                     );
             }
 
+            var entity = await _context.Reviews
+                .Where(r =>
+                    r.UserId == reviewerId &&
+                    r.PlaceId == dto.PlaceId
+                )
+                .FirstOrDefaultAsync();
+
+
             var responseType = ResponseType.Conflict;
 
             if (entity == null)
@@ -79,9 +78,8 @@ namespace ModelLib.Repositories
                 responseType = ResponseType.Created;
                 entity = new Review()
                 {
-                    ReviewerId = reviewerId,
-                    RevieweeId = dto.RevieweeId,
-                    ReviewType = dto.ReviewType,
+                    UserId = reviewerId,
+                    PlaceId = dto.PlaceId,
                     Title = dto.Title,
                     Description = dto.Description,
                     Rating = dto.Rating,
@@ -102,9 +100,8 @@ namespace ModelLib.Repositories
 
             return (responseType ,new ReviewCreatedDTO
             {
-                RevieweeId = entity.RevieweeId,
-                ReviewerId = entity.ReviewerId,
-                ReviewType = entity.ReviewType
+                RevieweeId = entity.PlaceId,
+                ReviewerId = entity.UserId,
             });
         }
     }

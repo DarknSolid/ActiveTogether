@@ -29,9 +29,6 @@
     [Parameter]
     public int RevieweeId { get; set; }
 
-    [Parameter]
-    public FacilityType ReviewType { get; set; }
-
     private bool _loading;
 
     public List<ReviewDetailedDTO> Reviews { get; set; }
@@ -55,7 +52,7 @@
         {
             _loading = true;
             _hasNext = false;
-            var result = await ApiClient.GetReviewsAsync(RevieweeId, ReviewType, _page, _ratingsPerPage);
+            var result = await ApiClient.GetReviewsAsync(RevieweeId, _page, _ratingsPerPage);
             Reviews.AddRange(result.Reviews);
 
             _page++;

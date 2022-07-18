@@ -28,9 +28,6 @@
     public int? MaxItems { get; set; }
 
     [Parameter]
-    public FacilityType FacilityType { get; set; }
-
-    [Parameter]
     public int FacilityId { get; set; }
 
     [Parameter]
@@ -66,8 +63,7 @@
                         ItemsPerPage = _checkInsPerPage,
                         Page = _page
                     },
-                    FacilityId = FacilityId,
-                    FacilityType = FacilityType,
+                    PlaceId = FacilityId,
                     OnlyActiveCheckIns = ShowOnlyCurrentlyCheckedIn
                 };
             var result = await ApiClient.GetCheckIns(dto);

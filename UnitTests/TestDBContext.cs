@@ -25,6 +25,12 @@ namespace UnitTests
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<Place>().HasData(
+                CreatePlace(1, FacilityType.DogPark),
+                CreatePlace(2, FacilityType.DogPark),
+                CreatePlace(3, FacilityType.DogPark)
+                );
+
             builder.Entity<DogPark>().HasData(
                 CreateDogPark(1),
                 CreateDogPark(2),
@@ -47,9 +53,9 @@ namespace UnitTests
             );
 
             builder.Entity<Review>().HasData(
-                CreateReview(1, FacilityType.DogPark, 1),
-                CreateReview(2, FacilityType.DogPark, 1),
-                CreateReview(1, FacilityType.DogPark, 2)
+                CreateReview(1, 1),
+                CreateReview(2, 1),
+                CreateReview(1, 2)
             );
 
             builder.Entity<Dog>().HasData(
@@ -60,10 +66,10 @@ namespace UnitTests
             );
 
             builder.Entity<CheckIn>().HasData(
-                new CheckIn { Id = 1, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 1 },
-                new CheckIn { Id = 2, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 2 },
-                new CheckIn { Id = 3, CheckInDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 5 },
-                new CheckIn { Id = 4, CheckInDate = DateTime.UtcNow, CheckOutDate = DateTime.UtcNow, FacilityId = 1, FacilityType = FacilityType.DogPark, UserId = 2 }
+                new CheckIn { Id = 1, CheckInDate = DateTime.UtcNow, PlaceId = 1, UserId = 1 },
+                new CheckIn { Id = 2, CheckInDate = DateTime.UtcNow, PlaceId = 1, UserId = 2 },
+                new CheckIn { Id = 3, CheckInDate = DateTime.UtcNow, PlaceId = 1, UserId = 5 },
+                new CheckIn { Id = 4, CheckInDate = DateTime.UtcNow, CheckOutDate = DateTime.UtcNow, PlaceId = 1, UserId = 2 }
             );
 
             builder.Entity<DogCheckIn>().HasData(
@@ -87,13 +93,12 @@ namespace UnitTests
             };
         }
 
-        private Review CreateReview(int reviewerId, FacilityType reviewType, int revieweeId)
+        private Review CreateReview(int userId, int placeId)
         {
             return new Review
             {
-                ReviewerId = reviewerId,
-                RevieweeId = revieweeId,
-                ReviewType = reviewType,
+                UserId = userId,
+                PlaceId = placeId,
                 Title = "Title",
                 Description = "Description",
                 Date = DateTime.Now,
@@ -114,14 +119,21 @@ namespace UnitTests
             };
         }
 
-        private DogPark CreateDogPark(int id)
+        private DogPark CreateDogPark(int placeId)
         {
-            return new DogPark { Id = id, Name = "", Description = "", Location = CreateLocation() };
+            return new DogPark { PlaceId = placeId };
         }
 
-        private Point CreateLocation()
+        private Place CreatePlace(int id, FacilityType facilityType)
         {
-            return new Point(new Coordinate());
+            return new Place
+            {
+                Id = id,
+                Name = "",
+                Description = "",
+                FacilityType = facilityType,
+                Location = new Point(new Coordinate())
+            };
         }
 
 

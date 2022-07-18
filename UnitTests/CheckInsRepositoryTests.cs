@@ -3,7 +3,6 @@ using ModelLib.ApiDTOs;
 using ModelLib.DTOs.CheckIns;
 using ModelLib.Repositories;
 using Moq;
-using static EntityLib.Entities.Enums;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace UnitTests
@@ -11,50 +10,21 @@ namespace UnitTests
     public class CheckInsRepositoryTests : TestBase
     {
         private readonly ICheckInRepository _repo;
-        private readonly Mock<IFacilityRepository> _facilityRepositoryMock;
 
         public CheckInsRepositoryTests()
         {
-            _facilityRepositoryMock = new Mock<IFacilityRepository>();
-            _repo = new CheckInRepository(_context, _facilityRepositoryMock.Object);
-        }
-
-        [Fact]
-        public async Task CheckIn_Invalid_Facility_Returns_NotFound()
-        {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(false));
-
-            var userId = 3;
-            var facilityId = 1;
-            var createDto = new CheckInCreateDTO
-            {
-                DogsToCheckIn = new(),
-                FacilityId = facilityId,
-                FacilityType = FacilityType.DogPark
-            };
-
-            var (response, id) = await _repo.CheckIn(userId, createDto);
-
-            Assert.Equal(RepositoryEnums.ResponseType.NotFound, response);
-            Assert.Equal(-1, id);
+            _repo = new CheckInRepository(_context);
         }
 
         [Fact]
         public async Task CheckIn_Invalid_Dog_Returns_NotFound()
         {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(true));
-
             var userId = 3;
             var facilityId = 1;
             var createDto = new CheckInCreateDTO
             {
                 DogsToCheckIn = new() { 0},
-                FacilityId = facilityId,
-                FacilityType = FacilityType.DogPark
+                PlaceId = facilityId
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
@@ -66,17 +36,12 @@ namespace UnitTests
         [Fact]
         public async Task CheckIn_If_Checked_In_Returns_Conflict()
         {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(true));
-
             var userId = 2;
             var facilityId = 1;
             var createDto = new CheckInCreateDTO
             {
                 DogsToCheckIn = new(),
-                FacilityId = facilityId,
-                FacilityType = FacilityType.DogPark
+                PlaceId = facilityId
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
@@ -93,8 +58,7 @@ namespace UnitTests
             var createDto = new CheckInCreateDTO
             {
                 DogsToCheckIn = new() { 2 },
-                FacilityId = facilityId,
-                FacilityType = FacilityType.DogPark
+                PlaceId = facilityId
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
@@ -106,10 +70,6 @@ namespace UnitTests
         [Fact]
         public async Task CheckIn_With_Valid_Data_Returns_Created_And_Correct_Data()
         {
-            _facilityRepositoryMock
-                .Setup(x => x.FacilityExists(It.IsAny<int>(), It.IsAny<FacilityType>()))
-                .Returns(Task.FromResult(true));
-
             var userId = 4;
             var facilityId = 1;
             var dogId = 4;
@@ -117,8 +77,7 @@ namespace UnitTests
             var createDto = new CheckInCreateDTO
             {
                 DogsToCheckIn = new() { dogId },
-                FacilityId = facilityId,
-                FacilityType = FacilityType.DogPark
+                PlaceId = facilityId
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
@@ -130,8 +89,7 @@ namespace UnitTests
             Assert.Single(actualEntity.DogCheckIns);
             Assert.Equal(dogId, actualEntity.DogCheckIns.First().DogId);
             Assert.Equal(userId, actualEntity.UserId);
-            Assert.Equal(facilityId, actualEntity.FacilityId);
-            Assert.Equal(FacilityType.DogPark, actualEntity.FacilityType);
+            Assert.Equal(facilityId, actualEntity.PlaceId);
             Assert.True(dateBefore < actualEntity.CheckInDate);
             Assert.True(actualEntity.CheckInDate < dateAfter);
             Assert.Null(actualEntity.CheckOutDate);
@@ -165,14 +123,12 @@ namespace UnitTests
         public async Task GetCheckIns_Valid_Facility_Only_Active_Checkins_Returns_Expected()
         {
             var facilityId = 1;
-            var facilityType = FacilityType.DogPark;
             var onlyActiveCheckIns = true;
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
             var dtoRequest = new GetCheckInListDTO
             {
                 PaginationRequest = paginationRequest,
-                FacilityId = facilityId,
-                FacilityType = facilityType,
+                PlaceId = facilityId,
                 OnlyActiveCheckIns = onlyActiveCheckIns
             };
 
@@ -197,14 +153,12 @@ namespace UnitTests
         public async Task GetCheckIns_Valid_Facility_All_Checkins_Returns_Expected()
         {
             var facilityId = 1;
-            var facilityType = FacilityType.DogPark;
             var onlyActiveCheckIns = false;
             var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
             var dtoRequest = new GetCheckInListDTO
             {
                 PaginationRequest = paginationRequest,
-                FacilityId = facilityId,
-                FacilityType = facilityType,
+                PlaceId = facilityId,
                 OnlyActiveCheckIns = onlyActiveCheckIns
             };
             var actual = await _repo.GetCheckIns(dtoRequest);
@@ -223,7 +177,7 @@ namespace UnitTests
 
             Assert.NotNull(actual);
             Assert.Equal(1, actual.Dogs.First().Id);
-            Assert.Equal(1, actual.FacilityId);
+            Assert.Equal(1, actual.PlaceId);
         }
 
         [Fact]

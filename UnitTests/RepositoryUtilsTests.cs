@@ -29,7 +29,7 @@ namespace UnitTests
             var dogParks = await actualQuery.ToListAsync();
             Assert.Equal(expectedHasNext, actualPaginationResult.HasNext);
             Assert.Equal(expectedPage, actualPaginationResult.CurrentPage);
-            Assert.Equal(expectedId, dogParks.FirstOrDefault()?.Id ?? -1);
+            Assert.Equal(expectedId, dogParks.FirstOrDefault()?.PlaceId ?? -1);
             Assert.Equal(expectedCount, dogParks.Count);
         }
     }

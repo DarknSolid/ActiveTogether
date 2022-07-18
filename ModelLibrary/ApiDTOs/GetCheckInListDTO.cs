@@ -10,8 +10,7 @@ namespace ModelLib.ApiDTOs
     public class GetCheckInListDTO
     {
         public PaginationRequest PaginationRequest { get; set; }
-        public int FacilityId { get; set; }
-        public FacilityType FacilityType { get; set; }
+        public int PlaceId { get; set; }
         public bool OnlyActiveCheckIns { get; set; }
     }
 }

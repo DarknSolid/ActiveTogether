@@ -14,7 +14,7 @@ namespace WebApp.Entities
         static ApplicationDbContext() 
         {
         }
-
+        public DbSet<Place> Places { get; set; }
         public DbSet<DogPark> DogParks { get; set; }
         public DbSet<DogParkFacility> DogParkFacilities { get; set; }
         public DbSet<Review> Reviews { get; set; }
@@ -43,13 +43,10 @@ namespace WebApp.Entities
 
             #region Review
             builder.Entity<Review>()
-                .Property(r => r.ReviewType)
-                .HasConversion<int>();
-            builder.Entity<Review>()
-                .HasKey(d => new { d.ReviewerId, d.RevieweeId, d.ReviewType });
+                .HasKey(d => new { d.UserId, d.PlaceId });
 
             builder.Entity<Review>()
-                .HasOne(r => r.Reviewer)
+                .HasOne(r => r.Place)
                 .WithMany(u => u.Reviews);
             #endregion
 

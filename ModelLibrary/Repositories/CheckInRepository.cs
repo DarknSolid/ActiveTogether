@@ -21,12 +21,10 @@ namespace ModelLib.Repositories
     {
 
         private readonly IApplicationDbContext _context;
-        private readonly IFacilityRepository _facilityRepository;
 
-        public CheckInRepository(IApplicationDbContext context, IFacilityRepository facilityRepository)
+        public CheckInRepository(IApplicationDbContext context)
         {
             _context = context;
-            _facilityRepository = facilityRepository;
         }
 
         public async Task<(ResponseType, int)> CheckIn(int userId, CheckInCreateDTO dto)
@@ -43,8 +41,8 @@ namespace ModelLib.Repositories
                 return new(ResponseType.Conflict, -1);
             }
 
-            //Can't check in to an invalid facility
-            if (await _facilityRepository.FacilityExists(dto.FacilityId, dto.FacilityType) == false ||
+            //Can't check in to an invalid place or invalid dogs
+            if (await _context.Places.AnyAsync(p => p.Id == dto.PlaceId) == false ||
                 await DogsExists(dto.DogsToCheckIn) == false)
             {
                 return new (ResponseType.NotFound, -1);
@@ -53,8 +51,7 @@ namespace ModelLib.Repositories
             // TODO can we make all of this in a single query to the database?
             var checkInEntity = new CheckIn
             {
-                FacilityId = dto.FacilityId,
-                FacilityType = dto.FacilityType,
+                PlaceId = dto.PlaceId,
                 UserId = userId,
                 CheckInDate = DateTime.UtcNow,
             };
@@ -87,7 +84,7 @@ namespace ModelLib.Repositories
             var query = _context.CheckIns
                 .Include(c => c.DogCheckIns)
                 .Include(c => c.User)
-                .Where(c => c.FacilityId == dto.FacilityId && c.FacilityType == dto.FacilityType);
+                .Where(c => c.PlaceId == dto.PlaceId);
 
             if (dto.OnlyActiveCheckIns)
             {
@@ -132,7 +129,11 @@ namespace ModelLib.Repositories
 
         public async Task<CurrentlyCheckedInDTO?> GetCurrentlyCheckedIn(int userId)
         {
-            var entity = await _context.CheckIns.Include(c => c.DogCheckIns).FirstOrDefaultAsync(c => c.UserId == userId && c.CheckOutDate == null);
+            var entity = await _context.CheckIns
+                .Include(c => c.DogCheckIns)
+                .Include(c => c.Place)
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.CheckOutDate == null);
+
             if (entity == null)
             {
                 return null;
@@ -155,8 +156,8 @@ namespace ModelLib.Repositories
             return new CurrentlyCheckedInDTO
             {
                 Dogs = dogs,
-                FacilityId = entity.FacilityId,
-                FacilityType = entity.FacilityType,
+                PlaceId = entity.PlaceId,
+                FacilityType = entity.Place.FacilityType,
                 CheckInDate = entity.CheckInDate
             };
         }
