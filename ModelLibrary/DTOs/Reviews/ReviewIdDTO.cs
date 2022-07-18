@@ -10,7 +10,7 @@ namespace ModelLib.DTOs.Reviews
 {
     public class ReviewCreatedDTO
     {
-        public int RevieweeId { get; set; }
-        public int ReviewerId { get; set; }
+        public int PlaceId { get; set; }
+        public int UserId { get; set; }
     }
 }

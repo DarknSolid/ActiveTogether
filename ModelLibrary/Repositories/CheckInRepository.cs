@@ -15,6 +15,7 @@ namespace ModelLib.Repositories
         public Task<(ResponseType, int)> CheckOut(int userId);
         public Task<CurrentlyCheckedInDTO?> GetCurrentlyCheckedIn(int userId);
         public Task<CheckInListDTOPagination> GetCheckIns(GetCheckInListDTO dto);
+        public Task<bool> HasCheckedOutBeforeAsync(int userId, int placeId);
     }
 
     public class CheckInRepository : ICheckInRepository
@@ -171,6 +172,11 @@ namespace ModelLib.Repositories
         private async Task<bool> AreDogsNotOwnedByUser(int userId, List<int> dogIds)
         {
             return await _context.Dogs.AnyAsync(d => dogIds.Contains(d.Id) && d.UserId != userId);
+        }
+
+        public async Task<bool> HasCheckedOutBeforeAsync(int userId, int placeId)
+        {
+            return await _context.CheckIns.AnyAsync(p => p.PlaceId == placeId && p.UserId == userId && p.CheckOutDate != null);
         }
     }
 }

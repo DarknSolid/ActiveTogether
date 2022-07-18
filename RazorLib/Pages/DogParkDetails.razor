@@ -30,7 +30,7 @@
                 </MudItem>
 
                 <MudItem xs="12">
-                    <CheckInButton FacilityId="DogParkId"/>
+                    <CheckInButton OnCheckOut="() => UpdateReviewStatus()" FacilityId="DogParkId" />
                 </MudItem>
 
                 <MudItem xs="12">
@@ -126,10 +126,19 @@ else
     private bool _isLoading;
     private DogParkDetailedDTO _dogParkDetails;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await Fetch();
-        await base.OnInitializedAsync();
+        base.OnParametersSet();
+    }
+
+    private void UpdateReviewStatus()
+    {
+        if (_dogParkDetails.CurrentReviewStatus == DogParkDetailedDTO.ReviewStatus.MustCheckIn)
+        {
+            _dogParkDetails.CurrentReviewStatus = DogParkDetailedDTO.ReviewStatus.CanReview;
+            StateHasChanged();
+        }
     }
 
     private async Task Fetch()

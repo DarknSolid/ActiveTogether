@@ -22,10 +22,12 @@ namespace ModelLib.Repositories
     public class ReviewsRepository : IReviewsRepository
     {
         private readonly IApplicationDbContext _context;
+        private readonly ICheckInRepository _checkInRepository;
 
-        public ReviewsRepository(IApplicationDbContext context)
+        public ReviewsRepository(IApplicationDbContext context, ICheckInRepository checkInRepository)
         {
             _context = context;
+            _checkInRepository = checkInRepository;
         }
         public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
         {
@@ -52,20 +54,22 @@ namespace ModelLib.Repositories
             return (paginationResult, dtoResult);
         }
 
-        public async Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int reviewerId, ReviewCreateDTO dto)
+        public async Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int userId, ReviewCreateDTO dto)
         {
+            // If the place doesn't exist:
             if (!await _context.Places.AnyAsync(p => p.Id == dto.PlaceId))
             {
-                return new
-                    (
-                        ResponseType.NotFound,
-                        null
-                    );
+                return new (ResponseType.NotFound, null);
+            }
+
+            if (!await _checkInRepository.HasCheckedOutBeforeAsync(userId, dto.PlaceId))
+            {
+                return (ResponseType.Conflict, null);
             }
 
             var entity = await _context.Reviews
                 .Where(r =>
-                    r.UserId == reviewerId &&
+                    r.UserId == userId &&
                     r.PlaceId == dto.PlaceId
                 )
                 .FirstOrDefaultAsync();
@@ -78,7 +82,7 @@ namespace ModelLib.Repositories
                 responseType = ResponseType.Created;
                 entity = new Review()
                 {
-                    UserId = reviewerId,
+                    UserId = userId,
                     PlaceId = dto.PlaceId,
                     Title = dto.Title,
                     Description = dto.Description,
@@ -98,10 +102,10 @@ namespace ModelLib.Repositories
 
             await _context.SaveChangesAsync();
 
-            return (responseType ,new ReviewCreatedDTO
+            return (responseType, new ReviewCreatedDTO
             {
-                RevieweeId = entity.PlaceId,
-                ReviewerId = entity.UserId,
+                PlaceId = entity.PlaceId,
+                UserId = entity.UserId,
             });
         }
     }

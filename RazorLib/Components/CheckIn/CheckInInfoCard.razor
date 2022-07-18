@@ -9,7 +9,7 @@
 
 @if (CurrentlyCheckedInDTO != null)
 {
-    <MudPaper Height="200px" Width="100%" Class="mud-theme-primary">
+    <MudPaper onclick="@(() => OnClicked(CurrentlyCheckedInDTO.PlaceId))" Height="200px" Width="100%" Class="mud-theme-primary">
         <MudText Color="Color.Surface" Typo="Typo.body1">Checked in:</MudText>
         <MudText Color="Color.Surface" Typo="Typo.body2">@CurrentlyCheckedInDTO.CheckInDate</MudText>
         <MudText Color="Color.Surface" Typo="Typo.body2">Duration: @_duration</MudText>
@@ -17,6 +17,9 @@
 }
 
 @code {
+
+    [Parameter]
+    public Action<int> OnClicked { get; set; }
 
     public CurrentlyCheckedInDTO CurrentlyCheckedInDTO { get; set; }
 

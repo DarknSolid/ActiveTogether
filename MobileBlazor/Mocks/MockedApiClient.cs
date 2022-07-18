@@ -130,8 +130,8 @@ namespace MobileBlazor.Mocks
             await SimulateRequestDelay();
             return new ReviewCreatedDTO()
             {
-                RevieweeId = reviewCreateDTO.PlaceId,
-                ReviewerId = 0
+                PlaceId = reviewCreateDTO.PlaceId,
+                UserId = 0
             };
         }
 

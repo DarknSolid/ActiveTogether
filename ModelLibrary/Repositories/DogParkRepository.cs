@@ -24,10 +24,12 @@ namespace ModelLib.Repositories
     public class DogParkRepository : IDogParkRepository
     {
         private readonly IApplicationDbContext _context;
+        private readonly ICheckInRepository _checkInRepository;
 
-        public DogParkRepository(IApplicationDbContext context)
+        public DogParkRepository(IApplicationDbContext context, ICheckInRepository checkInRepository)
         {
             _context = context;
+            _checkInRepository = checkInRepository;
         }
 
         public async Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO)
@@ -58,6 +60,15 @@ namespace ModelLib.Repositories
         {
             var reviews = _context.Reviews.Where(r => r.PlaceId == id);
 
+            var reviewStatus = DogParkDetailedDTO.ReviewStatus.MustCheckIn;
+            if (await reviews.AnyAsync(r => r.UserId == userId)) {
+                reviewStatus = DogParkDetailedDTO.ReviewStatus.CanUpdateReview;
+            }
+            else if (await _checkInRepository.HasCheckedOutBeforeAsync(userId, id))
+            {
+                reviewStatus = DogParkDetailedDTO.ReviewStatus.CanReview;
+            }
+
             var entityQuery = _context.DogParks
                 .Include(p => p.Facilities)
                 .Include(p => p.Place)
@@ -72,7 +83,9 @@ namespace ModelLib.Repositories
                     Latitude = (float)p.Place.Location.Y,
                     Longitude = (float)p.Place.Location.X,
                     TotalReviews = reviews.Count(),
-                    Id = id
+                    Id = id,
+                    CurrentReviewStatus = reviewStatus
+                    
                 });
 
             return await entityQuery.FirstOrDefaultAsync();

@@ -29,9 +29,20 @@
     [Parameter]
     public int FacilityId { get; set; }
 
+    [Parameter]
+    public Action? OnCheckOut { get; set; }
+
+    private Action _onCeckOut;
+
     private CurrentlyCheckedInDTO? _currentCheckInInfo { get; set; }
 
     private bool _disabled = true;
+
+    protected override void OnParametersSet()
+    {
+        _onCeckOut = OnCheckOut ?? (() => {});
+        base.OnParametersSet();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,6 +104,7 @@
             {
                 // something went wrong
             }
+            _onCeckOut();
             await UpdateCheckInState();
         }
     }
