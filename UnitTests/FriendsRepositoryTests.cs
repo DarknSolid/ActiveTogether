@@ -104,5 +104,23 @@ namespace UnitTests
             var result = await _friendsRepository.GetFriendShipStatus(userId, friendId);
             Assert.Equal(expectedResponse, result);
         }
+
+        [Theory]
+        [InlineData(3,0, -1)]
+        [InlineData(1,1, 3)]
+        public async Task GetFriendRequests_Given_Input_Returns_Expected(int userId, int expectedCount, int expectedFriendId)
+        {
+            var pagination = new PaginationRequest
+            {
+                ItemsPerPage = 10,
+                Page = 0
+            };
+            var result = await _friendsRepository.GetFriendRequests(userId, pagination);
+            Assert.Equal(expectedCount, result.Friends.Count);
+            if (expectedCount == 1)
+            {
+                Assert.Equal(expectedFriendId, result.Friends.First().UserId);
+            }
+        }
     }
 }

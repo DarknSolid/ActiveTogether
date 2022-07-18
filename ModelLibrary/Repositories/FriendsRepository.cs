@@ -15,6 +15,7 @@ namespace ModelLib.Repositories
         public Task<ResponseType> RemoveFriendAsync(int userId, int friendId);
         public Task<UserListPaginationDTO> GetFriends(int userId, PaginationRequest pagination);
         public Task<FriendShipStatus> GetFriendShipStatus(int userId, int friendId);
+        public Task<UserListPaginationDTO> GetFriendRequests(int userId, PaginationRequest pagination);
     }
 
     public class FriendsRepository : IFriendsRepository
@@ -153,6 +154,28 @@ namespace ModelLib.Repositories
             {
                 return FriendShipStatus.Friends;
             }
+        }
+
+        public async Task<UserListPaginationDTO> GetFriendRequests(int userId, PaginationRequest paginationRequest)
+        {
+            var requests = _context.Friends
+                .Include(f => f.User)
+                .Where(f => f.FriendId == userId && f.IsAccepted == false)
+                .OrderBy(f => f.User.UserName + " " + f.User.LastName)
+                .Select(f => new UserListDTO
+                {
+                    FirstName = f.User.FirstName,
+                    LastName = f.User.LastName,
+                    ProfilePictureUrl = f.User.ProfileImageUrl,
+                    UserId = f.UserId
+                });
+
+            var (pagination, paginatedQuery) = await RepositoryUtils.GetPaginationQuery(requests, paginationRequest);
+            return new UserListPaginationDTO
+            {
+                Friends = await paginatedQuery.ToListAsync(),
+                PaginationResult = pagination
+            };
         }
     }
 }
