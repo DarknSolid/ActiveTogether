@@ -22,6 +22,8 @@ namespace WebApp.Entities
         public DbSet<Dog> Dogs { get; set; }
         public DbSet<CheckIn> CheckIns { get; set; }
         public DbSet<DogCheckIn> DogCheckIns { get; set; }
+        public DbSet<Friends> Friends { get; set; }
+
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -68,6 +70,11 @@ namespace WebApp.Entities
                 .HasKey(d => new { d.DogId, d.CheckInId });
             builder.Entity<DogCheckIn>()
                 .HasOne(dc => dc.Dog).WithMany(d => d.CheckIns);
+            #endregion
+
+            #region Friends
+            builder.Entity<Friends>().HasKey(f => new { f.UserId, f.FriendId });
+            builder.Entity<Friends>().HasOne(c => c.User).WithMany(u => u.Friends);
             #endregion
 
             base.OnModelCreating(builder);

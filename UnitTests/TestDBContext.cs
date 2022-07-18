@@ -38,9 +38,9 @@ namespace UnitTests
             );
 
             builder.Entity<DogBreed>().HasData(
-                new DogBreed { Id = 1, Name = "a"},
-                new DogBreed { Id = 2, Name = "b"},
-                new DogBreed { Id = 3, Name = "c"}
+                new DogBreed { Id = 1, Name = "a" },
+                new DogBreed { Id = 2, Name = "b" },
+                new DogBreed { Id = 3, Name = "c" }
             );
 
             builder.Entity<ApplicationUser>().HasData(
@@ -73,11 +73,17 @@ namespace UnitTests
             );
 
             builder.Entity<DogCheckIn>().HasData(
-                new DogCheckIn { CheckInId=1, DogId=1},
-                new DogCheckIn { CheckInId=2, DogId=2}
+                new DogCheckIn { CheckInId = 1, DogId = 1 },
+                new DogCheckIn { CheckInId = 2, DogId = 2 }
+                );
+
+            builder.Entity<Friends>().HasData(
+                new Friends { UserId = 3, FriendId = 1, IsAccepted = false },
+                new Friends { UserId = 4, FriendId = 1, IsAccepted = true },
+                new Friends { UserId = 1, FriendId = 5, IsAccepted = true }
                 );
         }
-        
+
         private Dog CreateDog(int id, int userId)
         {
             return new Dog
@@ -86,7 +92,7 @@ namespace UnitTests
                 UserId = userId,
                 Birth = DateTime.UtcNow,
                 Description = "",
-                Name = "dog"+id,
+                Name = "dog" + id,
                 DogBreedId = 1,
                 IsGenderMale = false,
                 WeightClass = DogWeightClass.Medium,

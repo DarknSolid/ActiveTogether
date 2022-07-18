@@ -16,5 +16,6 @@ namespace EntityLib.Entities.Identity
 
         public ICollection<CheckIn> CheckIns { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<Friends> Friends { get; set; }
     }
 }

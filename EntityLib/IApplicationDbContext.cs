@@ -20,6 +20,8 @@ namespace EntityLib
         public DbSet<CheckIn> CheckIns { get; set; }
         public DbSet<DogCheckIn> DogCheckIns { get; set; }
 
+        public DbSet<Friends> Friends { get; set; }
+
         public Task SaveChangesAsync();
     }
 }

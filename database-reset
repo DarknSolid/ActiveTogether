@@ -13,4 +13,5 @@ Drop table if exists "Reviews" Cascade;
 Drop table if exists "CheckIns" Cascade;
 Drop table if exists "DogCheckIns" Cascade;
 Drop table if exists "Places" Cascade;
+Drop table if exists "Friends" Cascade;
 Drop table if exists "__EFMigrationsHistory" Cascade;

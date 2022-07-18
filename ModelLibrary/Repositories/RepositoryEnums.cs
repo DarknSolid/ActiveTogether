@@ -16,5 +16,13 @@ namespace ModelLib.Repositories
             NotFound,
             Deleted
         }
+
+        public enum FriendShipStatus
+        {
+            NotFriends,
+            Friends,
+            PendingRequest,
+            CanAcceptRequest
+        }
     }
 }
