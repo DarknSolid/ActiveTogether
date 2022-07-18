@@ -25,7 +25,7 @@
                 <MudListItem OnClick="() => OnDogListItemClicked(dog.Id)" Class="px-2 py-1">
                     <DogCard Dog="@dog" >
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                            <MudMenuItem OnClick="() => OnDogListItemClicked(dog.Id)">Edit</MudMenuItem>
+                            <MudMenuItem OnClick="() => OnDogEditButtonClicked(dog.Id)">Edit</MudMenuItem>
                             <MudMenuItem OnClick="() => DeleteDog(dog.Id)"><MudText Color="Color.Error">Delete</MudText></MudMenuItem>
                         </MudMenu>
                     </DogCard>
@@ -47,6 +47,9 @@
 
     [Parameter]
     public Action OnDogCreateButtonClicked { get; set; }
+
+    [Parameter]
+    public Action<int> OnDogEditButtonClicked { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

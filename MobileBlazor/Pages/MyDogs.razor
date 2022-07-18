@@ -2,4 +2,4 @@
 @attribute [Route(RoutingConstants.MY_DOGS)]
 @inject NavigationManager NavigationManager;
 
-<RazorLib.Pages.MyDogs OnDogCreateButtonClicked="() => NavigationManager.NavigateToCreateDog(null)" OnDogListItemClicked="(int id) => NavigationManager.NavigateToDogDetails(id)"/>
+<RazorLib.Pages.MyDogs OnDogEditButtonClicked="(int id) => NavigationManager.NavigateToCreateDog(id)" OnDogCreateButtonClicked="() => NavigationManager.NavigateToCreateDog(null)" OnDogListItemClicked="(int id) => NavigationManager.NavigateToDogDetails(id)" />
