@@ -19,13 +19,11 @@ namespace ModelLib.Repositories
     }
 
 
-    public class DogRepository : IDogRepository
+    public class DogRepository : RepositoryBase, IDogRepository
     {
-        private readonly IApplicationDbContext _context;
 
-        public DogRepository(IApplicationDbContext context)
+        public DogRepository(IApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<(RepositoryEnums.ResponseType, int)> CreateAsync(int userId, DogCreateDTO dto)

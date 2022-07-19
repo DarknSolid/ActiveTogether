@@ -19,14 +19,12 @@ namespace ModelLib.Repositories
         public Task<(ResponseType, ReviewCreatedDTO)> CreateReviewAsync(int reviewee, ReviewCreateDTO dto);
     }
 
-    public class ReviewsRepository : IReviewsRepository
+    public class ReviewsRepository : RepositoryBase, IReviewsRepository
     {
-        private readonly IApplicationDbContext _context;
         private readonly ICheckInRepository _checkInRepository;
 
-        public ReviewsRepository(IApplicationDbContext context, ICheckInRepository checkInRepository)
+        public ReviewsRepository(IApplicationDbContext context, ICheckInRepository checkInRepository) : base(context)
         {
-            _context = context;
             _checkInRepository = checkInRepository;
         }
         public async Task<(PaginationResult, List<ReviewDetailedDTO>)> GetReviewsAsync(ReviewsDTO request)
@@ -59,7 +57,7 @@ namespace ModelLib.Repositories
             // If the place doesn't exist:
             if (!await _context.Places.AnyAsync(p => p.Id == dto.PlaceId))
             {
-                return new (ResponseType.NotFound, null);
+                return new(ResponseType.NotFound, null);
             }
 
             if (!await _checkInRepository.HasCheckedOutBeforeAsync(userId, dto.PlaceId))

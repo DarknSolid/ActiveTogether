@@ -18,13 +18,10 @@ namespace ModelLib.Repositories
         public Task<UserListPaginationDTO> GetFriendRequestsAsync(int userId, PaginationRequest pagination);
     }
 
-    public class FriendsRepository : IFriendsRepository
+    public class FriendsRepository : RepositoryBase, IFriendsRepository
     {
-        private readonly IApplicationDbContext _context;
-
-        public FriendsRepository(IApplicationDbContext context)
+        public FriendsRepository(IApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<ResponseType> CreateFriendRequestAsync(int userId, int friendId)

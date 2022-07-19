@@ -21,14 +21,12 @@ namespace ModelLib.Repositories
         public Task<int> CreateAsync(DogParkCreateDTO dogParkCreateDTO);
     }
 
-    public class DogParkRepository : IDogParkRepository
+    public class DogParkRepository : RepositoryBase, IDogParkRepository
     {
-        private readonly IApplicationDbContext _context;
         private readonly ICheckInRepository _checkInRepository;
 
-        public DogParkRepository(IApplicationDbContext context, ICheckInRepository checkInRepository)
+        public DogParkRepository(IApplicationDbContext context, ICheckInRepository checkInRepository) : base(context)
         {
-            _context = context;
             _checkInRepository = checkInRepository;
         }
 

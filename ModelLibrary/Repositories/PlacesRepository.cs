@@ -13,14 +13,10 @@ namespace ModelLib.Repositories
     {
     }
 
-    public class PlacesRepository : IPlacesRepository
+    public class PlacesRepository : RepositoryBase, IPlacesRepository
     {
-
-        private readonly IApplicationDbContext _context;
-
-        public PlacesRepository(IApplicationDbContext context)
+        public PlacesRepository(IApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
     }
 }

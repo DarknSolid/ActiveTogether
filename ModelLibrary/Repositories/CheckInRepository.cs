@@ -18,14 +18,11 @@ namespace ModelLib.Repositories
         public Task<bool> HasCheckedOutBeforeAsync(int userId, int placeId);
     }
 
-    public class CheckInRepository : ICheckInRepository
+    public class CheckInRepository : RepositoryBase, ICheckInRepository
     {
 
-        private readonly IApplicationDbContext _context;
-
-        public CheckInRepository(IApplicationDbContext context)
+        public CheckInRepository(IApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<(ResponseType, int)> CheckIn(int userId, CheckInCreateDTO dto)
