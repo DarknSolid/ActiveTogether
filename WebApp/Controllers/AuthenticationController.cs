@@ -60,6 +60,18 @@ namespace WebApp.Controllers
             return BadRequest(registerResult.Errors.Select(e => e.Code + ": " + e.Description));
         }
 
+        /// <summary>
+        /// Logs the user in.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {        
+        ///       "email": "developer_user@hotmail.com",
+        ///       "password": "Test123!"
+        ///     }
+        /// </remarks>
+        /// <param name="LoginDTO"></param>   
         [HttpPost(ApiEndpoints.AUTHENTICATION_LOGIN)]
         public async Task<ActionResult<UserInfoDTO>> Login([FromBody] LoginDTO login)
         {

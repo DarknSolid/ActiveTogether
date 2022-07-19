@@ -15,27 +15,23 @@ namespace WebApp.Controllers
     public class CheckInsController : CustomControllerBase
     {
         private readonly ICheckInRepository _checkInRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CheckInsController(ICheckInRepository checkInRepository, UserManager<ApplicationUser> userManager)
+        public CheckInsController(ICheckInRepository checkInRepository, UserManager<ApplicationUser> userManager) : base(userManager)
         {
             _checkInRepository = checkInRepository;
-            _userManager = userManager;
         }
 
         [HttpPost(ApiEndpoints.CHECKINS_CHECK_IN)]
         public async Task<ActionResult<int>> CheckIn([FromBody] CheckInCreateDTO dto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var (response, id) = await _checkInRepository.CheckIn(user.Id, dto);
+            var (response, id) = await _checkInRepository.CheckIn(await GetAuthorizedUserId(), dto);
             return ResolveRepositoryResponse(response, id);
         }
 
         [HttpPut(ApiEndpoints.CHECKINS_CHECK_OUT)]
         public async Task<ActionResult<int>> CheckOut()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var (response, id) = await _checkInRepository.CheckOut(user.Id);
+            var (response, id) = await _checkInRepository.CheckOut(await GetAuthorizedUserId());
             return ResolveRepositoryResponse(response, id);
         }
 
@@ -49,8 +45,7 @@ namespace WebApp.Controllers
         [HttpGet(ApiEndpoints.CHECKINS_CURRENT_CHECK_IN)]
         public async Task<CurrentlyCheckedInDTO?> GeturrentCheckIns()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var result = await _checkInRepository.GetCurrentlyCheckedIn(user.Id);
+            var result = await _checkInRepository.GetCurrentlyCheckedIn(await GetAuthorizedUserId());
             return result;
         }
     }

@@ -7,6 +7,7 @@ using WebApp.Areas.Identity;
 using WebApp.Entities;
 using WebApp.Utils.ExternalLoginProviders.Facebook;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IReviewsRepository, ReviewsRepository>();
 builder.Services.AddScoped<IDogRepository, DogRepository>();
 builder.Services.AddScoped<IPlacesRepository, PlacesRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
+builder.Services.AddScoped<IFriendsRepository, FriendsRepository>();
 
 
 //others:
@@ -72,6 +74,10 @@ builder.Services.AddSwaggerGen(options =>
             Url = new Uri("https://example.com/license")
         }
     });
+    // Set the comments path for the Swagger JSON and UI.
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddAuthentication()
@@ -104,7 +110,6 @@ else
 //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
 //    options.RoutePrefix = "/swagger";
 //});
-
 //app.UseHttpsRedirection();
 
 app.UseStaticFiles();

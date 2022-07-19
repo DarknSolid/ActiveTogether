@@ -15,13 +15,11 @@ namespace WebApp.Controllers
     public class DogsController : CustomControllerBase
     {
         private readonly IDogRepository _repository;
-        private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public DogsController(IDogRepository repository, UserManager<ApplicationUser> userManager)
+        public DogsController(IDogRepository repository, UserManager<ApplicationUser> userManager) : base(userManager)
         {
             _repository = repository;
-            _userManager = userManager;
         }
 
         [HttpPost(ApiEndpoints.DOGS_CREATE)]

@@ -14,12 +14,10 @@ namespace WebApp.Controllers
     public class ReviewsController : CustomControllerBase
     {
         private readonly IReviewsRepository _reviewsRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReviewsController(IReviewsRepository reviewsRepository, UserManager<ApplicationUser> userManager)
+        public ReviewsController(IReviewsRepository reviewsRepository, UserManager<ApplicationUser> userManager) : base(userManager)
         {
             _reviewsRepository = reviewsRepository;
-            _userManager = userManager;
         }
 
         [Authorize]

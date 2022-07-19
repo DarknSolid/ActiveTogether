@@ -40,6 +40,15 @@
         public const string CHECKINS_LIST = "list/";
         public const string CHECKINS_CURRENT_CHECK_IN = "current-checkin/";
 
+        public const string FRIENDS = BASE + "friends/";
+        public const string FRIENDS_ADD = "add/";
+        public const string FRIENDS_REMOVE = "remove/";
+        public const string FRIENDS_ACCEPT =  "accept/";
+        public const string FRIENDS_DECLINE = "decline/";
+        public const string FRIENDS_STATUS = "status/";
+        public const string FRIENDS_ALL = "";
+        public const string FRIENDS_REQUESTS = "requests/";
+
 
         // full api endpoints for the client to use:
         public const string POST_FACEBOOK_LOGIN = AUTHENTICATION + AUTHENTICATION_FACEBOOK_LOGIN;
@@ -67,6 +76,12 @@
         public const string POST_CHECKINS_LIST = CHECKINS + CHECKINS_LIST;
         public const string GET_CHECKINS_CURRENT_CHECKIN = CHECKINS + CHECKINS_CURRENT_CHECK_IN;
 
-
+        public const string POST_FRIENDS_ADD = FRIENDS + FRIENDS_ADD;
+        public const string DELETE_FRIENDS_REMOVE = FRIENDS + FRIENDS_REMOVE;
+        public const string UPDATE_FRIENDS_ACCEPT = FRIENDS + FRIENDS_ACCEPT;
+        public const string UPDATE_FRIENDS_DECLINE = FRIENDS + FRIENDS_DECLINE;
+        public const string GET_FRIENDS_STATUS = FRIENDS + FRIENDS_STATUS;
+        public const string POST_FRIENDS = FRIENDS + FRIENDS_ALL;
+        public const string POST_FRIENDS_REQUESTS = FRIENDS + FRIENDS_REQUESTS;
     }
 }

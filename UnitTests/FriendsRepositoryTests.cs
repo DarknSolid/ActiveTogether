@@ -23,9 +23,10 @@ namespace UnitTests
         [InlineData(1, 2, ResponseType.Created, false)]
         [InlineData(1, -1, ResponseType.NotFound, true)]
         [InlineData(1, 3, ResponseType.Conflict, true)]
+        [InlineData(1, 1, ResponseType.Conflict, true)]
         public async Task AddFriendRequestAsync_Given_Input_Returns_Expected(int userId, int friendId, ResponseType expectedResponse, bool expectNull)
         {
-            var result = await _friendsRepository.AddFriendRequestAsync(userId, friendId);
+            var result = await _friendsRepository.CreateFriendRequestAsync(userId, friendId);
             var friendsRelation = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == userId && f.FriendId == friendId);
             var shouldBeNull = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == friendId && f.FriendId == userId);
 
@@ -59,7 +60,7 @@ namespace UnitTests
                 Page = 0
             };
 
-            var result = await _friendsRepository.GetFriends(userId, pagination);
+            var result = await _friendsRepository.GetFriendsAsync(userId, pagination);
             Assert.False(result.PaginationResult.HasNext);
             Assert.Equal(expectedFriends, result.Friends.Count);
             Assert.Equal(expectedFriend1, result.Friends.First().UserId);
@@ -87,7 +88,7 @@ namespace UnitTests
         [InlineData(1,3, ResponseType.NotFound)]
         public async Task RemoveFriendRequest_Given_Input_Returns_Expected(int userId, int friendId, ResponseType expectedResponse)
         {
-            var response = await _friendsRepository.RemoveFriendRequest(userId, friendId);
+            var response = await _friendsRepository.DeclineFriendRequestAsync(userId, friendId);
             var relation = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == userId && f.FriendId == friendId);
             Assert.Null(relation);
             Assert.Equal(expectedResponse, response);
@@ -101,7 +102,7 @@ namespace UnitTests
         [InlineData(1,4, FriendShipStatus.Friends)]
         public async Task GetFriendShipStatus_Given_Input_Returns_Expected(int userId, int friendId, FriendShipStatus expectedResponse)
         {
-            var result = await _friendsRepository.GetFriendShipStatus(userId, friendId);
+            var result = await _friendsRepository.GetFriendShipStatusAsync(userId, friendId);
             Assert.Equal(expectedResponse, result);
         }
 
@@ -115,7 +116,7 @@ namespace UnitTests
                 ItemsPerPage = 10,
                 Page = 0
             };
-            var result = await _friendsRepository.GetFriendRequests(userId, pagination);
+            var result = await _friendsRepository.GetFriendRequestsAsync(userId, pagination);
             Assert.Equal(expectedCount, result.Friends.Count);
             if (expectedCount == 1)
             {

@@ -9,13 +9,13 @@ namespace ModelLib.Repositories
 {
     public interface IFriendsRepository
     {
-        public Task<ResponseType> AddFriendRequestAsync(int userId, int friendId);
-        public Task<ResponseType> RemoveFriendRequest(int userId, int friendId);
+        public Task<ResponseType> CreateFriendRequestAsync(int userId, int friendId);
+        public Task<ResponseType> DeclineFriendRequestAsync(int userId, int friendId);
         public Task<ResponseType> AcceptFriendRequestAsync(int userId, int friendRequesterId);
         public Task<ResponseType> RemoveFriendAsync(int userId, int friendId);
-        public Task<UserListPaginationDTO> GetFriends(int userId, PaginationRequest pagination);
-        public Task<FriendShipStatus> GetFriendShipStatus(int userId, int friendId);
-        public Task<UserListPaginationDTO> GetFriendRequests(int userId, PaginationRequest pagination);
+        public Task<UserListPaginationDTO> GetFriendsAsync(int userId, PaginationRequest pagination);
+        public Task<FriendShipStatus> GetFriendShipStatusAsync(int userId, int friendId);
+        public Task<UserListPaginationDTO> GetFriendRequestsAsync(int userId, PaginationRequest pagination);
     }
 
     public class FriendsRepository : IFriendsRepository
@@ -27,8 +27,12 @@ namespace ModelLib.Repositories
             _context = context;
         }
 
-        public async Task<ResponseType> AddFriendRequestAsync(int userId, int friendId)
+        public async Task<ResponseType> CreateFriendRequestAsync(int userId, int friendId)
         {
+            if (userId == friendId)
+            {
+                return ResponseType.Conflict;
+            }
             // if the user has already sent a request, or if they are already friends, or if the friend has sent a request to the user:
             var existingFriendRelation = await _context.Friends
                 .FirstOrDefaultAsync(x => 
@@ -71,7 +75,7 @@ namespace ModelLib.Repositories
         }
 
 
-        public async Task<UserListPaginationDTO> GetFriends(int userId, PaginationRequest pagination)
+        public async Task<UserListPaginationDTO> GetFriendsAsync(int userId, PaginationRequest pagination)
         {
             var friends = _context.Friends
                 .Include(f => f.Friend)
@@ -119,7 +123,7 @@ namespace ModelLib.Repositories
             return ResponseType.Deleted;
         }
 
-        public async Task<ResponseType> RemoveFriendRequest(int userId, int friendId)
+        public async Task<ResponseType> DeclineFriendRequestAsync(int userId, int friendId)
         {
             var relation = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == userId && f.FriendId == friendId && f.IsAccepted == false);
             if (relation == null)
@@ -131,7 +135,7 @@ namespace ModelLib.Repositories
             return ResponseType.Deleted;
         }
 
-        public async Task<FriendShipStatus> GetFriendShipStatus(int userId, int friendId)
+        public async Task<FriendShipStatus> GetFriendShipStatusAsync(int userId, int friendId)
         {
             var friendRelation = await _context.Friends
                 .FirstOrDefaultAsync(f => (f.UserId == userId && f.FriendId == friendId) || (f.UserId == friendId && f.FriendId == userId));
@@ -156,7 +160,7 @@ namespace ModelLib.Repositories
             }
         }
 
-        public async Task<UserListPaginationDTO> GetFriendRequests(int userId, PaginationRequest paginationRequest)
+        public async Task<UserListPaginationDTO> GetFriendRequestsAsync(int userId, PaginationRequest paginationRequest)
         {
             var requests = _context.Friends
                 .Include(f => f.User)
