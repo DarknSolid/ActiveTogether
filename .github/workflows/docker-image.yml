@@ -18,7 +18,7 @@ jobs:
         # Name of the Docker image
         image: doggoworldwebapp
         # Tags override for Docker image
-        tags: ${{ github.head_ref }}.${{ github.sha }}
+        tags: ${{ github.sha }}
         # Target Docker registry
         registry: docker.io
         # Location of Dockerfile, if not Dockerfile in root directory
