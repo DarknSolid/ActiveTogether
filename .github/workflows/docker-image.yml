@@ -12,5 +12,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag doggoworlwebapp:$(date +%s)
+    - name: Docker Build, Tag & Push
+      uses: belon/docker-build-push@v4.0
+      with:
+        # Name of the Docker image
+        image: doggoworldwebapp
+        # Tags override for Docker image
+        tags: ${{ github.head_ref }}.${{ github.sha }}
+        # Target Docker registry
+        registry: docker.io
+        # Location of Dockerfile, if not Dockerfile in root directory
+        dockerfile: Dockerfile
+        # Directory to run `docker build` from, if not project root
+        directory: .
+        # Docker registry username
+        username: ${{ secrets.DOCKER_USERNAME }}
+        # Docker registry password
+        password: ${{ secrets.DOCKER_PASSWORD }}
