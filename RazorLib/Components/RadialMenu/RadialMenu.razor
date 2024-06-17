@@ -1,0 +1,53 @@
+﻿@using static EntityLib.Entities.Enums
+@inject NavigationManager NavigationManager
+
+<div style="    
+    position: absolute;
+    bottom: 50%;
+    right: 50%;
+    transform: translate(50%, 50%);
+}">
+    <div id="spin" class="d-flex justify-center align-content-center">
+        <MudIconButton Style="width:100%" Icon="@Icons.Filled.Close" OnClick="OnClose" />
+    </div>
+    <span class="arrow"></span>
+    <div class="container">
+
+        <div class="one mud-ripple">1</div>
+
+        <div class="two mud-ripple" @onclick="(e) => OnMenuClicked(FacilityType.DogPark)">
+            <ButtonIconText Size="Size.Large" Style="@_menuButtonStyle" Icon="@Icons.Filled.Forest" Text="Parks" />
+        </div>
+
+        <div class="three mud-ripple">3</div>
+
+        <div class="four mud-ripple">4</div>
+
+        <div class="five mud-ripple">5</div>
+
+        <div class="six mud-ripple">6</div>
+
+        <div class="seven mud-ripple" @onclick="(e) => OnMenuClicked(FacilityType.DogInstructor)">
+            <ButtonIconText Size="Size.Large" Style="@_menuButtonStyle" Icon="@Icons.Filled.Attribution" Text="Instructors" />
+        </div>
+
+        <div class="eight mud-ripple">8</div>
+
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Action OnClose { get; set; }
+
+    [Parameter, EditorRequired]
+    public Action<FacilityType> OnFacilitySelected { get; set; }
+
+    private readonly string _menuButtonStyle = "color: var(--mud-palette-text); margin-top: -75px; pointer-events:none";
+
+    private void OnMenuClicked(FacilityType facilityType)
+    {
+        OnFacilitySelected(facilityType);
+        OnClose();
+    }
+}

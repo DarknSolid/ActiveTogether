@@ -1,0 +1,46 @@
+﻿@page "/"
+@attribute [Route(RoutingConstants.DISCOVER + "{FacilityTypeString}")]
+@using FisSst.BlazorMaps.Models.Basics
+@using ModelLib.DTOs
+@using ModelLib.DTOs.Places
+@using RazorLib.Models.MapSearch
+@using static EntityLib.Entities.Enums
+@inject InstructorMapSearcher InstructorMapSearcher
+
+@using static EntityLib.Entities.Enums
+
+@DiscoverContent
+
+@code {
+
+    [Parameter, EditorRequired]
+    public FacilityType FacilityType { get; set; }
+
+    [Parameter]
+    public string? FacilityTypeString { get; set; }
+
+    private RenderFragment DiscoverContent;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        var _facilityType = EntityLib.Entities.Enums.FacilityType.DogInstructor;
+        if (FacilityTypeString is not null)
+        {
+            _facilityType = Enum.Parse<FacilityType>(FacilityTypeString);
+        }
+
+        switch (_facilityType)
+        {
+            case FacilityType.DogInstructor:
+                DiscoverContent = @<RazorLib.Components.Discover.DiscoverInstructors MapSearchHeaderText="Find Hundetrænere"/>;
+                break;
+            case FacilityType.DogPark:
+                DiscoverContent = @<RazorLib.Components.Discover.DiscoverDogParks MapSearchHeaderText="Find Hundeparker"/>;
+                break;
+            default:
+                throw new Exception($"{FacilityType} has no switch case");
+        }
+
+    }
+}

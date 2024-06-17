@@ -1,0 +1,111 @@
+﻿@typeparam TItem
+@using RazorLib.Components.ListViews
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+@using System.Net
+@using System.Text
+
+@*Returns a list of the selected item's ids *@
+
+<MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+    <DialogContent>
+        <MudContainer Style="min-height: 300px; max-height:500px; overflow-y: scroll" Class="pb-4">
+            @if (_loading)
+            {
+                <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+            }
+            else
+            {
+                <ListView ItemGap="20" Orientation="ListViewOrientation.Vertical" UniqueItemKeyExtractor="(object item) => ((ListViewItem)item).Id">
+                    @foreach (var item in _items)
+                    {
+                        <div @onclick="@(() => UpdateSelection(_itemToId[item]))">
+                            @BuildListItemContent(item, @<MudCheckBox Checked="@(_itemChecked[_itemToId[item]])" CheckedChanged=@((bool value) => UpdateSelection(_itemToId[item])) Color="Color.Primary" />)
+                        </div>
+                    }
+                </ListView>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <div style="width:100%; display:flex; justify-content:space-around">
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton OnClick="() => Ok()" Variant="Variant.Filled" Color="Color.Primary">
+                @BtnAcceptText
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool OnlySingleSelect { get; set; }
+
+    [Parameter]
+    public string BtnAcceptText { get; set; }
+
+    [Parameter]
+    public Func<Task<List<TItem>>>? ItemFetch { get; set; }
+
+    [Parameter]
+    public Func<TItem, int> ExtractItemId { get; set; }
+
+    [Parameter]
+    public Func<TItem, RenderFragment, RenderFragment> BuildListItemContent { get; set; }
+
+    [Parameter]
+    public IList<TItem>? ItemSelection { get; set; }
+
+    private IList<TItem> _items;
+    private Dictionary<int, bool> _itemChecked;
+    private bool _loading = true;
+    private Dictionary<TItem, int> _itemToId;
+
+    public ItemSelectionDialogue()
+    {
+        _items = new List<TItem>();
+        _itemChecked = new();
+        _itemToId = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _loading = true;
+        _items = ItemSelection ?? await ItemFetch();
+        for (int i = 0; i < _items.Count; i++)
+        {
+            _itemChecked.Add(i, false);
+            _itemToId.Add(_items[i], i);
+        }
+        _loading = false;
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private void Ok()
+    {
+        var selectedIds = _itemChecked.Where(kv => kv.Value == true).Select(kv => kv.Key).ToList();
+        var selectedItems = new List<TItem>();
+        selectedIds.ForEach(id => selectedItems.Add(_items[id]));
+        MudDialog.Close(DialogResult.Ok<List<TItem>>(selectedItems));
+    }
+
+    private void UpdateSelection(int id)
+    {
+        if (OnlySingleSelect)
+        {
+            foreach (var k in _itemChecked.Keys)
+            {
+                if (k != id)
+                {
+                    _itemChecked[k] = false;
+                }
+            }
+        }
+        _itemChecked[id] = !_itemChecked[id];
+        StateHasChanged();
+    }
+}

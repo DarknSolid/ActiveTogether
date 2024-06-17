@@ -1,0 +1,19 @@
+﻿@using RazorLib.Models
+
+
+<MudCard Style="max-height:300px; max-width:600px; width:100%; min-width:350px;">
+    <MudCardHeader>
+        @*Avatar circle*@
+        <CardHeaderAvatar>
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="50px" Height="50px" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            @*Author name*@
+            <MudSkeleton Width="60%" Height="80px;" />
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @*Body*@
+        <MudSkeleton Width="80%" Height="100px;" />
+    </MudCardContent>
+</MudCard>

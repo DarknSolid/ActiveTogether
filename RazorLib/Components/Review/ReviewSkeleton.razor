@@ -1,7 +1,7 @@
 ﻿@using RazorLib.Models
 
 
-<MudCard>
+<MudCard Style="max-height:300px; max-width:500px; width:100%;">
     <MudCardHeader>
         @*Avatar circle*@
         <CardHeaderAvatar>
@@ -15,11 +15,6 @@
     <MudCardContent>
         @*Rating Title and Comment*@
         <MudSkeleton Width="30%" Height="42px;" />
-        <MudSkeleton Width="80%" />
-        <MudSkeleton Width="100%" />
+        <MudSkeleton Width="80%" Height="100px;" />
     </MudCardContent>
-    <MudCardActions>
-        <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
-        <MudSkeleton Width="105px" Height="40px" Class="ml-3" />
-    </MudCardActions>
 </MudCard>

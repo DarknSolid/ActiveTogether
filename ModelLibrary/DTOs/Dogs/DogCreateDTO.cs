@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ModelLib.ApiDTOs;
+using System.ComponentModel.DataAnnotations;
 using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.Dogs
@@ -19,11 +20,13 @@ namespace ModelLib.DTOs.Dogs
         [Required(ErrorMessage ="Please select gender")]
         public bool IsGenderMale { get; set; }
 
-        [Required(ErrorMessage = "Please select your dog's breed")]
-        public int Breed { get; set; }
+        [Required(ErrorMessage = "Please select your dog's race")]
+        public DogRace Race { get; set; }
 
         [Required]
         public DogWeightClass WeightClass { get; set; }
+
+        public FileDetailedDTO? ProfilePicture { get; set; }
 
     }
 }

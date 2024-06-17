@@ -1,0 +1,278 @@
+﻿@attribute [Route(RoutingConstants.DOG_TRAINING + "{Id:int}")]
+@using Microsoft.JSInterop;
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.Instructors;
+@using RazorLib.Components
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Maps
+@using RazorLib.Components.Places
+@using RazorLib.Interfaces;
+@using RazorLib.Utils;
+@using System.Globalization;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+@inject ISnackbar Snackbar
+@inject IStorageManager<UserDetailedDTO> UserManager
+
+@if (_isLoading)
+{
+    <MudStack>
+        <MudSkeleton Height="250px" Width="100%" Style="transform: none;" />
+        <MudStack Row="true" Justify="Justify.SpaceBetween" Style="flex-wrap:wrap;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Style="flex-wrap:wrap;">
+                <MudSkeleton SkeletonType="SkeletonType.Circle" Height="90px" Width="90px" Style="transform: none;" />
+                <MudSkeleton Width="200px" Height="50px" Style="transform: none;" />
+            </MudStack>
+            <MudSkeleton Width="100px" Height="50px" Style="transform: none;" />
+        </MudStack>
+
+        <MudSkeleton Width="100%" Height="600px" Style="transform: none;" />
+    </MudStack>
+}
+else if (!_isFound)
+{
+    <MudText>Not Found</MudText>
+}
+else
+{
+    <MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Sm" />
+
+
+    <MediaPopup Url="@_dto.CoverImgUrl">
+        <CoverImage Height="300" Url="@_dto.CoverImgUrl" />
+    </MediaPopup>
+
+    <MudContainer>
+        <MudStack Class="mb-2" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Row="@(!_isMobile)">
+            <MudText Typo="Typo.h4">@_dto.Title</MudText>
+            @if (_canEdit)
+            {
+                <div>
+
+                    <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Outlined"
+                               OnClick="@(async () => @NavigationManager.NavigateToUpdateDogTraining(_dto.DogTrainingId))">
+                        Rediger Hold
+                    </MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Delete" OnClick="OnDeleteClicked" Variant="Variant.Outlined">Slet Hold</MudButton>
+                </div>
+            }
+        </MudStack>
+
+        <MudStack Justify="Justify.SpaceBetween" Row="@(!_isMobile)" Class="mb-5">
+            <PlaceAvatar Large="true"
+                         FacilityType="@FacilityType.DogInstructor"
+                         Name="@_dto.InstructorCompanyName"
+                         Id="@_dto.InstructorCompanyId"
+                         ImageUrl="@_dto.InstructorCompanyLogoUri"
+                         Rating="@((float) _dto.InstructorRating)"
+                         RatingCount="@_dto.InstructorRatingCount"
+                         Responsive="true" />
+
+            <MudStack Row="false" Spacing="1" AlignItems="@(_isMobile ? AlignItems.Center : AlignItems.End)" Justify="Justify.Center">
+                @if (String.IsNullOrEmpty(_dto.OriginalDogTrainingWebsiteUri))
+                {
+                    <MudButton OnClick="() => NavigationManager.NavigateToDogInstructor(_dto.InstructorCompanyId)" EndIcon="@Icons.Material.Filled.ArrowForward">Kontakt @_dto.InstructorCompanyName for tilmelding</MudButton>
+                }
+                else if (DateTime.UtcNow.Date <= _dto.RegistrationDeadline.Date)
+                {
+                    <MudButton EndIcon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Filled" Color="Color.Primary" OnClick="OnGoToOfficialDogTrainingCourse">Tilmeld Hold</MudButton>
+                }
+                else
+                {
+                    <MudButton Disabled="true">Tilmelding slut</MudButton>
+                }
+                <MudText Typo="Typo.subtitle2">(Deadline: @_dto.RegistrationDeadline.ToLocalTime().ToString("dddd, dd MMMM", CultureInfo.CurrentCulture))</MudText>
+            </MudStack>
+        </MudStack>
+
+
+        <MudGrid>
+
+            <MudItem md="6" xs="12">
+                <MudCard Class="pa-5">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.School" />
+                        <MudText Typo="Typo.subtitle2">Kategori: @_dto.Category</MudText>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+
+            <MudItem md="6" xs="12">
+                <MudCard Class="pa-5">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" />
+                        <MudText Typo="Typo.subtitle2">@_dto.Price DKK</MudText>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+
+
+            <MudItem md="6" xs="12">
+                <MudCard Class="pa-5">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Repeat" />
+                        <MudText Typo="Typo.subtitle2">Træningsdage: @_dto.TrainingTimes.Length</MudText>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+
+            <MudItem md="6" xs="12">
+                <MudCard Class="pa-5">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                        <MudText Typo="Typo.subtitle2">Maks Deltagere: @_dto.MaxParticipants</MudText>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+
+        </MudGrid>
+
+
+
+        <MudDivider Class="my-5"></MudDivider>
+
+        <MudText Typo="Typo.h6">Beskrivelse</MudText>
+        <MudCard Class="pa-5">
+            @foreach (string line in _dto.Description.Split("\n"))
+            {
+                <MudText>@line</MudText>
+            }
+        </MudCard>
+
+        <MudDivider Class="my-5"></MudDivider>
+
+        <MudStack Row="true" Spacing="@(_isMobile ? 5 : 1)" Style="flex-wrap:wrap" Justify="Justify.Center" Class="mb-5">
+
+            <MudStack Row="false" AlignItems="AlignItems.Center">
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.DateRange" />
+                    <MudText Typo="Typo.h6">Træningsdage</MudText>
+                </MudStack>
+                <MudTimeline Style="margin-left:-25px;" TimelinePosition="TimelinePosition.Start">
+                    @foreach (var trainingTime in _dto.TrainingTimes)
+                    {
+                        <MudTimelineItem Color="Color.Primary">
+                            <MudCard Class="pa-5">
+                                <MudStack Row="true">
+                                    @foreach (var item in TrainingTimeToString(trainingTime))
+                                    {
+                                        <MudText>@item</MudText>
+                                    }
+                                </MudStack>
+                            </MudCard>
+                        </MudTimelineItem>
+                    }
+                </MudTimeline>
+            </MudStack>
+
+            <MudStack Style="@(_isMobile ? "width:100%;" : "")">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.LocationOn" />
+                    <MudText Typo="Typo.h6">Lokation</MudText>
+                </MudStack>
+                <MudCard Style="@(_isMobile ? "height:fit-content; width:100%;" : "height:fit-content;")">
+                    <MudCardContent>
+                        <MudStack AlignItems="AlignItems.Center" Style="width:100%;">
+                            <MudStack Row="true" Justify="Justify.SpaceAround" AlignItems="AlignItems.Baseline" Style="width:100%;">
+                                <LocationGoogleMapsLink Latitude="_dto.Location.Lat" Longitude="_dto.Location.Lng" />
+                            </MudStack>
+
+                            <div style="@(_isMobile ? "height:350px; width:100%; position:relative" : "height:350px; width:100%; min-width:350px; position:relative")">
+                                <MapStaticLocation Latitude="@_dto.Location.Lat" Longitude="@_dto.Location.Lng" />
+                            </div>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudStack>
+
+        </MudStack>
+    </MudContainer>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public int Id { get; set; }
+
+    private DogTrainingDetailsDTO _dto;
+    private bool _isLoading = true;
+    private bool _isFound = true;
+    private bool _canEdit = false;
+
+    private bool _isMobile;
+
+    public DogTrainingDetails()
+    {
+        _dto = new();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await Fetch();
+        var user = await UserManager.Get();
+        if (user is not null && user.HasCompany && user.CompanyId.Value == _dto.InstructorCompanyId)
+        {
+            _canEdit = true;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="trainingTime"></param>
+    /// <returns>date, from time, to time</returns>
+    private string[] TrainingTimeToString(TrainingTime trainingTime)
+    {
+        var date = trainingTime.Start.ToLocalTime().ToShortDateString();
+        var start = trainingTime.Start.ToLocalTime().ToShortTimeString();
+        var end = trainingTime.End.ToLocalTime().ToShortTimeString();
+        return new string[]
+        {
+            trainingTime.Start.ToLocalTime().ToString(format:"dddd, dd MMMM", CultureInfo.CurrentCulture),
+            $"{start}",
+            "to",
+            $"{end}"
+        };
+    }
+
+    private async Task OnGoToOfficialDogTrainingCourse()
+    {
+        // TODO add to statistics
+        NavigationManager.OpenNewTab(_dto.OriginalDogTrainingWebsiteUri, jsRuntime);
+    }
+
+    private async Task OnDeleteClicked()
+    {
+        var statusCode = await ApiClient.DeleteDogTrainingAsync(Id);
+        if (HttpUtils.IsSuccessStatus(statusCode))
+        {
+            Snackbar.Add($"Successfully Deleted Dog Training", Severity.Success);
+            NavigationManager.GoBack(jsRuntime);
+        }
+        else
+        {
+            Snackbar.Add($"Failed Deleting Dog Training. Status code: {statusCode}", Severity.Error);
+
+        }
+    }
+
+    private async Task Fetch()
+    {
+        var result = await ApiClient.GetDogTrainingAsync(Id);
+        if (result is null)
+        {
+            _isFound = false;
+        }
+        else
+        {
+            _dto = result;
+        }
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+}

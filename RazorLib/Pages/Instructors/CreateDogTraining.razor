@@ -1,0 +1,387 @@
+﻿@attribute [Route(RoutingConstants.CREATE_DOG_TRAINING)]
+@attribute [Route(RoutingConstants.UPDATE_DOG_TRAINING + "{Id:int}")]
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop;
+@using ModelLib.DTOs.Instructors;
+@using ModelLib;
+@using NpgsqlTypes;
+@using RazorLib.Components.FileSelection
+@using RazorLib.Components.Maps
+@using RazorLib.Interfaces;
+@using System.ComponentModel.DataAnnotations;
+@using RazorLib.Utils;
+@using System.Globalization;
+@using static EntityLib.Entities.Enums;
+@inject IDialogService DialogService
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+
+@if (_loading)
+{
+    <MudOverlay Visible="true" DarkBackground="false" Absolute="true">
+        <MudStack Style="left: 50%;position: relative; top: 50%; transform: translate(-50%,-50%); width:100%;" AlignItems="AlignItems.Center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </MudStack>
+    </MudOverlay>
+}
+else
+{
+
+    <EditForm Model="@_model" OnValidSubmit="Submit">
+
+        <MudContainer Style="overflow-y: scroll" Class="mb-5">
+            <MudText Class="my-5" Typo="Typo.h4">@(_isCreate ? "Opret Hold" : "Opdater Hold")</MudText>
+                <DataAnnotationsValidator />
+                <MudStack Spacing="0">
+
+                    <MudText Typo="Typo.h6">Generelt</MudText>
+                    <MudPaper Class="pa-5 mb-5" Elevation="1">
+                        <MudTextField Disabled="_loading" Required="true" Label="Titel"
+                              @bind-Value="_model.Title" For="@(() => _model.Title)" />
+
+                              <MudTextField Disabled="_loading" Required="true" Lines="3" Label="Beskrivelse"
+                              @bind-Value="_model.Description" For="@(() => _model.Description)" />
+
+                    </MudPaper>
+
+                    <MudText Typo="Typo.h6">Coverbillede</MudText>
+                    <MudPaper Class="mb-5 pa-5" Elevation="1">
+                        <ImageSelect Disabled=@_loading Class="mb-5" UploadImageText="Upload Coverbillede"
+                                     ChangeImageText="Skift Coverbillede"
+                                     InitialImageURL="@(_coverImageUrl)"
+                                     OnImageChanged="OnCoverImageChanged"
+                                     OnImageRemoved="OnRemoveSelectedCoverImage" />
+                    </MudPaper>
+
+                    <MudText Typo="Typo.h6">Detaljer</MudText>
+                    <MudPaper Class="pa-5 mb-5" Elevation="1">
+
+                        <MudStack Spacing="5">
+
+                            <MudSelect Disabled="_loading" Required="true" @bind-Value="_model.Category" MaxHeight="200" Label="Hold kategori" For="@(() => _model.Category)">
+                                @foreach (var item in Enum.GetValues<InstructorCategory>())
+                            {
+                                <MudSelectItem Value="@item">@item</MudSelectItem>
+                            }
+                            </MudSelect>
+                    
+                            <MudNumericField Disabled="_loading" Min="1" Required="true" Label="Maks Deltagere" @bind-Value="@_model.MaxParticipants" For="@(() => _model.MaxParticipants)" />
+                    
+                            <MudNumericField Disabled="_loading" Required="true" Label="Pris" @bind-Value="@_model.Price" For="@(() => _model.Price)" />
+                    
+                            <MudStack Row="true" Style="flex-wrap:wrap;">
+                            <div style="max-width:200px;">
+                                <MudTextField 
+                                    @ref="_locationInputRef" 
+                                    Adornment="Adornment.Start" 
+                                    AdornmentIcon="@Icons.Material.Filled.LocationOn" 
+                                    Disabled="_loading" 
+                                    @onfocusin="() => MapSelectPointRef.ShowMap()" 
+                                    ReadOnly="true" 
+                                    Required="true" 
+                                    @bind-Value="_model.LocationText" 
+                                    For="@(() => _model.LocationText)" Label="Lokation" />
+                            </div>
+                            <div style="align-self:flex-end">
+                                <MapSelectPoint @ref="@MapSelectPointRef" OnLocationConfirmed="(LatLng latLng) => OnLocationSet(latLng)" />
+                            </div>
+                        </MudStack>
+
+                        </MudStack>
+
+                </MudPaper>
+
+
+                <MudText Typo="Typo.h6">Hold Tilmeldning</MudText>
+                <MudPaper Class="pa-5 mb-5" Elevation="1">
+
+                    <MudDatePicker Disabled="_loading" @bind-Date="@_registrationDeadline" DateFormat="dddd, dd MMMM" Label="Deadline for tilmeldning" For="@(() => _registrationDeadline)" />
+                    
+                    <MudTextField 
+                        @ref=_websiteUrlRef
+                        Disabled="_loading"
+                        Clearable="true"
+                        Required="false"
+                        TextChanged="OnWebsiteURLChanged"
+                        Label="Valgfrit link til tilmelding" 
+                        HelperText="Har dit firma sin egen hjemmeside med hold og tilmelding, så kan du indsætte holdets tilmeldingslink her."
+                        @bind-Value="_model.OriginalDogWebsiteUrl" 
+                        For="@(() => _model.OriginalDogWebsiteUrl)" />
+
+                </MudPaper>
+
+                <MudText Typo="Typo.h6">Træningsdage</MudText>
+                <MudPaper Class="pa-5 mb-5" Elevation="1">
+                    <MudTimeline Class="mb-5" TimelinePosition="TimelinePosition.Start">
+                        @foreach (var (item, i) in _trainingDates.Select((value, i) => (value, i)))
+                        {
+                            <MudTimelineItem Color="Color.Primary">
+                                <MudStack Row="true" Style="flex-wrap:wrap;" AlignItems="AlignItems.Baseline">
+                                    <div style="max-width:200px;">
+                                        <MudDatePicker AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.TopCenter" Disabled="_loading" Culture=CultureInfo.CurrentCulture DateFormat="dddd, dd MMMM" @bind-Date="@(_trainingDates[i].Date)" Label="Dato" For="@(() => _trainingDates[i].Date)" />
+                                    </div>
+
+                                    <div style="max-width:90px;">
+                                        <MudTimePicker AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.TopCenter"  Disabled="_loading" @bind-Time="@(_trainingDates[i].StartTime)" Label="Fra kl" For="@(() => _trainingDates[i].StartTime)" />
+                                    </div>
+
+                                    <div style="max-width:90px;">
+                                        <MudTimePicker AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.TopCenter"  Disabled="_loading" @bind-Time="@(_trainingDates[i].EndTime)" Label="Til kl" For="@(() => _trainingDates[i].EndTime)" />
+                                    </div>
+
+                                    @if (_trainingDates.Count > 1)
+                                    {
+                                        <MudIconButton Disabled="_loading" Color="Color.Error" Icon="@Icons.Material.Outlined.RemoveCircleOutline" OnClick="() => RemoveTrainingDate(i)" />
+                                    }
+                                </MudStack>
+                            </MudTimelineItem>
+                        }
+                    </MudTimeline>
+                    <MudButton Disabled="_loading" Variant="Variant.Outlined" Color="Color.Primary" OnClick="AddTrainingDate">Tilføj dato</MudButton>
+                </MudPaper>
+
+            </MudStack Spacing="0">
+
+        <div style="width:100%; display:flex; justify-content:space-around" class="mb-5">
+            <MudButton Disabled=_loading OnClick="Cancel">Annuller</MudButton>
+            <MudButton Disabled=_loading ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                @if (_loading)
+                {
+                    <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+                }
+                else
+                {
+                    <MudText Typo="Typo.button">@(_isCreate ? "Opret" : "Opdater")</MudText>
+                }
+            </MudButton>
+        </div>
+        </MudContainer>
+
+
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Model _model;
+    private bool _loading;
+    private bool _isCreate;
+
+    private string? _coverImageUrl;
+
+    private MudTextField<string> _locationInputRef;
+    private MudTextField<string>? _websiteUrlRef;
+
+    private MapSelectPoint? MapSelectPointRef;
+
+    [Required]
+    private DateTime? _registrationDeadline;
+
+    private List<DateRangeHelper> _trainingDates;
+
+    public CreateDogTraining()
+    {
+        _model = new();
+        _model.MaxParticipants = 1;
+        _trainingDates = new List<DateRangeHelper>();
+        _registrationDeadline = DateTime.Now;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AddTrainingDate();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _isCreate = Id is null;
+        if (Id.HasValue)
+        {
+            _loading = true;
+            StateHasChanged();
+            var dogTraining = await ApiClient.GetDogTrainingAsync(Id.Value);
+            _coverImageUrl = dogTraining.CoverImgUrl;
+            _model.Location = dogTraining.Location;
+            _model.Title = dogTraining.Title;
+            _model.Description = dogTraining.Description;
+            _model.LocationText = $"{(float)dogTraining.Location.Lat}, {(float)dogTraining.Location.Lng}";
+            _model.TrainingTimes = dogTraining.TrainingTimes;
+            _trainingDates = dogTraining.TrainingTimes.Select(t => new DateRangeHelper
+                {
+                    Date = t.Start.ToLocalTime(),
+                    StartTime = t.Start.ToLocalTime().TimeOfDay,
+                    EndTime = t.End.ToLocalTime().TimeOfDay
+                }).ToList();
+            _model.Price = dogTraining.Price;
+            _model.MaxParticipants = dogTraining.MaxParticipants;
+            _model.OriginalDogWebsiteUrl = dogTraining.OriginalDogTrainingWebsiteUri;
+            _model.Category = dogTraining.Category;
+            _model.RegistrationDeadline = dogTraining.RegistrationDeadline;
+            _registrationDeadline = dogTraining.RegistrationDeadline;
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void AddTrainingDate()
+    {
+        var startDate = DateTime.Now;
+        var startTime = DateTime.Now.TimeOfDay;
+        var endTime = startTime.Add(new TimeSpan(hours: 1, minutes: 0, seconds: 0));
+        if (_trainingDates.Any())
+        {
+            startDate = _trainingDates.Last().Date.Value.AddDays(7);
+            startTime = _trainingDates.Last().StartTime.Value;
+            endTime = _trainingDates.Last().EndTime.Value;
+        }
+        _trainingDates.Add(
+                        new DateRangeHelper
+                            {
+                                Date = startDate,
+                                StartTime = startTime,
+                                EndTime = endTime,
+                            }
+        );
+        StateHasChanged();
+    }
+
+    private void RemoveTrainingDate(int index)
+    {
+        _trainingDates.RemoveAt(index);
+        StateHasChanged();
+    }
+
+    private async Task Submit()
+    {
+        _loading = true;
+        _model.RegistrationDeadline = _registrationDeadline.Value;
+        _model.TrainingTimes = _trainingDates
+        .Select(t =>
+        {
+            var original = new DateTime(year: t.Date.Value.Year, month: t.Date.Value.Month, day: t.Date.Value.Day, kind: DateTimeKind.Local, hour: 0, minute: 0, second: 0);
+            var startDate = original.AddHours(t.StartTime.Value.Hours).AddMinutes(t.StartTime.Value.Minutes);
+            var endDate = original.AddHours(t.EndTime.Value.Hours).AddMinutes(t.EndTime.Value.Minutes);
+            if (endDate < startDate)
+            {
+                endDate = endDate.AddDays(1);
+            }
+            return new TrainingTime
+                {
+                    Start = startDate,
+                    End = endDate
+                };
+        }
+        )
+        .ToArray();
+
+        var statusCode = System.Net.HttpStatusCode.OK;
+        var createdId = 0;
+
+        if (_isCreate)
+        {
+            (statusCode, createdId) = await ApiClient.CreateDogTrainingAsync(_model);
+        }
+        else
+        {
+            var updateDto = new DogTrainingUpdateDTO
+                {
+                    Category = _model.Category,
+                    Description = _model.Description,
+                    DogTrainingId = Id.Value,
+                    Location = _model.Location,
+                    MaxParticipants = _model.MaxParticipants,
+                    Price = _model.Price,
+                    OriginalDogWebsiteUrl = _model.OriginalDogWebsiteUrl,
+                    RegistrationDeadline = _model.RegistrationDeadline,
+                    Title = _model.Title,
+                    TrainingTimes = _model.TrainingTimes,
+                    CoverImage = _model.CoverImage
+                };
+            statusCode = await ApiClient.UpdateDogTrainingAsync(updateDto);
+        }
+
+        if (HttpUtils.IsSuccessStatus(statusCode))
+        {
+            var createText = _isCreate ? "Created" : "Updated";
+            Snackbar.Add($"Successfully {createText} Dog Training!", Severity.Success);
+            NavigationManager.NavigateToDogTrainingDetails(_isCreate ? createdId : Id.Value);
+        }
+        else
+        {
+            var createText = _isCreate ? "Creating" : "Updating";
+            Snackbar.Add($"Failed {createText} Your Dog Training. Status code: {statusCode}", Severity.Error);
+        }
+
+        _loading = false;
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.GoBack(jsRuntime);
+    }
+
+        private async Task OnWebsiteURLChanged(string value)
+    {
+        _model.OriginalDogWebsiteUrl = value;
+        if (String.IsNullOrEmpty(value))
+        {
+            _model.OriginalDogWebsiteUrl = null;
+            _websiteUrlRef.Text = null;
+            await _websiteUrlRef.ForceUpdate();
+        }
+    }
+
+    private async Task OnLocationSet(LatLng point)
+    {
+        _model.Location = point;
+        _model.LocationText = $"{(float)point.Lat}, {(float)point.Lng}";
+        StateHasChanged();
+        await _locationInputRef.Validate();
+    }
+
+        private async Task OnCoverImageChanged(IBrowserFile file)
+    {
+        if (_model.CoverImage is null)
+        {
+            _model.CoverImage = new();
+        }
+        _model.CoverImage.IsDeleteCommand = false;
+        _model.CoverImage.ContentType = file.ContentType;
+        _model.CoverImage.Bytes = await file.ToByteArray(MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+    }
+
+    private async Task OnRemoveSelectedCoverImage()
+    {
+        if (_isCreate)
+        {
+            _model.CoverImage = null;
+        }
+        else
+        {
+            _model.CoverImage = new()
+                {
+                    IsDeleteCommand = true
+                };
+        }
+        StateHasChanged();
+    }
+
+    private class Model : DogTrainingCreateDTO
+    {
+        [Required]
+        public string LocationText { get; set; }
+    }
+
+    protected class DateRangeHelper
+    {
+        public DateTime? Date { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
+    }
+}

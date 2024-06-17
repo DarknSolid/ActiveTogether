@@ -1,0 +1,52 @@
+﻿@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Reviews
+@using RazorLib.Components.DogParks
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Review
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<ListViewScrollPagination ItemGap="20"
+                          Orientation="@ListViewOrientation.Vertical"
+                          BuildListItemContent="_buildListItemContent"
+                          BuildSkeletonContent="_buildSkeletonContent"
+                          FetchFunction="_fetchFunction"
+                          SetSearchResultTotalCount="SetSearchResultTotalCount"
+                          UniqueItemKeyExtractor="(DogParkListDTO dto) => dto.Id"/>
+
+
+
+@code {
+
+    [Parameter]
+    public Action<int>? SetSearchResultTotalCount { get; set; }
+
+    private Func<DogParkListDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, PaginationResult<DogParkListDTO>?, IList<DogParkListDTO>, Task<(PaginationResult<DogParkListDTO>, PaginationResult<DogParkListDTO>, IList<DogParkListDTO>)>> _fetchFunction;
+
+    public DogParkListView()
+    {
+        _buildListItemContent = (DogParkListDTO dto) =>@<MudList Clickable=true><MudListItem OnClick="@(() => NavigationManager.NavigateToDogParkDetails(dto.Id))"><DogParkListCard DogPark="dto" /></MudListItem></MudList>;
+        _buildSkeletonContent = () =>@<ReviewSkeleton />;
+        _fetchFunction = async (int itemsPerPage, PaginationResult<DogParkListDTO>? previousPaginationResult, IList<DogParkListDTO> items) =>
+        {
+            var request = new DateTimePaginationRequest
+                {
+                    ItemsPerPage = itemsPerPage,
+                    Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                    LastDate = items.LastOrDefault()?.DateAdded ?? DateTime.UtcNow.AddDays(1),
+                    LastId = previousPaginationResult?.LastId ?? -1,
+                };
+
+            var result = await ApiClient.GetApprovedDogParkRequestsAsync(request);
+            return (result, result, result.Result);
+        };
+    }
+
+}

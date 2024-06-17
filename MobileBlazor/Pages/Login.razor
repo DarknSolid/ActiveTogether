@@ -1,34 +1,149 @@
 ﻿@attribute [Route(RoutingConstants.LOGIN)]
 @using MobileBlazor.Utils
-@using WebApp.DTOs.Authentication
-@inject IMobileApiClient apiClient
+@using RazorLib.Interfaces
+@using System.ComponentModel.DataAnnotations
+@using ModelLib.DTOs.Authentication
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
 @inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserInfoStorageManager
 
-@if(UserInfo == null)
-{
-    <h1>Please Sign In</h1>
-} else
-{
-    <MudAlert Severity="Severity.Success">Welcome, @UserInfo.UserName</MudAlert>
-}
-<MudButton Variant="Variant.Filled" Color="@Color.Secondary" OnClick="@LoginManually" >Login</MudButton>
-<MudFab StartIcon="@Icons.Custom.Brands.Facebook" Style="@($"color:#4267B2;")" OnClick="@LoginWithFacebook" Label="Continue with Facebook" />
 
-Welcome to your new app.
+<div style="
+    position:absolute;
+    height:100%;
+    width:100%;
+    background-image:
+    url(_content/RazorLib/images/denmark_map.png);
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px);
+    -webkit-filter:
+    blur(8px);" />
+
+<MudContainer Style="height:100%; position:absolute">
+
+    <div class="pb-5" />
+
+    <MudCard Elevation="4" Style="border-radius: 15px;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <div class="d-flex flex-row gap-4 mb-5">
+                    <div class="d-flex justify-center align-content-center" style="height: 60px; margin-left:10px;">
+                        <img src="_content/RazorLib/images/paw_icon.svg" style="border-radius:50%; box-shadow: var(--mud-elevation-4);">
+                    </div>
+                    <MudText Style="align-self:center;" Align="Align.Center" Typo="Typo.h4">DogAround</MudText>
+                </div>
+                <MudDivider DividerType="DividerType.Middle" Light="true" />
+
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+
+            <MudContainer Class="d-flex flex-column gap-4 mb-6">
+                <MudText Typo="Typo.h6">Please Sign In</MudText>
+                <MudTextField T="string" Label="Email" @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)"></MudTextField>
+                <MudTextField T="string" Label="Password" InputType="InputType.Password" @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)"></MudTextField>
+                <MudButton Disabled="@_loading" Variant="Variant.Filled" FullWidth="true" Color="@Color.Primary" OnClick="@LoginManually">
+                    @if (_manualLoading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="MudBlazor.Size.Small" Indeterminate="true" />
+                    }
+                    else
+                    {
+                        <MudText>Login</MudText>
+                    }
+                </MudButton>
+
+                @if(!_didLoginSucceed)
+                {
+                    <MudAlert Severity="Severity.Error">Invalid Login Credentials</MudAlert>
+                }
+
+            </MudContainer>
+
+            <MudDivider DividerType="DividerType.FullWidth" Light="true" />
+
+        </MudCardContent>
+        <MudCardActions Class="d-flex flex-column gap-2">
+            <MudText Align="Align.Center" Typo="Typo.subtitle2" Style="margin-top: -20px">Or</MudText>
+            <MudFab Disabled="@_loading" StartIcon="@Icons.Custom.Brands.Facebook" Style="@($"color:#4267B2;")" OnClick="@LoginWithFacebook" Label="Continue with Facebook" />
+            <div class="mb-5" />
+        </MudCardActions>
+    </MudCard>
+</MudContainer>
+
 
 @code {
-    public UserInfoDTO UserInfo { get; set; }
+    public UserDetailedDTO? UserInfo { get; set; }
 
-    public async void LoginWithFacebook()
+    private bool _loading;
+    private bool _manualLoading;
+    private LoginModel _loginModel;
+    private bool _didLoginSucceed;
+
+    public Login()
     {
-        UserInfo = await apiClient.FacebookLogin();
-        NavigationManager.NavigateTo(RoutingConstants.MAP);
+        _didLoginSucceed = true;
+        _loginModel = new()
+            {
+                Email = "developer_user@hotmail.com",
+                Password = "Test123!"
+            };
     }
 
-    public async void LoginManually()
+    public async Task LoginWithFacebook()
     {
-        UserInfo = await apiClient.Login("developer_user@hotmail.com", "Test123!");
-        NavigationManager.NavigateTo(RoutingConstants.MAP);
+        _loading = true;
+        var result = await ApiClient.FacebookLogin();
+        UserInfo = result.UserInfo;
+        _loading = false;
+        if (result.Success)
+        {
+            await SetUserInfo(UserInfo);
+            if(result.DidRegisterNewUser)
+            {
+                NavigationManager.NavigateToRegisteredUserWelcome();
+            }
+            else
+            {
+                NavigationManager.NavigateToHome();
+            }
+        }
+        else
+        {
+            _didLoginSucceed = false;
+        }
+    }
+
+    public async Task LoginManually()
+    {
+        _loading = true;
+        _manualLoading = true;
+        var result = await ApiClient.Login(_loginModel.Email, _loginModel.Password);
+        UserInfo = result.UserDetailedInfo;
+        _manualLoading = false;
+        _loading = false;
+        if (UserInfo is not null)
+        {
+            await SetUserInfo(UserInfo);
+            NavigationManager.NavigateToDiscover(FacilityType.DogPark);
+        }
+        else
+        {
+            _didLoginSucceed = false;
+        }
+    }
+
+    private async Task SetUserInfo(UserDetailedDTO dto)
+    {
+        await UserInfoStorageManager.Set(dto);
+    }
+
+    private class LoginModel {
+        [EmailAddress]
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 }
 

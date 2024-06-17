@@ -1,0 +1,62 @@
+﻿@using RazorLib.Interfaces
+@inject IStorageManager<MapOptions> MapStorageManager
+
+@code {
+
+    protected Map _map = default!;
+    protected MapOptions _mapOptions = default!;
+
+    public BaseMap()
+    {
+        _mapOptions = new MapOptions()
+            {
+                Zoom = 13,
+                Center = new LatLng()
+                {
+                    Lat = 55.6570832,
+                    Lng = 12.5937645
+                },
+                DivId = "mapId",
+                UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                SubOptions = new MapSubOptions()
+                {
+                    Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+                    TileSize = 256,
+                    ZoomOffset = 0,
+                    MaxZoom = 19,
+                },
+                ZoomControl = false
+            };
+    }
+
+    protected virtual async Task OnAfterInitAsync()
+    {
+        await _map.OnMoveEnd(async (FisSst.BlazorMaps.MouseEvent e) => await OnMoveEnd());
+    }
+
+    protected virtual async Task OnMoveEnd()
+    {
+        await SaveMapStateAsync();
+    }
+
+    private async Task SaveMapStateAsync()
+    {
+        _mapOptions.Zoom = await _map.GetZoom();
+        _mapOptions.Center = await _map.GetCenter();
+        await MapStorageManager.Set(_mapOptions);
+    }
+
+    /// <summary>
+    /// Tries to read the map options from local storage
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        var mapOptions = await MapStorageManager.Get();
+        if (mapOptions != null) {
+            _mapOptions.Center = mapOptions.Center;
+            _mapOptions.Zoom = mapOptions.Zoom;
+        }
+    }
+}

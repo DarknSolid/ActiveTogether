@@ -1,11 +1,16 @@
-﻿using EntityLib.Entities.Identity;
+﻿using EntityLib.Entities.AbstractClasses;
+using EntityLib.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityLib.Entities
 {
-    public class Review
+    public class Review : DateAndIntegerId
     {
+        [Key]
+        override public int Id { get; set; }
+
+        [Required]
         [ForeignKey(nameof(ApplicationUser))]
         public int UserId { get; set; }
 
@@ -24,7 +29,9 @@ namespace EntityLib.Entities
         [Required]
         [MaxLength(2000)]
         public string Description { get; set; }
-        public DateTime Date { get; set; }
+
+        [Column("CreatedAt")]
+        override public DateTime DateTime { get; set; }
         public ApplicationUser User { get; set; }
         public Place Place { get; set; }
 

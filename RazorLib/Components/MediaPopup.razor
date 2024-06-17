@@ -1,0 +1,71 @@
+﻿@using ModelLib;
+@using RazorLib.Components.Media
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => {_top = b <= Breakpoint.Sm ? 56 : 64; StateHasChanged();}" />
+
+<div style="cursor:pointer; height:100%; width:100%; display: inherit; flex-direction: inherit; position:inherit" @onclick=@(() => _showOverlay = true)>
+    @ChildContent
+</div>
+
+<MudOverlay @bind-Visible=_showOverlay DarkBackground="true" AutoClose="true" Style="position: fixed; width:100%; height:100%;">
+
+    <MudPaper Style=@($"background-color:black; position:absolute; top:{_top}px; left:50%; transform:translate(-50%); width:100%; min-width:320px; max-width:1000px; height:100%; max-height:800px;")>
+
+        <div style="position:relative; width:100%; height:100%;" @onclick:preventDefault=true @onclick:stopPropagation=true>
+            <MudCarousel AutoCycle="false" Class="mud-width-full" Style="height:100%;" ItemsSource="@_urls" @bind-SelectedIndex="@SelectedIndex">
+                <ItemTemplate>
+                    <MudStack Justify=Justify.Center AlignItems=AlignItems.Center Style="background-color:black; width:100%; height:100%;">
+                        @if (MediaUtils.IsVideo(context))
+                        {
+                            <Video Src="@context" />
+                        }
+                        else
+                        {
+                            <MudImage Style="width:100%; height:100%;" ObjectFit="ObjectFit.Contain" Src="@context" />
+                        }
+                    </MudStack>
+                </ItemTemplate>
+            </MudCarousel>
+            <MudIconButton OnClick=@(() => _showOverlay = false) Class="ma-5" Icon="@Icons.Material.Filled.Close" Style="position:absolute; top:0%; right:0%; color:white; background-color:rgb(0,0,0,0.4)" />
+        </div>
+
+    </MudPaper>
+
+</MudOverlay>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private int _top = 64;
+
+    [Parameter]
+    public string[]? Urls { get; set; }
+    [Parameter]
+    public string? Url { get; set; }
+    [Parameter]
+    public int SelectedIndex { get; set; }
+
+    private string[] _urls;
+
+    private bool _showOverlay;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Urls is null)
+        {
+            _urls = new string[] { Url };
+        }
+        else if (Url is null)
+        {
+            _urls = Urls;
+        }
+        else
+        {
+            var temp = Urls.ToList();
+            temp.Add(Url);
+            _urls = temp.ToArray();
+        }
+    }
+}

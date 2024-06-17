@@ -1,13 +1,11 @@
-﻿using EntityLib.Entities;
-using System;
-using System.Collections.Generic;
+﻿using EntityLib.Entities.AbstractClasses;
 using System.ComponentModel.DataAnnotations;
 
 namespace ModelLib.DTOs.Reviews
 {
-    public class ReviewCreateDTO
+    public class ReviewCreateDTO : IntegerId
     {
-        public int PlaceId { get; set; }
+        override public int Id { get; set; }
         public int Rating { get; set; }
 
         [Required]

@@ -1,0 +1,29 @@
+﻿
+@if (Text is not null)
+{
+    
+@foreach (var line in Text.Split("\n"))
+{
+    @if (string.IsNullOrEmpty(line))
+    {
+        <br />
+    }
+    else
+    {
+        <MudText Style="@Style" Class="@Class" Typo="@Typo">@line</MudText>
+    }
+}
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Text { get; set; }
+
+    [Parameter]
+    public Typo Typo { get; set; } = Typo.body1;
+
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+}

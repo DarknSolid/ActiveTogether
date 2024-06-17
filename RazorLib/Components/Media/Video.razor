@@ -1,0 +1,25 @@
+﻿
+
+<video @onclick:preventDefault=PreventDefaultAndPropagation @onclick:stopPropagation=PreventDefaultAndPropagation id="@Id" @onclick=@OnClick width="100%" height=@(Height is null ? "100%" : $"{Height}px") controls="controls" style=@Style class=@Class>
+    <source src="@Src" />
+</video>
+
+@code {
+    [Parameter]
+    public bool PreventDefaultAndPropagation { get; set; }
+    [Parameter]
+    public string Src { get; set; }
+    [Parameter]
+    public int? Height { get; set; }
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+}

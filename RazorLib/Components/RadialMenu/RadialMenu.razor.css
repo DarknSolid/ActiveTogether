@@ -1,0 +1,102 @@
+﻿.container {
+    width: 350px;
+    height: 350px;
+    background-color: #ccc;
+    border-radius: 50%;
+    border: 7px solid #fff;
+    position: relative;
+    overflow: hidden;
+    transition: 5s;
+}
+
+    .container div {
+        height: 50%;
+        width: 45%;
+        position: absolute;
+        clip-path: polygon(100% 0, 50% 100%, 0 0 );
+        transform: translateX(-50%);
+        transform-origin: bottom;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        font-family: sans-serif;
+        color: #fff;
+        left: 27.5%;
+    }
+
+    .container .one {
+        background-color: rgb(245 24 7);
+        left: 50%;
+    }
+
+    .container .two {
+        background-color: rgb(48 133 47);
+        transform: rotate(45deg);
+    }
+
+    .container .three {
+        background-color: rgb(106 195 159);
+        transform: rotate(90deg);
+    }
+
+    .container .four {
+        background-color: rgb(68 97 171);
+        transform: rotate(135deg);
+    }
+
+    .container .five {
+        background-color: rgb(27 12 129);
+        transform: rotate(180deg);
+    }
+
+    .container .six {
+        background-color: rgb(103 10 128);
+        transform: rotate(225deg);
+    }
+
+    .container .seven {
+        background-color: rgb(186 46 147);
+        transform: rotate(270deg);
+    }
+
+    .container .eight {
+        background-color: rgb(140 9 55);
+        transform: rotate(315deg);
+    }
+
+.arrow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+}
+
+    .arrow::before {
+        content: "\1F817";
+        font-size: 50px;
+    }
+
+#spin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 10;
+    background-color: #e2e2e2;
+    text-transform: uppercase;
+    border: 8px solid #fff;
+    font-weight: bold;
+    font-size: 20px;
+    color: #a2a2a2;
+    width: 80px;
+    height: 80px;
+    font-family: sans-serif;
+    border-radius: 50%;
+    cursor: pointer;
+    outline: none;
+    letter-spacing: 1px;
+}

@@ -1,0 +1,29 @@
+﻿@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Dogs
+@using RazorLib.Components.CardBases
+@using RazorLib.Components.Ratings
+@using RazorLib.Utils
+@inherits PlaceListCardBase<DogParkListDTO>
+
+
+<MudCard @onclick="_onClick" Style="min-height: 100px; min-width: 275px;" Class="mud-ripple card-clickable">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <div class="d-flex flex-column justify-space-between">
+                <MudText Typo="Typo.body1">@PlaceListDTO.Name</MudText>
+                <MudText Typo="Typo.subtitle2">@_description</MudText>
+            </div>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <div class="d-flex flex-row gap-1">
+            <RatingReadOnly Rating="@(PlaceListDTO?.Rating ?? 0)"/>
+            <MudText Typo="Typo.subtitle1">(@(PlaceListDTO?.RatingCount ?? 0))</MudText>
+            <MudText Typo="Typo.subtitle1">@(_distanceKilometers) km</MudText>
+        </div>
+    </MudCardContent>
+</MudCard>
+
+@code {
+
+}

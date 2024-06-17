@@ -1,0 +1,245 @@
+﻿@using System.Diagnostics
+@using FisSst.BlazorMaps.Factories.Rectangles
+@using FisSst.BlazorMaps.Models.Basics
+@using FisSst.BlazorMaps.Models.Rectangles
+@using ModelLib.ApiDTOs
+@using ModelLib.DTOs
+@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Places
+@using ModelLib.Utils
+@using NpgsqlTypes
+@using RazorLib.Components.Maps
+@using RazorLib.Models.MapSearch
+@using RazorLib.Components
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@using static RazorLib.Models.DialogServiceExtender
+@inherits BaseMap
+@inject IDialogService DialogService
+@inject IRectangleFactory RectangleFactory
+@inject IPolylineFactory PolylineFactory
+
+
+<FisSst.BlazorMaps.Map CssClass="map-full-size" @ref="@_map" MapOptions="@_mapOptions" AfterRender="@(async () => await OnAfterInitAsync())"></FisSst.BlazorMaps.Map>
+
+@if (_isCreatingMapPoint)
+{
+    @*necessary to render here to avoid the map title  pushing the vertical line down*@
+    <MapPointSelectAim />
+}
+
+<div style="position:relative; width: 100%" class="d-flex flex-row justify-space-between px-5 pt-5">
+    <MudText Style="color:black; align-self:center" Typo="Typo.h5">@(_isCreatingMapPoint ? "Vælg Placering" : "")</MudText>
+    </div>
+
+    @if (!_isCreatingMapPoint)
+{
+
+    <MudButton Style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);"
+           Size="MudBlazor.Size.Large"
+           Disabled="_loading"
+           Color="Color.Primary"
+           Variant="Variant.Filled"
+           OnClick="FetchNewMapItems">
+
+        @if (_loading)
+        {
+            <MudProgressCircular Class="ms-n1" Size="MudBlazor.Size.Small" Indeterminate="true" />
+        }
+        <MudText Typo="Typo.h6">
+            @(
+                _loading ? "Søger" : "Søg"
+                )
+        </MudText>
+
+    </MudButton>
+}
+else
+{
+    <MudButton Size="MudBlazor.Size.Large"
+           Style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);"
+           Color="Color.Primary"
+           Variant="Variant.Filled"
+           OnClick="CreateMapPoint">
+        <MudText Typo="Typo.h6">Confirm Point</MudText>
+    </MudButton>
+}
+
+@if (CanCreateMapPoint)
+{
+    <MudIconButton Size="MudBlazor.Size.Large"
+               Style="position: absolute; bottom: 50px; right: 10%; transform: translateX(10%);padding:5px;"
+               Color="@(_isCreatingMapPoint ? Color.Error : Color.Surface)"
+               Icon="@(_isCreatingMapPoint ? Icons.Filled.Cancel : Icons.Filled.AddLocationAlt)"
+               OnClick="SwitchCreateMapPoint">
+    </MudIconButton>
+}
+
+
+@code {
+
+    [Parameter, EditorRequired]
+    public Func<FisSst.BlazorMaps.Map, SearchAreaDTO, Task> OnSearchBtnPressed { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool CanCreateMapPoint { get; set; }
+    [Parameter]
+    public string MapCreatingTitle { get; set; }
+    [Parameter]
+    public string MapCreationMessage { get; set; }
+    [Parameter]
+    public Func<LatLng, Task> OnMapPointSelected { get; set; }
+
+
+    private Rectangle _searchArea;
+    private RectangleOptions _searchAreaOptions;
+    private bool _isSearchAreaRemoved;
+    private float _searchAreaOpacity = .4f;
+
+    private bool _isCreatingMapPoint;
+
+    private int _maxMapSearchRadiusMeters = 2_000;
+
+    private bool _loading;
+
+    public Map() : base()
+    {
+        _searchAreaOptions = new RectangleOptions
+            {
+                Color = "#616161",
+                Stroke = true,
+                Weight = 3, // size of the stroke/border
+                DashArray = "16"
+            };
+    }
+
+    protected override async Task OnAfterInitAsync()
+    {
+        await base.OnAfterInitAsync();
+        var (searchBounds, isTooClose) = GetSearchAreaBounds(await _map.GetCenter(), await _map.GetBounds());
+
+        _searchArea = await RectangleFactory.CreateAndAddToMap(
+            latLngs: searchBounds.ToLatLng(),
+            map: _map,
+            options: _searchAreaOptions
+        );
+
+        await _map.OnMove(async (FisSst.BlazorMaps.MouseEvent e) => await OnBoundsChanged());
+    }
+
+    private async Task OnBoundsChanged()
+    {
+        await RedrawShapesOnMap();
+    }
+
+    private async Task RedrawShapesOnMap()
+    {
+        if (_isCreatingMapPoint)
+        {
+            if (!_isSearchAreaRemoved)
+            {
+                await _searchArea.RemoveFrom(_map);
+                _isSearchAreaRemoved = true;
+            }
+        }
+        else
+        {
+            // draw the search area box depending on the current width in kilometers of the map.
+            var (bounds, isTooClose) = GetSearchAreaBounds(await _map.GetCenter(), await _map.GetBounds());
+            await _searchArea.SetBounds(bounds);
+            if (isTooClose)
+            {
+                if (!_isSearchAreaRemoved)
+                {
+                    await _searchArea.RemoveFrom(_map);
+                    _isSearchAreaRemoved = true;
+                }
+            }
+            else
+            {
+                if (_isSearchAreaRemoved)
+                {
+                    await _searchArea.AddTo(_map);
+                    _isSearchAreaRemoved = false;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calculates the bounds of the search area square.
+    /// </summary>
+    /// <param name="screenCenter">The center of the map</param>
+    /// <param name="screenBounds">The bounds of the map</param>
+    /// <returns>The bounds and wether the screen is zoomed in such that you can't see the search square</returns>
+    private (LatLngBounds, bool) GetSearchAreaBounds(LatLng screenCenter, LatLngBounds screenBounds)
+    {
+        var searchBounds = Geographics.SphereToBounds(screenCenter, _maxMapSearchRadiusMeters);
+
+        var isTooClose = screenBounds._northEast != null && screenBounds.GetEast() > screenBounds._northEast.Lat;
+        if (isTooClose)
+        {
+            searchBounds = screenBounds;
+        }
+        return (searchBounds, isTooClose);
+    }
+
+    private async Task FetchNewMapItems()
+    {
+        _loading = true;
+
+        var center = await _map.GetCenter();
+        var searchBounds = await _searchArea.GetBounds();
+
+        //calculate the distance between the search area's center and its left side:
+        var topMostPoint = new NpgsqlPoint(x: center.Lng, y: searchBounds.GetNorth());
+        var centerPoint = new NpgsqlPoint(x: center.Lng, y: center.Lat);
+        int radius = (int)Math.Ceiling(centerPoint.DistanceTo(topMostPoint, Geographics.DistanceUnit.Kilometers));
+
+        await OnSearchBtnPressed(_map, new SearchAreaDTO
+            {
+                Center = center,
+                RadiusKilometers = radius
+            });
+        _loading = false;
+    }
+
+    private async Task SwitchCreateMapPoint()
+    {
+        var previousState = _isCreatingMapPoint;
+
+        if (_isCreatingMapPoint is false)
+        {
+            DialogOptions dialogOptions = new DialogOptions()
+                {
+                    CloseButton = true,
+                    FullWidth = false,
+                    MaxWidth = MaxWidth.ExtraSmall,
+                };
+            var didPressOk = await DialogService.ShowMessageBox(MapCreatingTitle, new MarkupString(MapCreationMessage), options: dialogOptions, cancelText: "Cancel");
+            if (didPressOk.HasValue)
+            {
+                _isCreatingMapPoint = didPressOk.Value;
+            }
+        }
+        else
+        {
+            _isCreatingMapPoint = false;
+        }
+
+        if (_isCreatingMapPoint != previousState)
+        {
+            await RedrawShapesOnMap();
+        }
+
+    }
+
+    private async Task CreateMapPoint()
+    {
+        var center = await _map.GetCenter();
+        await OnMapPointSelected(center);
+        _isCreatingMapPoint = false;
+
+        await RedrawShapesOnMap();
+    }
+}

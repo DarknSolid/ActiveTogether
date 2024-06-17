@@ -1,0 +1,72 @@
+﻿@using ModelLib.DTOs.Instructors;
+@using RazorLib.Components.Places
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject NavigationManager NavigationManager
+
+<MudPaper @onclick="@(() => NavigationManager.NavigateToDogTrainingDetails(DogTraining.Id))" Style="max-height: 260px; min-width:375px; max-width: 375px; background-color:white;" Class="mud-ripple card-clickable rounded">
+
+    <div style="position:relative; width:100%; height:200px;">
+        <CoverImage Height="200" Url="@DogTraining.CoverImgUrl" />
+        
+        <div style="position:absolute;
+                    height:100%;
+                    width:100%;
+                    background: rgb(0,0,0);
+                    background: linear-gradient(0deg, rgba(0,0,0,0.6727065826330532) 0%, rgba(0,0,0,0.5886729691876751) 8%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6699054621848739) 91%);
+                    top:0%;" />
+
+        <MudStack Row="true" Style="position:absolute; top:0%; width:100%;" Justify="Justify.SpaceBetween" Class="px-2 py-2">
+            <PlaceAvatar FacilityType=FacilityType.DogInstructor Style="color:white;" Id="@DogTraining.InstructorCompanyId" Name="@DogTraining.InstructorCompanyName" ImageUrl="@DogTraining.InstructorCompanyLogoUri" />
+            @if (DogTraining.DistanceMeters is not null)
+            {
+                <MudStack Spacing="3" Class="pr-2" Row="true" AlignItems="AlignItems.Center" Style="color:white">
+                    <MudText Style="padding-bottom:1px;" Typo="Typo.h6">|</MudText>
+                    <MudText Typo="Typo.subtitle2"> @(FormattingUtils.FormatDistance(DogTraining.DistanceMeters ?? 0))</MudText>
+                    </MudStack>
+            }
+        </MudStack>
+        <MudStack Spacing="0" Class="pl-2" Style="position:absolute; bottom:0%; left:0%; color:white;">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.School" />
+                <MudText Typo="Typo.subtitle2">@DogTraining.Category</MudText>
+            </MudStack>
+            <MudText Typo="Typo.h5">@DogTraining.Title</MudText>
+        </MudStack>
+    </div>
+
+
+
+    <MudStack Row="true" Justify="Justify.SpaceEvenly" Class="py-3 px-2" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.subtitle2">@(DogTraining.Price) DKK</MudText>
+
+        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.Groups" />
+            <MudText Typo="Typo.subtitle2">@(DogTraining.MaxParticipants)</MudText>
+            </MudStack>
+
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.Repeat" />
+                <MudText Typo="Typo.subtitle2">@(DogTraining.TrainingTimes)</MudText>
+            </MudStack>
+
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.DateRange" />
+                <MudText Typo="Typo.subtitle2">@(_startDate)</MudText>
+            </MudStack>
+        </MudStack>
+
+    </MudPaper>
+
+    @code {
+    [Parameter, EditorRequired]
+    public DogTrainingListDTO DogTraining { get; set; }
+
+    private string _startDate = "";
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _startDate = DateUtils.DateTimeToSimpleDateTime(DogTraining.FirstTrainingDate);
+    }
+}

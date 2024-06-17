@@ -1,0 +1,110 @@
+﻿@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.DTOs.Places;
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components.Posts
+@using RazorLib.Interfaces;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+
+<MudStack Style="width:100%;" Justify="Justify.Center" AlignItems="AlignItems.Center">
+    @if (ShowCreateComment || (_listRef?.GetCount() ?? 0) > 0)
+    {
+        <div Class="pa-5" Elevation=1 Style="width:100%; max-width:600px; min-width:320px;">
+            <Authenticated>
+                <CreateComment PostId=@PostId OnCommentCreated="OnCommentCreated"></CreateComment>
+            </Authenticated>
+        </div>
+    }
+
+    @if (!HideComments || (_listRef?.GetCount() ?? 0) > 0)
+    {
+        <ListViewScrollPagination @ref=_listRef
+                                  ItemGap="10"
+                                  Orientation="ListViewOrientation.Vertical"
+                                  BuildListItemContent="_buildListItemContent"
+                                  BuildSkeletonContent="_buildSkeletonContent"
+                                  FetchFunction="_fetchFunction" 
+                                  UniqueItemKeyExtractor="(CommentDetailedDTO dto) => dto.Id"/>
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public bool ShowCreateComment { get; set; } = false;
+
+    [Parameter]
+    public bool HideComments { get; set; }
+
+    [Parameter]
+    public Func<CommentDetailedDTO, Task>? OnCommentAdded { get; set; }
+
+    [Parameter]
+    public Func<Task>? OnCommentDeleted { get; set; }
+
+    [Parameter, EditorRequired]
+    public int PostId { get; set; }
+
+    public ListViewScrollPagination<CommentDetailedDTO, DateTimePaginationResult<CommentDetailedDTO>>? _listRef { get; internal set; }
+
+    private Func<CommentDetailedDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, DateTimePaginationResult<CommentDetailedDTO>?, IList<CommentDetailedDTO>, Task<(DateTimePaginationResult<CommentDetailedDTO>, PaginationResult<CommentDetailedDTO>, IList<CommentDetailedDTO>)>> _fetchFunction;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (PostId > 56)
+        {
+            var x = 1;
+        }
+        _buildListItemContent = (CommentDetailedDTO dto) =>@<CommentCard OnCommentDeleted=OnCommentDeletedLocal Comment="dto" />;
+        _buildSkeletonContent = () =>@<PostCardSkeleton />;
+        _fetchFunction = async (int itemsPerPage, DateTimePaginationResult<CommentDetailedDTO>? previousPaginationResult, IList<CommentDetailedDTO> items) =>
+        {
+            var request = new CommentGetRequest
+                {
+                    ItemsPerPage = itemsPerPage,
+                    Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                    LastDate = previousPaginationResult?.LastDate ?? DateTime.UtcNow.AddDays(1),
+                    LastId = previousPaginationResult?.LastId ?? -1,
+                    PostId = PostId
+                };
+
+            var result = await ApiClient.GetCommentsAsync(request);
+            if (result.Total > 0)
+            {
+                ShowCreateComment = true;
+                this.StateHasChanged();
+            }
+            return (result, result, result.Result ?? new List<CommentDetailedDTO>());
+        };
+    }
+
+    private async Task OnCommentCreated(int commentId)
+    {
+        HideComments = false;
+        var Comment = await ApiClient.GetCommentAsync(commentId);
+        if (_listRef is not null)
+        {
+            _listRef.AddItemToStart(Comment);
+        }
+        if (OnCommentAdded is not null)
+        {
+            await OnCommentAdded(Comment);
+        }
+        this.StateHasChanged();
+    }
+
+    private async Task OnCommentDeletedLocal(int commentId)
+    {
+        _listRef.DeleteItems((CommentDetailedDTO dto) => dto.Id == commentId);
+        if (OnCommentDeleted is not null)
+        {
+            await OnCommentDeleted();
+        }
+        this.StateHasChanged();
+    }
+
+}

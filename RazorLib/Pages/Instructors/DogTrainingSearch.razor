@@ -1,0 +1,329 @@
+﻿@attribute [Route(RoutingConstants.SEARCH_DOG_TRAINING)]
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Instructors;
+@using ModelLib.DTOs;
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components;
+@using RazorLib.Interfaces;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<MudContainer>
+    <MudText Class="my-5" Typo="Typo.h4">Find Hundetræning</MudText>
+
+    <MudGrid Class="mb-2">
+
+        <MudItem xs="12" sm="12" md="3">
+            <MudStack Justify="Justify.FlexEnd" Style="height:100%; width:100%;">
+                <SearchAreaSelect OnSearchAreaSelected=OnSearchAreaChanged @ref="_searchAreaSelect" />
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="2">
+            <MudSelect @ref=_categoryInputRef T=int ValueChanged=OnCategoryFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Kategori">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<InstructorCategory>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">@item</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="2">
+            <MudSelect @ref=_dayOfWeekInputRef T=int ValueChanged=OnDayFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Dag">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<DayOfWeek>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">@item</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="12" md="5">
+            <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="3">
+                <MudTimePicker @ref=_afterTimeInputRef Rounded="true" Clearable="true" Label="Efter kl" TimeChanged="FromTimeChanged" />
+                <MudIcon Style="align-self: end; margin-bottom: 4px;" Icon="@Icons.Material.Filled.ArrowForward" />
+                <MudTimePicker @ref=_beforeTimeInputRef Rounded="true" Clearable="true" Label="Før kl" TimeChanged="ToTimeChanged" />
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudAutocomplete Clearable="true"
+                             T=string
+                             @ref=_trainerInputRef
+                             SearchFunc="SearchTrainerNames"
+                             ValueChanged="OnTrainerChanged"
+                             AnchorOrigin="Origin.BottomCenter"
+                             Label="Træner"
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             CoerceText="true"
+                             ResetValueOnEmptyText="true">
+            </MudAutocomplete>
+        </MudItem>
+
+    </MudGrid>
+
+    <MudDivider Light="true" Class="mb-2" />
+
+    <MudText Typo="Typo.h6">Fandt @(_searchResultCount) resultat@(_searchResultCount != 1 ? "er" : ""):</MudText>
+
+    @if (_hasInitialized)
+    {
+        <ListViewScrollPagination EnableGrid="true"
+                              ItemGap="5"
+                              BuildListItemContent="_buildDogTrainingListItemContent"
+                              FetchFunction="_fetchNearbyDogCourses"
+                              Orientation="ListViewOrientation.Vertical"
+                              SetSearchResultTotalCount="SetSearchResultTotalCount"
+                              @ref="_listView" 
+                              UniqueItemKeyExtractor="(DogTrainingListDTO t) => t.Id"/>
+    }
+
+</MudContainer>
+
+
+@code {
+    private Func<int, DistancePaginationResult<DogTrainingListDTO>?, IList<DogTrainingListDTO>, Task<(DistancePaginationResult<DogTrainingListDTO>, PaginationResult<DogTrainingListDTO>, IList<DogTrainingListDTO>)>> _fetchNearbyDogCourses;
+    private Func<DogTrainingListDTO, RenderFragment> _buildDogTrainingListItemContent;
+    private ListViewScrollPagination<DogTrainingListDTO, DistancePaginationResult<DogTrainingListDTO>> _listView;
+
+    private int _searchResultCount;
+    private bool _hasInitialized;
+
+    private MudSelect<int> _categoryInputRef;
+    private MudSelect<int> _dayOfWeekInputRef;
+    private MudAutocomplete<string> _trainerInputRef;
+    private MudTimePicker _afterTimeInputRef;
+    private MudTimePicker _beforeTimeInputRef;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? CategoryParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "day")]
+    public string? DayOfWeekParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "before")]
+    public string? BeforeParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "after")]
+    public string? AfterParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "trainerId")]
+    public int? TrainerIdParam { get; set; }
+
+    private Dictionary<string, int> _trainerNameToId;
+    private List<string> _trainerNames;
+
+    private SearchFilterDogTraining _searchFilter;
+
+    protected SearchAreaSelect _searchAreaSelect;
+
+    public DogTrainingSearch()
+    {
+        _trainerNameToId = new();
+        _trainerNames = new();
+        _searchFilter = new();
+        _fetchNearbyDogCourses = async (int itemsPerPage, DistancePaginationResult<DogTrainingListDTO>? distancePaginationResult, IList<DogTrainingListDTO> items) =>
+    {
+        var request = new DogTrainingRequest
+            {
+                ItemsPerPage = itemsPerPage,
+                Page = distancePaginationResult != null ? distancePaginationResult.CurrentPage + 1 : 0,
+                PreviousDistance = distancePaginationResult?.LastDistance ?? -1f,
+                SearchArea = await _searchAreaSelect.GetSearchAreaDTOAsync(),
+                LastId = distancePaginationResult?.LastId ?? -1,
+                SearchFilter = this._searchFilter
+            };
+
+        var result = await ApiClient.GetDogTrainingsAsync(request);
+        var paginationResult = result ?? new();
+
+        return (paginationResult, paginationResult, result?.Result ?? new List<DogTrainingListDTO>());
+    };
+        _buildDogTrainingListItemContent = (DogTrainingListDTO dto) =>@<MudItem Style="justify-content: center; display: flex;"><DogTrainingListCard DogTraining="dto" /></MudItem>;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await FetchTrainersNames();
+
+        if (CategoryParam is not null)
+        {
+            _searchFilter.Category = EnumUtils.TryParse<InstructorCategory>(CategoryParam);
+            _categoryInputRef.Value = (((int)_searchFilter.Category) + 1);
+        }
+        if (DayOfWeekParam is not null)
+        {
+            _searchFilter.Day = EnumUtils.TryParse<DayOfWeek>(DayOfWeekParam);
+            _dayOfWeekInputRef.Value = (((int)_searchFilter.Day) + 1);
+        }
+        if (AfterParam is not null)
+        {
+            _searchFilter.AfterTime = AfterParam.FromQueryParameterString();
+            _afterTimeInputRef.Time = _searchFilter.AfterTime;
+        }
+        if (BeforeParam is not null)
+        {
+            _searchFilter.BeforeTime = BeforeParam.FromQueryParameterString();
+            _beforeTimeInputRef.Time = _searchFilter.BeforeTime;
+        }
+        if (TrainerIdParam is not null)
+        {
+            _searchFilter.TrainerId = TrainerIdParam;
+            _trainerInputRef.Value = _trainerNameToId.Keys.ToList().FirstOrDefault(k => _trainerNameToId[k] == TrainerIdParam) ?? string.Empty;
+            await _trainerInputRef.ForceUpdate();
+        }
+        _hasInitialized = true;
+    }
+
+    public async Task OnTrainerChanged(string trainer)
+    {
+        var id = 0;
+        if (trainer is not null && _trainerNameToId.ContainsKey(trainer))
+        {
+            id = _trainerNameToId[trainer];
+        }
+
+        int? prev = _searchFilter.TrainerId;
+        if (id == 0)
+        {
+            _searchFilter.TrainerId = null;
+        }
+        else
+        {
+            _searchFilter.TrainerId = id;
+        }
+        if (prev != _searchFilter.TrainerId)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task OnCategoryFilterChanged(int enumIndex)
+    {
+        var prev = _searchFilter.Category;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _searchFilter.Category = null;
+        }
+        else
+        {
+            _searchFilter.Category = (InstructorCategory)enumIndex;
+        }
+        if (prev != _searchFilter.Category)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task OnDayFilterChanged(int enumIndex)
+    {
+        var prev = _searchFilter.Day;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _searchFilter.Day = null;
+        }
+        else
+        {
+            _searchFilter.Day = (DayOfWeek)enumIndex;
+        }
+
+        if (prev != _searchFilter.Day)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task FromTimeChanged(TimeSpan? newTime)
+    {
+        var prev = _searchFilter.AfterTime;
+        if (newTime is not null)
+        {
+            _searchFilter.AfterTime = DateUtils.LocalTimeSpanToUTC(newTime.Value);
+        }
+        else
+        {
+            _searchFilter.AfterTime = newTime;
+        }
+        UpdateQueryParameters();
+        if (prev != _searchFilter.AfterTime)
+        {
+            await ResetListView();
+        }
+    }
+
+    public async Task ToTimeChanged(TimeSpan? newTime)
+    {
+        var prev = _searchFilter.BeforeTime;
+        if (newTime is not null)
+        {
+            _searchFilter.BeforeTime = DateUtils.LocalTimeSpanToUTC(newTime.Value);
+        }
+        else
+        {
+            _searchFilter.BeforeTime = newTime;
+        }
+        UpdateQueryParameters();
+        if (prev != _searchFilter.BeforeTime)
+        {
+            await ResetListView();
+        }
+    }
+
+    public void UpdateQueryParameters()
+    {
+        var localBeforeTime = DateUtils.UTCTimeSpanToLocal(_searchFilter.BeforeTime);
+        var localAfterTime = DateUtils.UTCTimeSpanToLocal(_searchFilter.AfterTime);
+
+        NavigationManager.NavigateToSearchDogTraining(_searchFilter.Category, _searchFilter.Day, localAfterTime, localBeforeTime, _searchFilter.TrainerId);
+    }
+
+    public void SetSearchResultTotalCount(int count)
+    {
+        _searchResultCount = count;
+        StateHasChanged();
+    }
+
+    public async Task OnSearchAreaChanged(SearchAreaDTO searchArea)
+    {
+        await ResetListView();
+    }
+
+    private async Task ResetListView()
+    {
+        _listView.Reset();
+        await _listView.FetchPagination();
+    }
+
+    private async Task FetchTrainersNames()
+    {
+        var trainerIdToName = await ApiClient.GetTrainerNames();
+        _trainerNames = trainerIdToName.Values.ToList();
+        _trainerNameToId = new();
+        trainerIdToName.Keys.ToList().ForEach(k => _trainerNameToId.Add(trainerIdToName[k], k));
+    }
+
+    private async Task<IEnumerable<string>> SearchTrainerNames(string value)
+    {
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+            return _trainerNames;
+        return _trainerNames.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x);
+    }
+}

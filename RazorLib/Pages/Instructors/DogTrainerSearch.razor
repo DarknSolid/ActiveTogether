@@ -1,0 +1,159 @@
+﻿@attribute [Route(RoutingConstants.SEARCH_DOG_TRAINER)]
+
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Instructors;
+@using ModelLib.DTOs;
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components;
+@using RazorLib.Interfaces;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+
+<MudContainer>
+    <MudText Class="my-5" Typo="Typo.h4">Find Hundetrænere</MudText>
+
+    <MudGrid Class="mb-2">
+        <MudItem xs="12" sm="6" md="3">
+            <MudStack Justify="Justify.FlexEnd" Style="height:100%; width:100%;">
+                <SearchAreaSelect OnSearchAreaSelected=OnSearchAreaChanged @ref="_searchAreaSelect" />
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="2">
+            <MudSelect @ref=_categoryInputRef T=int ValueChanged=OnCategoryFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Holdtyper">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<InstructorCategory>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">@item</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Light="true" Class="mb-2" />
+
+    <MudText Typo="Typo.h6">Fandt @(_searchResultCount) resultat@(_searchResultCount != 1 ? "er" : ""):</MudText>
+
+    @if (_hasInitialized)
+    {
+        <ListViewScrollPagination EnableGrid="true"
+                                  ItemGap="5"
+                                  BuildListItemContent="_buildDogTrainingListItemContent"
+                                  FetchFunction="_fetchNearbyDogCourses"
+                                  Orientation="ListViewOrientation.Vertical"
+                                  SetSearchResultTotalCount="SetSearchResultTotalCount"
+        @ref="_listView"
+                                  UniqueItemKeyExtractor="(DogTrainerListDTO t) => t.Id" />
+    }
+
+
+</MudContainer>
+
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? CategoryParam { get; set; }
+
+    private SearchFilterDogTrainer _searchFilter;
+
+    protected SearchAreaSelect _searchAreaSelect;
+
+    private MudSelect<int> _categoryInputRef;
+
+    private int _searchResultCount;
+    private bool _hasInitialized;
+
+    private Func<int, DistancePaginationResult<DogTrainerListDTO>?, IList<DogTrainerListDTO>, Task<(DistancePaginationResult<DogTrainerListDTO>, PaginationResult<DogTrainerListDTO>, IList<DogTrainerListDTO>)>> _fetchNearbyDogCourses;
+    private Func<DogTrainerListDTO, RenderFragment> _buildDogTrainingListItemContent;
+    private ListViewScrollPagination<DogTrainerListDTO, DistancePaginationResult<DogTrainerListDTO>> _listView;
+
+    public DogTrainerSearch()
+    {
+        _searchFilter = new();
+
+        _fetchNearbyDogCourses = async (int itemsPerPage, DistancePaginationResult<DogTrainerListDTO>? distancePaginationResult, IList<DogTrainerListDTO> items) =>
+    {
+        var request = new DogTrainerRequest
+            {
+                ItemsPerPage = itemsPerPage,
+                Page = distancePaginationResult != null ? distancePaginationResult.CurrentPage + 1 : 0,
+                PreviousDistance = distancePaginationResult?.LastDistance ?? -1f,
+                SearchArea = await _searchAreaSelect.GetSearchAreaDTOAsync(),
+                LastId = distancePaginationResult?.LastId ?? -1,
+                SearchFilter = this._searchFilter
+            };
+
+        var result = await ApiClient.GetDogTrainersAsync(request);
+        var paginationResult = result ?? new();
+
+        return (paginationResult, paginationResult, result?.Result ?? new List<DogTrainerListDTO>());
+    };
+        _buildDogTrainingListItemContent = (DogTrainerListDTO dto) =>@<MudItem Style="justify-content: center; display: flex;"><InstructorListCard PlaceListDTO="dto" /></MudItem>;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            if (CategoryParam is not null)
+            {
+                _searchFilter.Category = EnumUtils.TryParse<InstructorCategory>(CategoryParam);
+                _categoryInputRef.Value = (((int)_searchFilter.Category) + 1);
+            }
+            _hasInitialized = true;
+            StateHasChanged();
+        }
+
+    }
+
+    public async Task OnCategoryFilterChanged(int enumIndex)
+    {
+        var prev = _searchFilter.Category;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _searchFilter.Category = null;
+        }
+        else
+        {
+            _searchFilter.Category = (InstructorCategory)enumIndex;
+        }
+        if (prev != _searchFilter.Category)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task OnSearchAreaChanged(SearchAreaDTO searchArea)
+    {
+        await ResetListView();
+    }
+
+    public void UpdateQueryParameters()
+    {
+        NavigationManager.NavigateToSearchDogTrainer(category: _searchFilter.Category);
+    }
+
+    private async Task ResetListView()
+    {
+        _listView.Reset();
+        await _listView.FetchPagination();
+    }
+
+    public void SetSearchResultTotalCount(int count)
+    {
+        _searchResultCount = count;
+        StateHasChanged();
+    }
+}

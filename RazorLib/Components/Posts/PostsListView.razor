@@ -1,0 +1,105 @@
+﻿@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.DTOs.Places;
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components.Posts
+@using RazorLib.Interfaces;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+
+<MudStack Style="width:100%;" Justify="Justify.Center" AlignItems="AlignItems.Center">
+    @ChildContent
+    @if (CanPost)
+    {
+        <MudPaper Class="pa-2" Elevation=1 Style="width:100%; max-width:600px;">
+            <Authenticated>
+                <CreatePost DefaultPostArea="DefaultPostArea" PlaceId=PlaceId CanChoosePostArea="CanChoosePostArea" OnPostCreated="OnPostCreated"></CreatePost>
+            </Authenticated>
+        </MudPaper>
+    }
+    <ListViewScrollPagination @ref=_listViewRef
+                              ItemGap="20"
+                              Orientation=@Orientation
+                              BuildListItemContent="_buildListItemContent"
+                              BuildSkeletonContent="_buildSkeletonContent"
+                              FetchFunction="_fetchFunction"
+                              UniqueItemKeyExtractor="(PostDetailedDTO dto) => dto.Id" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public bool CanPost { get; set; }
+
+    [Parameter]
+    public int? PlaceId { get; set; }
+    [Parameter]
+    public bool CanChoosePostArea { get; set; } = true;
+    [Parameter]
+    public bool HidePostArea { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public Func<PostCategory, Task>? OnPostCategoryClicked { get; set; }
+
+    [Parameter]
+    public Func<PostArea, Task>? OnPostAreaClicked { get; set; }
+
+    [Parameter]
+    public string? PostStyle { get; set; }
+
+    [Parameter]
+    public ListViewOrientation Orientation { get; set; } = ListViewOrientation.Vertical;
+
+    [Parameter]
+    public PostArea? DefaultPostArea { get; set; }
+
+    [Parameter]
+    public PostFilter? Filter { get; set; }
+
+    public ListViewScrollPagination<PostDetailedDTO, DateTimePaginationResult<PostDetailedDTO>>? _listViewRef { get; internal set; }
+
+    private Func<PostDetailedDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, DateTimePaginationResult<PostDetailedDTO>?, IList<PostDetailedDTO>, Task<(DateTimePaginationResult<PostDetailedDTO>, PaginationResult<PostDetailedDTO>, IList<PostDetailedDTO>)>> _fetchFunction;
+
+
+    public PostsListView()
+    {
+        _buildListItemContent = (PostDetailedDTO dto) =>@<PostCard OnPostAreaClicked=@OnPostAreaClicked OnPostCategoryClicked=@OnPostCategoryClicked HidePostArea=HidePostArea Style=@PostStyle OnPostDeleted=OnPostDeleted Post="dto" />;
+        _buildSkeletonContent = () =>@<PostCardSkeleton />;
+        _fetchFunction = async (int itemsPerPage, DateTimePaginationResult<PostDetailedDTO>? previousPaginationResult, IList<PostDetailedDTO> items) =>
+        {
+            var request = new PostDateTimePaginationRequest
+                {
+                    ItemsPerPage = itemsPerPage,
+                    Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                    LastDate = previousPaginationResult?.LastDate ?? DateTime.UtcNow.AddDays(1),
+                    LastId = previousPaginationResult?.LastId ?? -1,
+                    Filter = Filter
+                };
+
+            var result = await ApiClient.GetPosts(request);
+            return (result, result, result.Result ?? new List<PostDetailedDTO>());
+        };
+    }
+
+    private async Task OnPostCreated(int postId)
+    {
+        if (_listViewRef is not null)
+        {
+            var post = await ApiClient.GetPostAsync(postId);
+            if (post is not null)
+            {
+                _listViewRef.AddItemToStart(post);
+            }
+        }
+    }
+
+    public void OnPostDeleted(int postId)
+    {
+        _listViewRef.DeleteItems((PostDetailedDTO dto) => dto.Id == postId);
+    }
+}

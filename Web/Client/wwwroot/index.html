@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>DoggoWorld</title>
+    <base href="/" />
+
+    <link rel="icon" href="favicon.svg" sizes="64x64">
+
+    <!-- MudBlazor -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin="" />
+
+    <!-- RazorLib -->
+    <link href="_content/RazorLib/css/app.css" rel="stylesheet" />
+    <link href="_content/RazorLib/css/map.css" rel="stylesheet" />
+    <link href="_content/RazorLib/images/pin_location.svg" rel="stylesheet" />
+    <link href="_content/RazorLib/images/logo.svg" rel="stylesheet" />
+    <link href="_content/RazorLib/css/leaflet-overrides.css" rel="stylesheet" />
+    <link href="_content/RazorLib/css/mud-overrides.css" rel="stylesheet" />
+
+    <link href="Web.Client.styles.css" rel="stylesheet" />
+    <link href="index.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <div id="app">Loading...</div>
+
+    <script src="FacebookSDK.js"></script>
+
+    <!--Blazor App-->
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- MudBlazor -->
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
+
+    <!-- RazorLib -->
+    <script src="_content/RazorLib/scroll-pagination-observer.js"></script>
+    <script src="_content/RazorLib/media-utils.js"></script>
+
+
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-﻿namespace WebApp.DTOs.Authentication
+﻿namespace ModelLib.DTOs.Authentication
 {
     public class FacebookLoginDTO
     {

@@ -1,13 +1,7 @@
-﻿using ModelLib.ApiDTOs;
-using ModelLib.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ModelLib.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.Sqlite;
-using WebApp.Entities;
+using EntityLib.Entities.Identity;
+using ModelLib.ApiDTOs.Pagination;
 
 namespace UnitTests
 {
@@ -15,22 +9,31 @@ namespace UnitTests
     {
 
         [Theory]
-        [InlineData(1, 0, 1, 0, true, 1)]
-        [InlineData(1, 1, 2, 1, true, 1)]
-        [InlineData(1, 2, 3, 2, false, 1)]
-        [InlineData(10, 0, 1, 0, false, 3)]
-        [InlineData(10, 1, -1, 1, false, 0)]
-        public async Task GetPaginationQuery_Returns_Expected_Pagination_Results(int itemsPerPage, int page, int expectedId, int expectedPage, bool expectedHasNext, int expectedCount)
+        [InlineData(0, "A", -1, "", 10, true)]
+        [InlineData(1, "A", 10, "A", 7, true)]
+        [InlineData(2, "A", 7, "AB", 8, true)]
+        [InlineData(3, "A", 8, "AB", 9, false)]
+        public async Task GetPaginationQuery_Returns_Expected_Pagination_Results(int page, string searchString, int lastId, string lastString, int expectedUserId, bool expectedHasNext)
         {
-            var paginationRequest = new PaginationRequest() { ItemsPerPage = itemsPerPage ,Page = page};
-            var query = _context.DogParks;
+            var paginationRequest = new StringPaginationRequest() { ItemsPerPage = 1 ,Page = page, LastId = lastId, LastString = lastString};
+            var query = _context.Users.Where(u => u.FullNameNormalized.StartsWith(searchString));
 
-            var (actualPaginationResult, actualQuery) = await RepositoryUtils.GetPaginationQuery(query, paginationRequest);
-            var dogParks = await actualQuery.ToListAsync();
+            var orderByFunc = (IQueryable<ApplicationUser> query) =>
+                query.OrderBy(u => u.FullNameNormalized).ThenBy(u => u.Id);
+
+            var keyOffsetFunc = (IQueryable<ApplicationUser> query) =>
+                query.Where(u => u.FullNameNormalized.CompareTo(paginationRequest.LastString) > 0 || 
+                (u.FullNameNormalized.CompareTo(paginationRequest.LastString) == 0 && u.Id > paginationRequest.LastId)
+            );
+
+            var (actualPaginationResult, actualQuery) = await RepositoryUtils.GetPaginationQuery(query, orderByFunc, keyOffsetFunc, paginationRequest);
+            
+            var users = await actualQuery.ToListAsync();
+            
             Assert.Equal(expectedHasNext, actualPaginationResult.HasNext);
-            Assert.Equal(expectedPage, actualPaginationResult.CurrentPage);
-            Assert.Equal(expectedId, dogParks.FirstOrDefault()?.PlaceId ?? -1);
-            Assert.Equal(expectedCount, dogParks.Count);
+            Assert.Equal(expectedUserId, users.First().Id);
+            Assert.Equal(paginationRequest.Page, actualPaginationResult.CurrentPage);
+            Assert.Equal(paginationRequest.ItemsPerPage, users.Count);
         }
     }
 }

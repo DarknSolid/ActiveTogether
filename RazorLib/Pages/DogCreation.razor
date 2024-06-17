@@ -1,62 +1,94 @@
-﻿@using EntityLib.Entities
+﻿@attribute [Route(RoutingConstants.CREATE_DOG + "{DogId:int?}")]
+
+@using EntityLib.Entities
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs;
 @using ModelLib.DTOs.Dogs
+@using ModelLib;
+@using RazorLib.Components.FileSelection
 @using RazorLib.Interfaces
 @using System.ComponentModel.DataAnnotations
+@using RazorLib.Utils;
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient;
+@inject NavigationManager NavigationManager;
+@inject IJSRuntime JSRuntime;
+@inject ISnackbar Snackbar
 
 <MudContainer>
-
-    <MudText Typo="Typo.h5" Align="Align.Center">@_title</MudText>
+    <MudText Typo="Typo.h5" Class="my-5" Align="Align.Center">@_title</MudText>
 
     <EditForm Model="@_model" OnValidSubmit="OnSubmit">
         <DataAnnotationsValidator />
-        <MudGrid Spacing="2">
-            <MudItem xs="12" sm="7">
-                <MudTextField Label="Name" HelperText="Your dogs name"
-                              @bind-Value="_model.Name" For="@(() => _model.Name)" />
+
+        <MudGrid Spacing="2" Class="justify-center">
+
+            <MudItem xs="12">
+                <ImageSelect Disabled=@_loading UploadImageText="Vælg Profilbillede"
+                             ImageStyle="height: 150px; width: 150px; border-radius: 50%; background-color:white"
+                             ChangeImageText="Skift Profilbillede"
+                             InitialImageURL="@_initialProfilePictureUrl"
+                             OnImageChanged="OnProfilePictureChanged"
+                             OnImageRemoved="OnRemoveSelectedProfilePicture" />
             </MudItem>
 
             <MudItem xs="12" sm="7">
-                <MudTextField Lines="5" Label="Description" HelperText="Tell us about your dog"
-                              @bind-Value="_model.Description" For="@(() => _model.Description)" />
+                <MudPaper Class="pa-5">
+                    <MudTextField Label="Navn" HelperText="Din hunds navn"
+                                  @bind-Value="_model.Name" For="@(() => _model.Name)" />
+                </MudPaper>
             </MudItem>
 
             <MudItem xs="12" sm="7">
-                <MudSelect @bind-Value="_model.WeightClass" Label="Select weight class" HelperText="How large your dog is" OpenIcon="@Icons.Filled.Scale">
-                    @foreach (DogWeightClass item in Enum.GetValues(typeof(DogWeightClass)))
-                    {
-                        <MudSelectItem Value="@item">@item</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudPaper Class="pa-5">
+                    <MudTextField Lines="5" Label="Beskrivelse" HelperText="Fortæl os om din hund"
+                                  @bind-Value="_model.Description" For="@(() => _model.Description)" />
+                </MudPaper>
             </MudItem>
 
             <MudItem xs="12" sm="7">
-                <MudDatePicker PickerVariant="PickerVariant.Dialog" Color="Color.Primary" Label="Date of birth" @bind-Date="_birth" />
+                <MudPaper Class="pa-5">
+                    <MudSelect @bind-Value="_model.WeightClass" Label="Vægt klasse" HelperText="Hvor stor er din hund?" OpenIcon="@Icons.Filled.Scale">
+                        @foreach (DogWeightClass item in Enum.GetValues(typeof(DogWeightClass)))
+                        {
+                            <MudSelectItem Value="@item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudPaper>
             </MudItem>
 
             <MudItem xs="12" sm="7">
-                <MudSelect @bind-Value="_model.IsGenderMale" Label="Select gender" HelperText="Male or female?">
+                <MudPaper Class="pa-5">
+                    <MudDatePicker Color="Color.Primary" Label="Fødselsdag" @bind-Date="_birth" />
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="7">
+                <MudPaper Class="pa-5">
+                <MudSelect @bind-Value="_model.IsGenderMale" Label="Køn" HelperText="Er det en hand eller hun?">
                     <MudSelectItem Value="true">
-                        <MudIcon Icon="@Icons.Filled.Male" /> Male
+                        <MudIcon Icon="@Icons.Filled.Male" /> Han
                     </MudSelectItem>
                     <MudSelectItem Value="false">
-                        <MudIcon Icon="@Icons.Filled.Female" /> Female
+                        <MudIcon Icon="@Icons.Filled.Female" /> Hun
                     </MudSelectItem>
                 </MudSelect>
+                </MudPaper>
             </MudItem>
 
             <MudItem xs="12" sm="7">
-                <MudSelect @bind-Value="_model.Breed" Text="Loading" Dense="true" Label="Breed" Variant="Variant.Text">
-                    @foreach (var key in _intToDogBreed.Keys)
+                <MudPaper Class="pa-5">
+                <MudSelect @bind-Value="_model.Race" Text="Loading" Dense="true" Label="Race" Variant="Variant.Text">
+                    @foreach (var race in Enum.GetValues<DogRace>())
                     {
-                        <MudSelectItem Value="@key">@_intToDogBreed[key]</MudSelectItem>
+                        <MudSelectItem Value="@race">@race.ToString()</MudSelectItem>
                     }
                 </MudSelect>
+                </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="7">
+            <MudItem xs="12" sm="7" Class="mb-5">
                 <MudButton Disabled=@_isCreatingUpdatingDog FullWidth=true ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
                     @if (_isCreatingUpdatingDog)
                     {
@@ -64,7 +96,7 @@
                     }
                     else
                     {
-                        <span>@(_isUpdate ? "Update" : "Add")</span>
+                        <span>@(_isUpdate ? "Opdater" : "Tilføj")</span>
                     }
                 </MudButton>
             </MudItem>
@@ -81,16 +113,14 @@
     [Parameter]
     public int? DogId { get; set; }
 
-    [Parameter]
-    public Action OnDogCreationFinished { get; set; }
-
     public DogCreateDTO _model { get; set; } = new();
 
     private string _title;
     private bool _loading;
     private bool _isCreatingUpdatingDog;
     private bool _isUpdate;
-    private IDictionary<int, string> _intToDogBreed = new Dictionary<int, string>();
+
+    private string? _initialProfilePictureUrl;
 
     [Required(ErrorMessage = "You must specify a date")]
     private DateTime? _birth = DateTime.UtcNow;
@@ -102,56 +132,82 @@
             _isUpdate = true;
         }
         _loading = true;
-        _intToDogBreed = await ApiClient.GetDogBreedsAsync();
         StateHasChanged();
         if (_isUpdate)
         {
             await FetchExistingDog();
-            _title = "Update " + _model.Name;
+            _title = "Opdater " + _model.Name;
         }
         else
         {
-            _title = "Add Dog";
+            _title = "Opret din Hund";
             // set default values:
-            _model.Breed = _intToDogBreed.Keys.First();
             _model.WeightClass = DogWeightClass.Medium;
         }
         _loading = false;
         base.OnParametersSet();
     }
 
+    private async Task OnProfilePictureChanged(IBrowserFile file)
+    {
+        if (_model.ProfilePicture is null)
+        {
+            _model.ProfilePicture = new();
+        }
+        _model.ProfilePicture.IsDeleteCommand = false;
+        _model.ProfilePicture.ContentType = file.ContentType;
+        _model.ProfilePicture.Bytes = await file.ToByteArray(maxAllowedSize: MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+    }
+
+    private Task OnRemoveSelectedProfilePicture()
+    {
+        _model.ProfilePicture = new();
+        _model.ProfilePicture.IsDeleteCommand = true;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     public async Task OnSubmit()
     {
         _isCreatingUpdatingDog = true;
+        var success = false;
+        int? id = null;
         if (_isUpdate)
         {
-            await ApiClient.UpdateDogAsync(new DogUpdateDTO
+            success = await ApiClient.UpdateDogAsync(new DogUpdateDTO
                 {
                     Birth = _birth ?? DateTime.UtcNow,
-                    Breed = _model.Breed,
+                    Race = _model.Race,
                     Description = _model.Description,
                     Id = DogId.Value,
                     IsGenderMale = _model.IsGenderMale,
                     Name = _model.Name,
                     WeightClass = _model.WeightClass,
+                    ProfilePicture = _model.ProfilePicture
                 });
         }
         else
         {
-            await ApiClient.CreateDogAsync(new DogCreateDTO
-                {
-                    Birth = _birth ?? DateTime.UtcNow,
-                    Breed = _model.Breed,
-                    Description = _model.Description,
-                    IsGenderMale = _model.IsGenderMale,
-                    Name = _model.Name,
-                    WeightClass = _model.WeightClass
-                });
+            id = await ApiClient.CreateDogAsync(_model);
+        }
+        if (!success)
+        {
+            success = id is not null;
+        }
+
+        var textSuccess = _isUpdate ? "opdateret" : "oprettet";
+        var textFailure = _isUpdate ? "opdatere" : "oprette";
+        if (success)
+        {
+            Snackbar.Add($"Din hund blev {textSuccess}!", Severity.Success);
+            NavigationManager.GoBack(JSRuntime);
+        }
+        else
+        {
+            Snackbar.Add($"Kunne ikke {textFailure} din hund", Severity.Error);
         }
         _isCreatingUpdatingDog = false;
-        OnDogCreationFinished();
     }
-
 
     private async Task FetchExistingDog()
     {
@@ -163,13 +219,14 @@
         _model = new()
             {
                 Birth = dogDetailed.Birth,
-                Breed = dogDetailed.Breed,
+                Race = dogDetailed.Race,
                 Description = dogDetailed.Description,
                 Name = dogDetailed.Name,
                 IsGenderMale = dogDetailed.IsGenderMale,
-                WeightClass = dogDetailed.WeightClass
+                WeightClass = dogDetailed.WeightClass,
             };
         _birth = _model.Birth;
+        _initialProfilePictureUrl = dogDetailed.ProfilePictureUrl;
         _loading = false;
 
     }

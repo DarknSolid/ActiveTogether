@@ -1,0 +1,176 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.JSInterop;
+@using ModelLib;
+@using RazorLib.Components.Media
+@using RazorLib.Utils;
+@inject IJSRuntime JSRuntime;
+
+<MudStack Class="@Class" Spacing="2" Style=@("position:relative; " + Style) AlignItems="AlignItems.Center">
+
+    @if (_mediaUris is not null)
+    {
+        <MudPaper Elevation="2" Class="border-dashed border-2 pa-5" Style=@("border-color:grey; background-color:transparent; position:relative; " + ImageStyle)>
+            <MudStack Row=true Style="flex-wrap:wrap; width:100%;height:100%; overflow-y:scroll;">
+                @if (_mediaUris.Any())
+                {
+                    @foreach (var (uri, index) in _mediaUris.Select((uri, index) => (uri, index)))
+                    {
+                        @if (uri.StartsWith("video"))
+                        {
+                            <Video Height="200" id=@($"selectedVideo{index}") />
+                        }
+                        else
+                        {
+
+                            <MudImage ObjectFit="ObjectFit.Contain"
+                                      Style="height:100%; border-radius:inherit;"
+                                      Src="@uri" />
+                        }
+                    }
+                }
+                else
+                {
+                    <MudText Style="position: absolute;top: 50%; transform: translateY(-50%); width: 100%; text-align: center;"
+                             Typo="Typo.subtitle1">
+                        intet valgt
+                    </MudText>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+
+    <MudStack Row=true Justify="Justify.Center" Style="flex-wrap:wrap;" AlignItems="AlignItems.Center">
+        <MudFileUpload Class="mt-0"
+                       T="IReadOnlyList<IBrowserFile>"
+                       MaximumFileCount="10"
+                       Accept="@_accetpedMedia"
+                       OnFilesChanged="(InputFileChangeEventArgs e) => OnFilesChanged(e)">
+            <ButtonTemplate>
+                <MudButton Disabled=@Disabled HtmlTag="label"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Image"
+                           for="@context">
+                    @(_selectedBrowserFiles is null ? UploadMediaText : ChangeMediaText)
+                </MudButton>
+            </ButtonTemplate>
+        </MudFileUpload>
+
+        @if (_selectedBrowserFiles is not null)
+        {
+            <MudButton Disabled=@Disabled Variant="Variant.Outlined"
+                       OnClick=RemoveMedia
+                       StartIcon="@Icons.Material.Outlined.Cancel">
+                Fjern
+            </MudButton>
+        }
+    </MudStack>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public bool Disabled { get; set; }
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter, EditorRequired]
+    public string ChangeMediaText { get; set; } = "Change Image";
+
+    [Parameter, EditorRequired]
+    public string UploadMediaText { get; set; } = "Select Image";
+
+    [Parameter, EditorRequired]
+    // the string is the URI
+    public Func<IReadOnlyList<IBrowserFile>?, Task> OnMediaChanged { get; set; }
+
+    [Parameter]
+    public string? ImageStyle { get; set; } = "height: 200px; max-height:200px; width:100%; background-color:white";
+
+    private IReadOnlyList<IBrowserFile>? _selectedBrowserFiles;
+
+    private string[]? _mediaUris;
+
+
+
+    private string _accetpedMedia;
+
+    public MultiMediaSelect()
+    {
+        _accetpedMedia = MediaUtils.AcceptedImages + "," + MediaUtils._acceptedVideos;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    private async Task OnFilesChanged(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        var result = new List<IBrowserFile>();
+
+        foreach (var file in files)
+        {
+            var extension = "." + file.ContentType.Split("/").Last().ToLower();
+            if (file.Size <= MediaUtils.FORTY_MEGABYTES_IN_BYTES &&
+                MediaUtils.GetAllMediaExtensionsSet().Contains(extension))
+            {
+                result.Add(file);
+            }
+            else
+            {
+                continue;
+            }
+        }
+        if (result.Any())
+        {
+            _selectedBrowserFiles = result;
+            var temp = new List<string>();
+            foreach (var file in result)
+            {
+                var extension = "." + file.ContentType.Split("/").Last().ToLower();
+                if (MediaUtils.GetVideoExtensionsSet().Contains(extension))
+                {
+                    temp.Add("video");
+                }
+                else
+                {
+                    temp.Add(await file.ToDataURL(MediaUtils.FORTY_MEGABYTES_IN_BYTES));
+                }
+            }
+            _mediaUris = temp.ToArray();
+        }
+        StateHasChanged();
+        await OnMediaChanged(result);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (_selectedBrowserFiles is null)
+        {
+            return;
+        }
+        foreach (var (file, index) in _selectedBrowserFiles.Select((file, index) => (file, index)))
+        {
+            var extension = "." + file.ContentType.Split("/").Last().ToLower();
+            if (MediaUtils.GetVideoExtensionsSet().Contains(extension))
+            {
+                await JSRuntime.InvokeVoidAsync("LoadVideo3", await file.ToByteArray(MediaUtils.FORTY_MEGABYTES_IN_BYTES), file.ContentType, "selectedVideo" + index);
+            }
+        }
+    }
+
+    private async Task RemoveMedia()
+    {
+        _selectedBrowserFiles = null;
+        _mediaUris = null;
+        await OnMediaChanged(null);
+        StateHasChanged();
+    }
+}

@@ -10,11 +10,13 @@ namespace ModelLib.Repositories
     {
         public enum ResponseType
         {
+            Ok,
             Conflict,
             Updated,
             Created,
             NotFound,
-            Deleted
+            Deleted,
+            Unauthorized
         }
 
         public enum FriendShipStatus

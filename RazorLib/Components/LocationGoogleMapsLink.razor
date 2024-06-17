@@ -1,0 +1,24 @@
+﻿<MudLink Href="@_googleMapsDirectionsLink" Target="_blank">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+        <MudIcon Icon="@Icons.Material.Filled.Directions" />
+        <MudText Typo="Typo.body1">Se Rutevejledning</MudText>
+    </MudStack>
+</MudLink>
+
+@code {
+    private string _googleMapsDirectionsLink;
+
+    [Parameter, EditorRequired]
+    public double Latitude { get; set; }
+
+    [Parameter, EditorRequired]
+    public double Longitude { get; set; }
+
+
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _googleMapsDirectionsLink = $"https://www.google.com/maps/search/{Latitude},{Longitude}";
+    }
+}

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EntityLib.Entities.AbstractClasses;
 
 namespace ModelLib.DTOs.Authentication
 {
-    public class UserListDTO
+    public class UserListDTO : IntegerId
     {
-        public int UserId { get; set; }
+        override public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string ProfilePictureUrl { get; set; }
+        public string FullName { get => FirstName + " " + LastName; }
+        public string? ProfilePictureUrl { get; set; }
+        public string FullNameNormalized { get; set; }
     }
 }

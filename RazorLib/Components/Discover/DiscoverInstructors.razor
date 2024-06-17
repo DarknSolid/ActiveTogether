@@ -1,0 +1,173 @@
+﻿@using FisSst.BlazorMaps.Models.Basics
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs
+@using ModelLib.DTOs.Instructors
+@using ModelLib.DTOs.Posts;
+@using ModelLib.Utils
+@using NpgsqlTypes
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components.Posts
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@using RazorLib.Models.MapSearch
+@using static EntityLib.Entities.Enums;
+@inherits DiscoverBase
+@inject InstructorMapSearcher MapSearcher
+@inject NavigationManager NavigationManager
+@inject IApiClient ApiClient
+
+@if (!_showMap)
+{
+    <MudContainer>
+        <MudText Class="mt-5 mb-2" Typo="Typo.h4">Hundetræning i Området</MudText>
+        <MudDivider />
+    </MudContainer>
+}
+
+@{
+    base.BuildRenderTree(__builder);
+}
+@if (_showMap)
+{
+    <RazorLib.Pages.Map.Map OnSearchBtnPressed="_onMapSearchBtnPressed"
+                            CanCreateMapPoint="false" />
+}
+else
+{
+    <MudContainer>
+
+        <MudItem Class="mb-5">
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">Hundetræning Snak</MudText>
+                <MudButton Variant="Variant.Text" OnClick="(() => NavigationManager.NavigateToFeed(_postFilter))" EndIcon="@Icons.Material.Filled.ArrowForward">FLERE</MudButton>
+
+            </MudStack>
+
+            <MudDivider Light="true" Class="mb-2" />
+
+            <div style="overflow-y:hidden; max-height:300px;">
+                <PostsListView PostStyle="max-height:250px; overflow-y:scroll;" Filter=@_postFilter HidePostArea=true Orientation=ListViewOrientation.Horizontal CanPost=false />
+            </div>
+        </MudItem>
+
+        <DiscoverCategory Title="Hundetræning"
+                          OnSeeAllClicked="(() => NavigationManager.NavigateToSearchDogTraining())"
+                          FetchFunction="_fetchNearbyDogCourses(null)"
+                          BuildListItemContent="_buildDogTrainingListItemContent" @ref="_nearbyDogTraining"
+                          UniqueItemKeyExtractor="uniqueDogTrainingKeyExtractor" />
+
+        <DiscoverCategory Title="Hundetrænere"
+                          FetchFunction="_fetchNearbyInstructors"
+                          BuildListItemContent="_buildInstructorListItemContent" @ref="_nearbyInstructors"
+                          OnSeeAllClicked="(() => NavigationManager.NavigateToSearchDogTrainer())"
+                          UniqueItemKeyExtractor="(DogTrainerListDTO t) => t.Id" />
+
+        <DiscoverCategory Title="Hvalpetræning"
+                          OnSeeAllClicked="(() => NavigationManager.NavigateToSearchDogTraining(category:InstructorCategory.Puppy))"
+                          FetchFunction="_fetchNearbyDogCourses(CreateCategoryFilter(InstructorCategory.Puppy))"
+                          BuildListItemContent="_buildDogTrainingListItemContent" @ref="_nearbyPuppyTraining"
+                          UniqueItemKeyExtractor="uniqueDogTrainingKeyExtractor" />
+
+        <DiscoverCategory Title="Agility"
+                          OnSeeAllClicked="(() => NavigationManager.NavigateToSearchDogTraining(category:InstructorCategory.Agility))"
+                          FetchFunction="_fetchNearbyDogCourses(CreateCategoryFilter(InstructorCategory.Agility))"
+                          BuildListItemContent="_buildDogTrainingListItemContent" @ref="_nearbyAgilityTraining"
+                          UniqueItemKeyExtractor="uniqueDogTrainingKeyExtractor" />
+
+        <DiscoverCategory Title="Nosework"
+                          OnSeeAllClicked="(() => NavigationManager.NavigateToSearchDogTraining(category:InstructorCategory.Nosework))"
+                          FetchFunction="_fetchNearbyDogCourses(CreateCategoryFilter(InstructorCategory.Nosework))"
+                          BuildListItemContent="_buildDogTrainingListItemContent" @ref="_nearbyNoseworkTraining"
+                          UniqueItemKeyExtractor="uniqueDogTrainingKeyExtractor" />
+    </MudContainer>
+}
+
+
+@code {
+
+    //nearby instructors:
+    private Func<int, DistancePaginationResult<DogTrainerListDTO>?, IList<DogTrainerListDTO>, Task<(DistancePaginationResult<DogTrainerListDTO>, PaginationResult<DogTrainerListDTO>, IList<DogTrainerListDTO>)>> _fetchNearbyInstructors;
+    private Func<SearchFilterDogTraining?, Func<int, DistancePaginationResult<DogTrainingListDTO>?, IList<DogTrainingListDTO>, Task<(DistancePaginationResult<DogTrainingListDTO>, PaginationResult<DogTrainingListDTO>, IList<DogTrainingListDTO>)>>> _fetchNearbyDogCourses;
+
+    private Func<DogTrainerListDTO, RenderFragment> _buildInstructorListItemContent;
+    private Func<DogTrainingListDTO, RenderFragment> _buildDogTrainingListItemContent;
+
+    private DiscoverCategory<DogTrainingListDTO, DistancePaginationResult<DogTrainingListDTO>> _nearbyDogTraining;
+    private DiscoverCategory<DogTrainingListDTO, DistancePaginationResult<DogTrainingListDTO>> _nearbyPuppyTraining;
+    private DiscoverCategory<DogTrainingListDTO, DistancePaginationResult<DogTrainingListDTO>> _nearbyAgilityTraining;
+    private DiscoverCategory<DogTrainingListDTO, DistancePaginationResult<DogTrainingListDTO>> _nearbyNoseworkTraining;
+    private DiscoverCategory<DogTrainerListDTO, DistancePaginationResult<DogTrainerListDTO>> _nearbyInstructors;
+
+    private Func<DogTrainingListDTO, object> uniqueDogTrainingKeyExtractor = (DogTrainingListDTO t) => t.Id;
+
+    private PostFilter _postFilter = new PostFilter { Area = PostArea.DogTraining, IncludePlaceDetails = true };
+
+    public DiscoverInstructors()
+    {
+        //nearby instructors:
+        _fetchNearbyInstructors = async (int itemsPerPage, DistancePaginationResult<DogTrainerListDTO>? distancePaginationResult, IList<DogTrainerListDTO> items) =>
+        {
+            var request = new DogTrainerRequest
+                {
+                    ItemsPerPage = itemsPerPage,
+                    Page = distancePaginationResult != null ? distancePaginationResult.CurrentPage + 1 : 0,
+                    PreviousDistance = distancePaginationResult?.LastDistance ?? -1f,
+                    SearchArea = await _searchAreaSelect.GetSearchAreaDTOAsync(),
+                    LastId = distancePaginationResult?.LastId ?? -1,
+                };
+
+            var result = await ApiClient.GetDogTrainersAsync(request);
+            var paginationResult = result ?? new();
+
+            return (paginationResult, paginationResult, result?.Result ?? new List<DogTrainerListDTO>());
+        };
+
+        _fetchNearbyDogCourses = (SearchFilterDogTraining? filter) => async (int itemsPerPage, DistancePaginationResult<DogTrainingListDTO>? distancePaginationResult, IList<DogTrainingListDTO> items) =>
+    {
+        var request = new DogTrainingRequest
+            {
+                ItemsPerPage = itemsPerPage,
+                Page = distancePaginationResult != null ? distancePaginationResult.CurrentPage + 1 : 0,
+                PreviousDistance = distancePaginationResult?.LastDistance ?? -1f,
+                SearchArea = await _searchAreaSelect.GetSearchAreaDTOAsync(),
+                LastId = distancePaginationResult?.LastId ?? -1,
+                SearchFilter = filter
+            };
+
+        var result = await ApiClient.GetDogTrainingsAsync(request);
+        var paginationResult = result ?? new();
+
+        return (paginationResult, paginationResult, result?.Result ?? new List<DogTrainingListDTO>());
+    };
+
+        _buildInstructorListItemContent = (DogTrainerListDTO dto) =>@<InstructorListCard OnClick="@(() => NavigationManager.NavigateToDogInstructor(dto.Id))" PlaceListDTO="@dto" />;
+        _buildDogTrainingListItemContent = (DogTrainingListDTO dto) =>@<DogTrainingListCard DogTraining="dto" />;
+    }
+
+    private SearchFilterDogTraining CreateCategoryFilter(InstructorCategory category)
+    {
+        return new SearchFilterDogTraining
+            {
+                Category = category
+            };
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _onMapSearchBtnPressed = async (Map map, SearchAreaDTO area) => await MapSearcher.UpdateMapIcons(map, area);
+    }
+
+    protected override async Task OnSearchAreaChanged(SearchAreaDTO searchArea)
+    {
+        base.OnSearchAreaChanged(searchArea);
+        await _nearbyInstructors.Reset();
+        await _nearbyDogTraining.Reset();
+        await _nearbyPuppyTraining.Reset();
+        await _nearbyAgilityTraining.Reset();
+        await _nearbyNoseworkTraining.Reset();
+    }
+}

@@ -1,0 +1,345 @@
+﻿@attribute [Route(RoutingConstants.USER_SETTINGS)]
+
+@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.Users;
+@using ModelLib;
+@using RazorLib.Components.FileSelection
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@using RazorLib.Models;
+@using RazorLib.Utils;
+@inherits UserContext
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject NavigationManager NavigationManager
+@inject IApiClient ApiClient
+@inject ISnackbar snackbar
+
+<MudContainer>
+
+    @if (AuthenticatedUser is not null)
+    {
+
+        <MudText Class="my-5" Typo="Typo.h4">Mine Indstillinger</MudText>
+        <MudStack Class="pb-5" Spacing="5">
+
+
+            <div>
+                <MudText Typo="Typo.h6">For Virksomheder</MudText>
+                <MudCard>
+                    <MudCardContent>
+                        @if (AuthenticatedUser.HasCompany)
+                        {
+                            <MudText Typo="Typo.body1">Du er registreret som hundetræner</MudText>
+                            <MudButton EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NavigationManager.NavigateToEnterpriseSettings">Administrer hundetrænerprofil</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="NavigationManager.NavigateToCreateInstructor">Registrer dig som hundetræner</MudButton>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </div>
+
+            <div>
+                <MudText Typo="Typo.h6">Navn</MudText>
+                <MudCard>
+                    <MudCardContent>
+                        <EditForm Model="@NameUpdate" OnValidSubmit="OnUpdateName">
+                            <DataAnnotationsValidator />
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Fornavn"
+                                    @bind-Value="NameUpdate.FirstName" For="@(() => NameUpdate.FirstName)" />
+                                </MudItem>
+
+
+                                <MudItem xs="12" sm="6" Class="mb-5">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Efternavn"
+                                    @bind-Value="NameUpdate.LastName" For="@(() => NameUpdate.LastName)" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    @if (initialFirstName != NameUpdate.FirstName || initialLastName != NameUpdate.LastName)
+                                    {
+                                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Gem Ændringer</MudButton>
+                                    }
+                                </MudItem>
+                            </MudGrid>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+
+            <div>
+                <MudText Typo="Typo.h6">Profilbillede</MudText>
+                <MudCard>
+                    <MudCardContent>
+                        <MudStack>
+                            <ImageSelect Disabled=@_loading Class="mb-5" UploadImageText="Vælg Profilbillede"
+                                         ImageStyle="height: 150px; width: 150px; border-radius: 50%; background-color:white"
+                                         ChangeImageText="Skift Profilbillede"
+                                         InitialImageURL="@AuthenticatedUser.ProfilePictureUrl"
+                                         OnImageChanged="OnProfilePictureChanged"
+                                         OnImageRemoved="OnRemoveSelectedProfilePicture" />
+                            @if (_didChangeProfilePicture)
+                            {
+                                <MudButton Disabled=_loading Color="Color.Primary" Variant="Variant.Filled" OnClick="UploadProfileImage">Gem Ændringer</MudButton>
+                            }
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+
+            <div>
+                <MudText Typo="Typo.h6">Skift Email</MudText>
+                <MudCard>
+                    <MudCardContent>
+                        <EditForm Model="@RequestChangeEmailDTO" OnValidSubmit="OnChangeEmail">
+                            <DataAnnotationsValidator />
+
+                            <MudGrid>
+
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="@AuthenticatedUser.Email" Disabled=true Variant="Variant.Outlined" Label="Nuværende Email" />
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Ny Email"
+                                    @bind-Value="RequestChangeEmailDTO.NewEmail" For="@(() => RequestChangeEmailDTO.NewEmail)" InputType="InputType.Email" />
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Gentag Ny Email"
+                                    @bind-Value="RequestChangeEmailDTO.NewEmailRepeated" For="@(() => RequestChangeEmailDTO.NewEmailRepeated)" InputType="InputType.Email" />
+                                </MudItem>
+
+                                @if (_requestChangeEmailResultDTO is not null)
+                                {
+                                    <MudItem xs="12">
+
+                                        @if (_requestChangeEmailResultDTO.Success)
+                                        {
+                                            <MudAlert Severity="Severity.Success">Vi har sendt en email med et link til bekræftigelse til din nye email</MudAlert>
+                                        }
+                                        else
+                                        {
+                                            <MudAlert Severity="Severity.Error">Fejl ved ændring af email:</MudAlert>
+                                            @foreach (var error in _requestChangeEmailResultDTO.Errors)
+                                            {
+                                                <MudText Class="pl-2" Color="Color.Error" Typo="Typo.subtitle1">*@error</MudText>
+                                            }
+                                        }
+                                    </MudItem>
+                                }
+
+                                @if (initialEmail != RequestChangeEmailDTO.NewEmail && !String.IsNullOrEmpty(RequestChangeEmailDTO.NewEmail))
+                                {
+                                    <MudItem xs="12">
+                                        <MudButton Disabled=_loading ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Opdater Email</MudButton>
+                                    </MudItem>
+                                }
+
+                            </MudGrid>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+
+            <div>
+                <MudText Typo=" Typo.h6">Skift Password</MudText>
+                <MudCard>
+                    <MudCardContent>
+                        <EditForm Model="@ChangePasswordDTO" OnValidSubmit="OnUpdatePassword">
+                            <DataAnnotationsValidator />
+
+                            <MudGrid>
+
+                                <MudItem xs="12" sm="12">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Nuværende Password"
+                                    @bind-Value="ChangePasswordDTO.CurrentPassword" For="@(() => ChangePasswordDTO.CurrentPassword)" InputType="InputType.Password" />
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Nyt Password"
+                                    @bind-Value="ChangePasswordDTO.NewPassword" For="@(() => ChangePasswordDTO.NewPassword)" InputType="InputType.Password" />
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Gentag Nyt Password"
+                                    @bind-Value="ChangePasswordDTO.NewPasswordRepeated" For="@(() => ChangePasswordDTO.NewPasswordRepeated)" InputType="InputType.Password" />
+                                </MudItem>
+
+                                @if (_changePasswordResultDTO is not null)
+                                {
+                                    <MudItem xs="12">
+                                        @if (_changePasswordResultDTO.Success)
+                                        {
+                                            <MudAlert Severity="Severity.Success">Dit password er nu opdateret</MudAlert>
+                                        }
+                                        else
+                                        {
+                                            <MudAlert Severity="Severity.Error">Fejl under opdatering af password. Har du skrevet dit nuværende korrekt?</MudAlert>
+                                            @foreach (var error in _changePasswordResultDTO.Errors)
+                                            {
+                                                <MudText Class="pl-2" Color="Color.Error" Typo="Typo.subtitle1">*@error</MudText>
+                                            }
+                                        }
+                                    </MudItem>
+                                }
+
+                                @if (!String.IsNullOrEmpty(ChangePasswordDTO.NewPassword))
+                                {
+                                    <MudItem xs="12">
+                                        <MudButton Disabled=_loading Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Opdater Password</MudButton>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+
+        </MudStack>
+    }
+</MudContainer>
+
+@code {
+    private bool _loading;
+
+    private bool _didChangeProfilePicture;
+
+    private string? initialFirstName;
+    private string? initialLastName;
+
+    private string? initialEmail;
+
+    private UserUpdateDTO NameUpdate;
+    private UserUpdateDTO ProfilePictureUpdate;
+
+    private RequestChangeEmailDTO RequestChangeEmailDTO;
+    private ChangePasswordDTO ChangePasswordDTO;
+
+    private ChangePasswordResultDTO? _changePasswordResultDTO;
+    private RequestChangeEmailResultDTO? _requestChangeEmailResultDTO;
+
+    public UserSettings()
+    {
+        NameUpdate = new();
+        ProfilePictureUpdate = new();
+        RequestChangeEmailDTO = new();
+        ChangePasswordDTO = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _loading = true;
+        NameUpdate = new UserUpdateDTO
+            {
+                FirstName = AuthenticatedUser.FirstName,
+                LastName = AuthenticatedUser.LastName,
+            };
+        initialFirstName = AuthenticatedUser.FirstName;
+        initialLastName = AuthenticatedUser.LastName;
+        initialEmail = AuthenticatedUser.Email;
+        _loading = false;
+    }
+
+    private async Task OnProfilePictureChanged(IBrowserFile file)
+    {
+        _didChangeProfilePicture = true;
+        if (ProfilePictureUpdate.ProfilePicture is null)
+        {
+            ProfilePictureUpdate.ProfilePicture = new();
+        }
+        ProfilePictureUpdate.ProfilePicture.IsDeleteCommand = false;
+        ProfilePictureUpdate.ProfilePicture.ContentType = file.ContentType;
+        ProfilePictureUpdate.ProfilePicture.Bytes = await file.ToByteArray(maxAllowedSize: MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+        StateHasChanged();
+    }
+
+    private Task OnRemoveSelectedProfilePicture()
+    {
+        _didChangeProfilePicture = true;
+
+        ProfilePictureUpdate.ProfilePicture = new FileDetailedDTO
+            {
+                IsDeleteCommand = true
+            };
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task OnUpdateName()
+    {
+        _loading = true;
+        var success = await ApiClient.UpdateUserAsync(NameUpdate);
+        if (success)
+        {
+            snackbar.Add("Dit navn blev opdateret", Severity.Success);
+            AuthenticatedUser.FirstName = NameUpdate.FirstName;
+            AuthenticatedUser.LastName = NameUpdate.LastName;
+            initialFirstName = NameUpdate.FirstName;
+            initialLastName = NameUpdate.LastName;
+            await UserManager.Set(AuthenticatedUser);
+        }
+        else
+        {
+            snackbar.Add("Kunne ikke opdatere dit navn, prøv et andet navn", Severity.Error);
+        }
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task UploadProfileImage()
+    {
+        _loading = true;
+        var success = await ApiClient.UpdateUserAsync(ProfilePictureUpdate);
+        if (success)
+        {
+            snackbar.Add("Dit profilbillede er opdateret", Severity.Success);
+            await UserManager.Set(await ApiClient.GetUserInfo());
+        }
+        else
+        {
+            snackbar.Add("Kunne ikke opdatere dit profilbillede", Severity.Error);
+        }
+        _didChangeProfilePicture = false;
+        ProfilePictureUpdate.ProfilePicture = null;
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnChangeEmail()
+    {
+        _loading = true;
+        _requestChangeEmailResultDTO = await ApiClient.RequestChangeEmailAsync(RequestChangeEmailDTO);
+        if (_requestChangeEmailResultDTO.Success)
+        {
+            snackbar.Add("En email bekræftigelse er sendt til din nye email.", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Fejl ved ændring af email, har du skrevet korrekt?", Severity.Error);
+        }
+        _loading = false;
+    }
+
+    private async Task OnUpdatePassword()
+    {
+        _loading = true;
+        _changePasswordResultDTO = await ApiClient.ChangePasswordAsync(ChangePasswordDTO);
+        if (_changePasswordResultDTO.Success)
+        {
+            snackbar.Add("Dit password er blevet opdateret", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Kunne ikke opdatere dit password", Severity.Error);
+        }
+        _loading = false;
+    }
+
+}

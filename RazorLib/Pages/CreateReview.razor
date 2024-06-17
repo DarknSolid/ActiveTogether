@@ -1,81 +1,123 @@
-﻿@using Microsoft.AspNetCore.Components.Forms
+﻿@attribute [Route(RoutingConstants.CREATE_REVIEW + "{PlaceId:int}/{RevieweeName}/{IsReviewUpdate:bool}")]
+@attribute [Route(RoutingConstants.UPDATE_REVIEW + "{PlaceId:int}/{UserId:int}/{RevieweeName}/{IsReviewUpdate:bool}")]
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop;
 @using ModelLib.DTOs.Reviews
 @using RazorLib.Interfaces
 @using static EntityLib.Entities.Enums
+@inject ISnackbar Snackbar
 @inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <MudContainer>
 
-    <MudText Typo="Typo.h5" Align="Align.Center">@_titlePrefix your review of</MudText>
+    <MudText Typo="Typo.h5" Class="mt-5" Align="Align.Center">@_titlePrefix your review of</MudText>
 
-    <MudText Typo="Typo.h5" Align="Align.Center">"@RevieweeName"</MudText>
+    <MudText Typo="Typo.h5" Class="mb-5" Align="Align.Center">"@RevieweeName"</MudText>
 
     <EditForm Model="@_model" OnValidSubmit="OnSubmit">
         <DataAnnotationsValidator />
-        <MudGrid>
-            <MudItem xs="12" sm="7">
-                <MudCard>
-                    <MudCardContent>
-                        <MudText Typo="Typo.body2">Rating</MudText>
-                        <MudRating Label="Title" MaxValue="5" Size="Size.Large" @bind-SelectedValue="_model.Rating">
-                            Rating
-                        </MudRating>
-                        <MudTextField Label="Title" HelperText="Short summary of your experience"
-                                      @bind-Value="_model.Title" For="@(() => _model.Title)" />
-                        <MudTextField Lines="5" Label="Description" HelperText="How was your experience?"
-                                      @bind-Value="_model.Description" For="@(() => _model.Description)" />
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Disabled=@_loading FullWidth=true ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
-                            @if(_loading)
-                            {
-                                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-                            }else {
-                                 <span>Submit</span>
-                            }
-                            </MudButton>
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-        </MudGrid>
+        <MudCard Class="mb-5">
+            <MudCardContent>
+                <MudText Typo="Typo.body2">Rating</MudText>
+                <MudRating Label="Title" MaxValue="5" Size="Size.Large" @bind-SelectedValue="_model.Rating">
+                    Rating
+                </MudRating>
+                <MudTextField Label="Title" HelperText="Short summary of your experience"
+                              @bind-Value="_model.Title" For="@(() => _model.Title)" />
+                <MudTextField Lines="5" Label="Description" HelperText="How was your experience?"
+                              @bind-Value="_model.Description" For="@(() => _model.Description)" />
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Disabled=@_loading FullWidth=true ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+                    }
+                    else
+                    {
+                        <span>Submit</span>
+                    }
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
     </EditForm>
 </MudContainer>
 
 @code {
 
     [Parameter]
-    public FacilityType ReviewType { get; set; }
+    public int PlaceId { get; set; }
 
     [Parameter]
-    public int Id { get; set; }
+    public int? UserId { get; set; }
 
     [Parameter]
     public string RevieweeName { get; set; }
 
     [Parameter]
-    public Action OnReviewCreated { get; set; }
-
-    [Parameter]
     public bool IsReviewUpdate { get; set; }
 
-    private ReviewCreateDTO _model = new();
+    private ReviewCreateDTO _model;
+
+    private ReviewDetailedDTO _reviewDetails;
 
     private bool _loading;
     private string _titlePrefix;
 
+
     protected override void OnInitialized()
     {
+        base.OnInitialized();
+
+        _model = new ReviewCreateDTO
+            {
+                Id = PlaceId
+            };
+
         _titlePrefix = IsReviewUpdate ? "Update" : "Write";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (IsReviewUpdate)
+        {
+            await Fetch();
+        }
+    }
+
+    public async Task Fetch()
+    {
+        _loading = true;
+        _reviewDetails = await ApiClient.GetReviewAsync(UserId.Value, PlaceId);
+        _model.Title = _reviewDetails.Title;
+        _model.Description = _reviewDetails.Description;
+        _model.Rating = _reviewDetails.Rating;
+        _loading = false;
+
     }
 
     public async Task OnSubmit()
     {
         _loading = true;
-        _model.PlaceId = Id;
-        await ApiClient.CreateReviewAsync(_model);
+        var result = await ApiClient.CreateReviewAsync(_model);
+        if (result is not null)
+        {
+            var text = IsReviewUpdate ? "updated" : "created";
+            Snackbar.Add($"Successfully {text} your review", Severity.Success);
+
+            NavigationManager.GoBack(JSRuntime);
+        }
+        else
+        {
+            var text = IsReviewUpdate ? "updating" : "creating";
+            Snackbar.Add($"Failed {text} your review", Severity.Error);
+        }
         _loading = false;
-        OnReviewCreated();
     }
 
-    
+
 }

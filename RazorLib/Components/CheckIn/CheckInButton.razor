@@ -1,4 +1,6 @@
-﻿@using Microsoft.JSInterop
+﻿@using EntityLib.Entities
+@using Microsoft.JSInterop
+@using ModelLib.DTOs.Authentication;
 @using ModelLib.DTOs.CheckIns
 @using ModelLib.DTOs.Dogs
 @using RazorLib.Components.Dogs
@@ -9,21 +11,25 @@
 @inject IJSRuntime JS
 @inject IStorageManager<CurrentlyCheckedInDTO> CheckedInStorageManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IStorageManager<UserDetailedDTO> UserManager
 
-<MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => OnCheckInButtonPressed())">
-    @if (CanCheckIn())
-    {
-        <MudText Typo="Typo.body1">CHECK IN</MudText>
-    }
-    else if (CanCheckOut())
-    {
-        <MudText Typo="Typo.body1">CHECK OUT</MudText>
-    }
-    else
-    {
-        <MudText Typo="Typo.body1">Checked In Elsewhere</MudText>
-    }
-</MudButton>
+<Authenticated>
+    <MudButton Disabled="@_disabled" Color="Color.Primary" Variant="Variant.Filled" FullWidth="true" Style="height:100%" OnClick="@(() => OnCheckInButtonPressed())">
+        @if (CanCheckIn())
+        {
+            <MudText Typo="Typo.body1">CHECK IN</MudText>
+        }
+        else if (CanCheckOut())
+        {
+            <MudText Typo="Typo.body1">CHECK OUT</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1">Checked In Elsewhere</MudText>
+        }
+    </MudButton>
+</Authenticated>
 
 @code {
     [Parameter]
@@ -32,27 +38,37 @@
     [Parameter]
     public Action? OnCheckOut { get; set; }
 
-    private Action _onCeckOut;
+    private bool _isLoggedIn;
+
+    private Action _onCheckOut;
 
     private CurrentlyCheckedInDTO? _currentCheckInInfo { get; set; }
 
-    private bool _disabled = true;
+    private bool _disabled;
 
-    protected override void OnParametersSet()
+    public CheckInButton()
     {
-        _onCeckOut = OnCheckOut ?? (() => {});
-        base.OnParametersSet();
+        _onCheckOut = OnCheckOut ?? (() => { });
     }
 
     protected override async Task OnInitializedAsync()
     {
-        _currentCheckInInfo = await ApiClient.GetCurrentCheckIn();
-        await UpdateCheckInState(_currentCheckInInfo);
-        await base.OnInitializedAsync();
+        _isLoggedIn = (await UserManager.Get()) is not null;
+        if (_isLoggedIn)
+        {
+            _currentCheckInInfo = await ApiClient.GetCurrentCheckIn();
+            await UpdateCheckInState(_currentCheckInInfo);
+            await base.OnInitializedAsync();
+        }
     }
 
     public bool CanCheckIn()
     {
+        if (!_isLoggedIn)
+        {
+            return true;
+        }
+
         if (_currentCheckInInfo == null)
         {
             return true;
@@ -67,6 +83,11 @@
 
     public bool CanCheckOut()
     {
+        if (!_isLoggedIn)
+        {
+            return false;
+        }
+
         if (_currentCheckInInfo != null)
         {
             return _currentCheckInInfo.PlaceId == FacilityId;
@@ -79,33 +100,56 @@
         if (CanCheckIn())
         {
             // show select dog dialogue
-            var (didAccept, dogsToCheckIn) = await DialogServiceExtender
+            var (didAccept1, dogsToCheckIn) = await DialogServiceExtender
                 .ShowMyDogsListViewSelection(
                     DialogService,
                     ApiClient,
                     "Which dogs did you bring?",
-                    "Check In"
+                    false,
+                    "Next"
                 );
 
-            if (!didAccept) return;
-            var dto = new CheckInCreateDTO { PlaceId = FacilityId, DogsToCheckIn = dogsToCheckIn };
+            if (!didAccept1) return;
+            var (didAccept2, selectedMood) = await DialogServiceExtender.ShowMoodListViewSelection(
+                DialogService,
+                ApiClient,
+                "Select your mood",
+                true,
+                "Check In"
+            );
+
+            if (!didAccept2) return;
+
+            var dto = new CheckInCreateDTO
+                {
+                    PlaceId = FacilityId,
+                    DogsToCheckIn = dogsToCheckIn.Select(d => d.Id).ToList(),
+                    Mood = selectedMood.FirstOrDefault(CheckInMood.None)
+                };
+
             var result = await ApiClient.CheckIn(dto);
-            if (result == -1)
+            if (result is null || result < 1)
             {
-                // something went wrong
+                Snackbar.Add("Check in failed", Severity.Error);
             }
-            var newCheckInState = await ApiClient.GetCurrentCheckIn();
-            await UpdateCheckInState(newCheckInState);
+            else
+            {
+                var newCheckInState = await ApiClient.GetCurrentCheckIn();
+                await UpdateCheckInState(newCheckInState);
+            }
         }
         else if (CanCheckOut())
         {
             var result = await ApiClient.CheckOut();
-            if (result == -1)
+            if (result is null || result < 1)
             {
-                // something went wrong
+                Snackbar.Add("Checkout in failed", Severity.Error);
             }
-            _onCeckOut();
-            await UpdateCheckInState();
+            else
+            {
+                _onCheckOut();
+                await UpdateCheckInState();
+            }
         }
     }
 

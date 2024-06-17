@@ -1,0 +1,28 @@
+﻿
+<MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+
+    <DialogContent>
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0" Style="min-height: 300px overflow-y: scroll" Class="pa-5">
+            <MudText Typo="Typo.body1">Du skal være logget ind for at fortsætte denne handling</MudText>
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Style="width:100%;" Justify="Justify.SpaceAround">
+            <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Primary">Tilbage</MudButton>
+            <MudButton OnClick="Ok" Variant="Variant.Filled" Color="Color.Primary">Login</MudButton>
+        </MudStack>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task Ok()
+    {
+        MudDialog.Close(true);
+    }
+}

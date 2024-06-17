@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net6.0-windows10.0.19041</TargetFrameworks>
+		<TargetFrameworks>net7.0-maccatalyst;net7.0-android;net7.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net7.0-windows10.0.22621.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>MobileBlazor</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -12,43 +12,56 @@
 		<EnableDefaultCssItems>false</EnableDefaultCssItems>
 
 		<!-- Display name -->
-		<ApplicationTitle>MobileBlazor</ApplicationTitle>
+		<ApplicationTitle>DoggoWorld</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mobileblazor</ApplicationId>
+		<ApplicationId>com.doggoworld.doggoworld</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationVersion>3</ApplicationVersion>
 
 		<!-- Required for C# Hot Reload -->
 		<UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
 
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-ios'">14.2</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-maccatalyst'">14.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-android'">23.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net7.0-ios'">14.2</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net7.0-maccatalyst'">14.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net7.0-android'">23.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+		<DefaultLanguage>en</DefaultLanguage>
 	</PropertyGroup>
+
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidSigningKeyStore>doggoworld.keystore</AndroidSigningKeyStore>
+    <AndroidSigningKeyAlias>key</AndroidSigningKeyAlias>
+    <AndroidSigningKeyPass></AndroidSigningKeyPass>
+    <AndroidSigningStorePass></AndroidSigningStorePass>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\appicon.svg" ForegroundFile="Resources\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\appicon.svg" Color="#00CBA6" BaseSize="512,512" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\appiconfg.svg" Color="#512BD4" />
+		<MauiSplashScreen Include="Resources\appiconfg.svg" Color="#00CBA6" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
-	</ItemGroup>
+    
+    <!--This is required, otherwise we get a package downgrade error-->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+
+  </ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
 		 <!--Required - WinUI does not yet have buildTransitive for everything--> 
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.1.2" />
-		<PackageReference Include="Microsoft.Graphics.Win2D" Version="1.0.3.1" />
-	</ItemGroup>
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.3.230602002" />
+    <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.0.5.1" />
+  </ItemGroup>
 
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
 		<OutputType>WinExe</OutputType>
@@ -57,9 +70,10 @@
 
 	<ItemGroup>
 		<Content Remove="Properties\launchSettings.json" />
+		<Content Remove="wwwroot\appiconhtml.svg" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0-android'">
 	  <PackageReference Include="Xamarin.Facebook.Android">
 	    <Version>11.2.0.1</Version>
 	  </PackageReference>
@@ -70,11 +84,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MudBlazor" Version="6.0.6" />
-	  <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+	  <PackageReference Include="MudBlazor" Version="6.4.1" />
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\FisSst.BlazorMaps\FisSst.BlazorMaps.csproj" />
 	  <ProjectReference Include="..\ModelLibrary\ModelLib.csproj" />
 	  <ProjectReference Include="..\RazorLib\RazorLib.csproj" />
 	</ItemGroup>

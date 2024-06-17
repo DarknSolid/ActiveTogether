@@ -31,8 +31,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="MobileBlazor"
-        Description="MobileBlazor"
+        DisplayName="DogAround"
+        Description="DogAround is an app that represents your gateway to the whole dog universe"
         BackgroundColor="transparent"
         Square150x150Logo="appiconMediumTile.png"
         Square44x44Logo="appiconLogo.png">

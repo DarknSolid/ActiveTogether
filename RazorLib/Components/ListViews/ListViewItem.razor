@@ -1,0 +1,38 @@
+﻿@if (_clickAble)
+{
+    <MudButton Color="@_color" Variant="Variant.Filled" FullWidth=true OnClick="@(() => _onClicked(Id))" class="p-0">
+        @ChildContent
+    </MudButton>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    
+    [Parameter, EditorRequired]
+    public int Id { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public Action<int>? OnClicked { get; set; }
+    private Action<int> _onClicked;
+
+    [Parameter]
+    public bool? ClickAble { get; set; }
+    private bool _clickAble;
+
+    [Parameter]
+    public Color? Color { get; set; }
+    private Color _color;
+
+    protected override void OnParametersSet()
+    {
+        _color = Color ?? MudBlazor.Color.Surface;
+        _clickAble = ClickAble ?? false;
+        _onClicked = OnClicked ?? ((int id) => { });
+        base.OnParametersSet();
+    }
+}

@@ -1,0 +1,100 @@
+﻿@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Authentication;
+@using RazorLib.Interfaces;
+@attribute [Route(RoutingConstants.CONFIRM_EMAIL)]
+@inject NavigationManager NavigationManager
+@inject IApiClient ApiClient
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject ISnackbar snackBar
+
+<MudContainer>
+    <MudCard Class="my-5" Style="min-height:200px; min-width:370px;">
+        <MudCardContent>
+
+            <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Style="width:100%; height:100%;">
+                <MudText Class="mb-5" Typo="Typo.h4" Align="Align.Center">@(_loading ? "Bekræfter Email" : "Bekræft Email")</MudText>
+                    @if (_loading)
+                {
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                }
+                else
+                {
+                    @if (_success)
+                    {
+                        <MudAlert Severity="Severity.Success">Din email er nu bekræftet!</MudAlert>
+                        <MudButton Variant="Variant.Filled" OnClick="NavigationManager.NavigateToHome">Gå til Forsiden</MudButton>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Error">Noget gik galt, prøv igen</MudAlert>
+                        <MudButton Variant="Variant.Filled" OnClick="NavigationManager.NavigateToLogin">Til Login</MudButton>
+                    }
+                }
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@if (_loading)
+{
+
+}
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "email")]
+    public string Email { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "currentEmail")]
+    public string? CurrentEmail { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "token")]
+    public string Token { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "redirect")]
+    public string? Redirect { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "isChangeEmail")]
+    public bool IsChangeEmail { get; set; }
+
+    private bool _loading = true;
+    private bool _success = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            bool success;
+            if (IsChangeEmail)
+            {
+                _success = (await ApiClient.ChangeEmailAsync(new ChangeEmailDTO
+                    {
+                        CurrentEmail = CurrentEmail ?? "",
+                        NewEmail = Email,
+                        Token = Token
+                    })).IsSuccessStatusCode;
+            }
+            else
+            {
+                _success = await ApiClient.ConfirmEmailAsync(Email, Token);
+            }
+            _loading = false;
+            if (_success)
+            {
+                snackBar.Add("Din email blev bekræftet!", Severity.Success);
+                await UserManager.Set(await ApiClient.GetUserInfo());
+                if (Redirect is not null)
+                {
+                    NavigationManager.NavigateTo(Redirect);
+                }
+            }
+            StateHasChanged();
+        }
+    }
+
+}

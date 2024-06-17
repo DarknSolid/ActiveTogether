@@ -1,0 +1,69 @@
+﻿@using RazorLib.Interfaces
+@using RazorLib.Utils;
+
+@inject IMarkerFactory _markerFactory;
+@inject IIconFactory _iconFactory;
+
+<FisSst.BlazorMaps.Map CssClass="map-full-size" @ref="@_map" MapOptions="@_mapOptions" AfterRender="() => AfterRender()"></FisSst.BlazorMaps.Map>
+
+
+@code {
+    [Parameter, EditorRequired]
+    public double Latitude { get; set; }
+    [Parameter, EditorRequired]
+    public double Longitude { get; set; }
+
+    protected Map _map = default!;
+    protected MapOptions _mapOptions = default!;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _mapOptions = new MapOptions()
+            {
+                Zoom = 14,
+                Center = new LatLng()
+                {
+                    Lat = Latitude,
+                    Lng = Longitude
+                },
+                DivId = "mapId",
+                UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                SubOptions = new MapSubOptions()
+                {
+                    Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+                    TileSize = 256,
+                    ZoomOffset = 0,
+                    MaxZoom = 19,
+                },
+                ZoomControl = false
+            };
+    }
+
+    private async Task AfterRender()
+    {
+        var center = new LatLng()
+            {
+                Lat = Latitude,
+                Lng = Longitude
+            };
+
+        var iconOptions = new IconOptions
+            {
+                IconUrl = Images.IconPinLocation,
+                IconAnchor = new(23,60),
+                
+            };
+
+        var pinIcon = await _iconFactory.Create(iconOptions);
+
+        var markerOptions = new MarkerOptions()
+            {
+                Title = "Location",
+                IconRef = pinIcon,
+            };
+
+        await _markerFactory.CreateAndAddToMap(center, _map, markerOptions);
+    }
+
+}

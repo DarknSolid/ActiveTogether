@@ -1,0 +1,211 @@
+﻿@using Microsoft.JSInterop
+@using ModelLib.ApiDTOs.Pagination
+@using RazorLib.Utils;
+@typeparam TItem
+@typeparam TPaginationResult
+@inject IJSRuntime JSRuntime
+@inherits ListViewBase<TItem>
+@implements IAsyncDisposable
+
+@*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Sm" />
+
+
+<div style="position:relative; width:100%">
+    @*Horizontal scroll arrows*@
+    @if (!_isMobile && !_loading && _items.Count > 0 && Orientation == ListViewOrientation.Horizontal)
+    {
+        <HorizontalListViewScrollArrows MaxScrollRight="@_maxScrollRight" ListView="_listView" />
+    }
+
+    @if (!_loading && !_items.Any())
+    {
+        <div style="width:100%;" class=@(Orientation == ListViewOrientation.Vertical ? "d-flex justify-center" : "")>
+            <MudText>Ingen Resultater</MudText>
+        </div>
+    }
+
+    <div @ref=@(_listView) class=@base._class style=@base._style>
+
+
+        @if (EnableGrid)
+        {
+            <MudStack Spacing="@ItemGap" Row="true" Justify="Justify.Center" Style="flex-wrap:wrap;">
+
+                @foreach (var (item, i) in _items.Select((item, index) => (item, index)))
+                {
+                    if (i == _items.Count() - 1 && _items.Count() % 2 != 0)
+                    {
+                        @*If using the unique funtion, it will crash...*@
+                        <div @key=item.GetHashCode() @ref="_gridItemRef">
+                            @BuildListItemContent(item)
+                        </div>
+
+                        <div style=@_gridDivStyle />
+                    }
+                    else
+                    {
+                        <div @key=UniqueItemKeyExtractor(item) style="width:100%;" class=@(Orientation == ListViewOrientation.Vertical ? "d-flex justify-center" : "")>
+                            @BuildListItemContent(item)
+                        </div>
+                    }
+                }
+            </MudStack>
+        }
+        else
+        {
+            @foreach (var (item, i) in _items.Select((item, index) => (item, index)))
+            {
+                @if (i == 0)
+                {
+                    @*If using the unique funtion, it will crash...*@
+                    <div @key=item.GetHashCode() @ref="_gridItemRef" style="width:100%;" class=@(Orientation == ListViewOrientation.Vertical ? "d-flex justify-center" : "")>
+                        @BuildListItemContent(item)
+                    </div>
+                }
+                else
+                {
+                    <div @key=UniqueItemKeyExtractor(item) style="width:100%;" class=@(Orientation == ListViewOrientation.Vertical ? "d-flex justify-center" : "")>
+                        @BuildListItemContent(item)
+                    </div>
+                }
+            }
+        }
+
+        @if (_loading)
+        {
+            @if (BuildSkeletonContent != null)
+            {
+                @for (int i = 0; i < _itemsPerPage; i++)
+                {
+                    <div style="width:100%;" class=@(Orientation == ListViewOrientation.Vertical ? "d-flex justify-center" : "")>
+                        @BuildSkeletonContent()
+                    </div>
+                }
+            }
+            else
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+        }
+
+
+        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+    </div>
+</div>
+
+
+
+
+@code {
+    ///<summary>
+    /// Is used to fetch new data asynchronously.
+    /// input args: items per page, previous pagination result, current list of items
+    /// </summary>
+    [Parameter, EditorRequired]
+    public Func<int, TPaginationResult?, IList<TItem>, Task<(TPaginationResult, PaginationResult<TItem>, IList<TItem>)>> FetchFunction { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<TItem, RenderFragment> BuildListItemContent { get; set; }
+
+    [Parameter]
+    public Func<RenderFragment>? BuildSkeletonContent { get; set; }
+
+
+    [Parameter]
+    public bool EnableGrid { get; set; }
+
+    private bool _loading;
+
+    public int GetCount()
+    {
+        return _items.Count();
+    }
+
+
+    private TPaginationResult? _previousPaginationResult;
+
+    [Parameter]
+    public Action<int>? SetSearchResultTotalCount { get; set; }
+
+    private PaginationResult<TItem>? _paginationResultBase;
+    private int _itemsPerPage = 10;
+
+    private string _intersectionElementTargetId;
+
+    private DotNetObjectReference<ListViewScrollPagination<TItem, TPaginationResult>> objectRef;
+
+    public ListViewScrollPagination()
+    {
+        // generates a unique id for the html element to be observed:
+        _intersectionElementTargetId = Guid.NewGuid().ToString();
+        _items = new();
+    }
+
+    public void Reset()
+    {
+        _loading = false;
+        _items = new();
+        _previousPaginationResult = default(TPaginationResult);
+        _paginationResultBase = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            objectRef = DotNetObjectReference.Create(this);
+            // calls the "scroll-pagination-oberser.js" script:
+            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Add", objectRef, _intersectionElementTargetId);
+            Reset();
+            await FetchPagination();
+        }
+
+        if (_gridItemRef.HasValue && string.IsNullOrEmpty(_gridDivStyle))
+        {
+            var width = await JSRuntime.InvokeAsync<int>("GetElementWidth", _gridItemRef.Value);
+            _gridDivStyle = $"width:{width}px; ";
+
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("Observer.Remove", _intersectionElementTargetId);
+    }
+
+    public async Task FetchPagination()
+    {
+        if (_paginationResultBase is not null && !_paginationResultBase.HasNext || _loading)
+        {
+            return;
+        }
+
+        _loading = true;
+        StateHasChanged();
+        var (pagination, paginationBase, items) = await FetchFunction(_itemsPerPage, _previousPaginationResult, _items);
+        _paginationResultBase = paginationBase;
+        _previousPaginationResult = pagination;
+        _items.AddRange(items);
+        if (SetSearchResultTotalCount != null)
+        {
+            SetSearchResultTotalCount(paginationBase.Total);
+        }
+        UpdateMaxScrollWidth();
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    // Invoked by the javascript code when the intersection element is entered into the viewport
+    public async Task OnIntersection()
+    {
+        await FetchPagination();
+
+    }
+
+}

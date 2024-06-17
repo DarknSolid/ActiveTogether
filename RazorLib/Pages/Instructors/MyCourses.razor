@@ -1,0 +1,86 @@
+﻿@attribute [Route(RoutingConstants.ENTERPRISE_MY_COURSES)]
+@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.Instructors;
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Review
+@using RazorLib.Interfaces;
+@inject IApiClient ApiClient
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject NavigationManager NavigationManager
+
+
+
+<MudContainer>
+
+    <MudText Class="my-5" Typo="Typo.h4">Firmaets Holdoversigt</MudText>
+
+    <MudStack Spacing="5">
+
+        <div>
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-1">
+                <MudText Align="Align.End" Style="align-self:center;" Typo="Typo.h6">Kommende Hold: @(_trainings.UpcommingTrainings.Count())</MudText>
+                    <MudButton EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(NavigationManager.NavigateToCreateDogTraining)">Opret Hold</MudButton>
+                </MudStack>
+                <MudDivider />
+                <ListViewScrollPaginationNoFetch Items="@_trainings.UpcommingTrainings.ToList()"
+                                                 IsLoading="@_isLoading"
+                                                 BuildListItemContent="@_buildListItemContent"
+                                                 BuildSkeletonContent="@_buildSkeletonContent"
+                                                 ItemGap="20" />
+            </div>
+
+            <div>
+                <MudText Typo="Typo.h6">Igangværende Hold: @(_trainings.ActiveTrainings.Count())</MudText>
+                <MudDivider />
+                <ListViewScrollPaginationNoFetch Items="@_trainings.ActiveTrainings.ToList()"
+                                                 IsLoading="@_isLoading"
+                                                 BuildListItemContent="@_buildListItemContent"
+                                                 BuildSkeletonContent="@_buildSkeletonContent"
+                                                 ItemGap="20" />
+            </div>
+
+            <div>
+                <MudText Typo="Typo.h6">Afsluttede Hold: @(_trainings.FinishedTrainings.Count())</MudText>
+                <MudDivider />
+                <ListViewScrollPaginationNoFetch Items="@_trainings.FinishedTrainings.ToList()"
+                                                 IsLoading="@_isLoading"
+                                                 BuildListItemContent="@_buildListItemContent"
+                                                 BuildSkeletonContent="@_buildSkeletonContent"
+                                                 ItemGap="20" />
+            </div>
+
+    </MudStack>
+
+</MudContainer>
+
+@code {
+    private Func<DogTrainingListDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private AllDogTrainingsInstructorListDTO _trainings;
+    private bool _isLoading = true;
+
+    public MyCourses()
+    {
+        _trainings = new();
+        _buildSkeletonContent = () =>@<ReviewSkeleton />;
+        _buildListItemContent = (DogTrainingListDTO dto) =>@<DogTrainingListCard DogTraining="dto" />;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var user = await UserManager.Get();
+        if (user is null)
+        {
+            return;
+        }
+        if (user.HasCompany && user.CompanyId.HasValue)
+        {
+            _trainings = await ApiClient.GetAllDogTrainingsAsync(user.CompanyId.Value);
+        }
+        _isLoading = false;
+        StateHasChanged();
+    }
+}

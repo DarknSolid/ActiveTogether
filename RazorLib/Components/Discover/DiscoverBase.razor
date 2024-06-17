@@ -1,0 +1,36 @@
+﻿@using FisSst.BlazorMaps.Models.Basics
+@using ModelLib.DTOs
+@using RazorLib.Models
+
+<MudContainer>
+    <MudStack Class="my-5" Row="true" Justify="Justify.SpaceBetween" Style="width:100%; height:fit-content;">
+        @if (!_showMap)
+        {
+            <SearchAreaSelect OnSearchAreaSelected="OnSearchAreaChanged" @ref="_searchAreaSelect" />
+        }
+        else
+        {
+            <MudText Typo="Typo.h5" Class="pa-2 rounded-lg" Style="z-index:1; color:white; background-color:rgba(0,0,0,0.5)">@MapSearchHeaderText</MudText>
+        }
+        <ListMapSwitch ShowOnMap="_showMap" OnSwitch="OnMapSwitch" Style="z-index:1;" />
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Parameter, EditorRequired]
+    public string MapSearchHeaderText { get; set; }
+
+    protected Func<Map, SearchAreaDTO, Task> _onMapSearchBtnPressed;
+    protected bool _showMap = false;
+    protected SearchAreaSelect _searchAreaSelect;
+
+    protected void OnMapSwitch(bool showMap)
+    {
+        _showMap = showMap;
+        StateHasChanged();
+    }
+
+    protected virtual async Task OnSearchAreaChanged(SearchAreaDTO searchArea)
+    {
+    }
+}

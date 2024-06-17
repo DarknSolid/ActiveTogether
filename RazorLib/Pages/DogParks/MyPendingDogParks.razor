@@ -1,0 +1,19 @@
+﻿@attribute [Route(RoutingConstants.MY_PENDING_DOG_PARKS)]
+
+@using RazorLib.Components.DogParks
+
+<MudContainer>
+    <MudText Typo="Typo.h5">My Pending Dog Parks</MudText>
+    <MudText Typo="Typo.body1">You have @_totalSearchCount pending dog parks</MudText>
+
+    <DogParkRequestsListView SetSearchResultTotalCount="(int count) => SetTotalSearchCount(count)" />
+</MudContainer>
+
+@code {
+    private int _totalSearchCount;
+
+    private void SetTotalSearchCount(int count) {
+        _totalSearchCount = count;
+        StateHasChanged();
+    }
+}

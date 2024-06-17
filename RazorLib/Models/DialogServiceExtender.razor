@@ -1,19 +1,55 @@
-﻿@using ModelLib.DTOs.Dogs
+﻿@using EntityLib.Entities
+@using ModelLib.DTOs.Dogs
+@using NpgsqlTypes
+@using RazorLib.Components
 @using RazorLib.Components.Dogs
+@using RazorLib.Components.ListViews
 @using RazorLib.Interfaces
 
 @code {
-    public static async Task<(bool, List<int>)> ShowMyDogsListViewSelection(IDialogService service, IApiClient apiClient, string title, string btnAcceptText)
+
+    public static async Task<(bool, List<Enums.CheckInMood>)> ShowMoodListViewSelection(IDialogService service, IApiClient apiClient, string title, bool onlySingleSelect, string btnAcceptText)
     {
-        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent"/>);
+        var moods = Enum.GetValues<Enums.CheckInMood>();
+        Func<Enums.CheckInMood, int> getIndexOfMood = (mood) =>
+        {
+            for (int i = 0; i < moods.Length; i++)
+            {
+                if (moods[i] == mood)
+                {
+                    return i;
+                }
+            }
+            return 0;
+        };
+
+        Func<Enums.CheckInMood, RenderFragment, RenderFragment> moodCardBuilder = ((Enums.CheckInMood mood, RenderFragment childContent) => 
+    @<MudPaper Elevation="0" Class="d-flex flex-row justify-space-around" Style="width: 100%"><MudText Typo="Typo.body1" Style="align-self:center;">@mood</MudText> @childContent </MudPaper>);
+
+        var (didAccept, result) = await ShowListViewSelection<ItemSelectionDialogue<Enums.CheckInMood>, Enums.CheckInMood>(
+        service,
+        title,
+        onlySingleSelect,
+        btnAcceptText,
+        moodCardBuilder,
+        (async () => moods.ToList())
+    );
+        return (didAccept, result);
+    }
+
+
+    public static async Task<(bool, List<DogListDTO>)> ShowMyDogsListViewSelection(IDialogService service, IApiClient apiClient, string title, bool onlySingleSelect, string btnAcceptText, IList<DogListDTO>? dogSelection = null)
+    {
+        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent" ClickAble=true DisableNavigation=true/>);
 
         return await ShowListViewSelection<ItemSelectionDialogue<DogListDTO>, DogListDTO>(
             service,
             title,
+            onlySingleSelect,
             btnAcceptText,
-            (async () => await apiClient.GetMyDogsAsync()),
             dogCardBuilder,
-            ((DogListDTO dto) => dto.Id)
+            (async () => await apiClient.GetMyDogsAsync()),
+            dogSelection
         );
     }
 
@@ -26,25 +62,26 @@
     /// <param name="title">The title of the dialogue</param>
     /// <param name="functionFetchItems">A function that fetches the list item objects to be displayed</param>
     /// <param name="functionBuildListItemContent">A function that builds the content of each list item. E.g. builds a DogCard with its parameters.</param>
-    /// <param name="functionExtractItemId">A function that returns the id of the object given. E.g. the id of a DogListDTO</param>
     /// <returns>Returns the dialogue task which contains a list of ids of the selected items</returns>
-    public static async Task<(bool, List<int>)> ShowListViewSelection<TComponent, TItem>(
+    public static async Task<(bool, List<TItem>)> ShowListViewSelection<TComponent, TItem>(
             IDialogService service,
             string title,
+            bool onlySingleSelect,
             string btnAcceptText,
-            Func<Task<List<TItem>>> functionFetchItems,
             Func<TItem, RenderFragment, RenderFragment> functionBuildListItemContent,
-            Func<TItem, int> functionExtractItemId
+            Func<Task<List<TItem>>>? functionFetchItems = null,
+            IList<TItem>? Selection = null
         )
         where TComponent : ComponentBase
     {
 
         var parameters = new DialogParameters
             {
+                [nameof(ItemSelectionDialogue<TItem>.OnlySingleSelect)] = onlySingleSelect,
                 [nameof(ItemSelectionDialogue<TItem>.BtnAcceptText)] = btnAcceptText,
                 [nameof(ItemSelectionDialogue<TItem>.ItemFetch)] = functionFetchItems,
                 [nameof(ItemSelectionDialogue<TItem>.BuildListItemContent)] = functionBuildListItemContent,
-                [nameof(ItemSelectionDialogue<TItem>.ExtractItemId)] = functionExtractItemId
+                [nameof(ItemSelectionDialogue<TItem>.ItemSelection)] = Selection,
             };
 
         var options = new DialogOptions { CloseOnEscapeKey = true };
@@ -54,8 +91,50 @@
         var result = await dialog.Result;
         if (result.Cancelled)
         {
-            return (false, new List<int>());
+            return (false, new List<TItem>());
         }
-        return (true, (List<int>)result.Data);
+        return (true, (List<TItem>)result.Data);
+    }
+
+    ///<summary>
+    ///shows the dog park create dialog and returns true if the create button was pressed
+    ///</summary>
+    public static async Task<bool> ShowDogParkCreateDialog(IDialogService dialogService, LatLng point) {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters
+            {
+                [nameof(DogParkCreateDialogue.Point)] = new NpgsqlPoint(x: point.Lng, y: point.Lat)
+            };
+
+        var dialog = dialogService.Show<DogParkCreateDialogue>("Suggest a Dog Park", parameters, options);
+        var result = await dialog.Result;
+        return result.Canceled == false;
+    }
+
+    public static async Task ShowApiInternalError(IDialogService dialogService)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = dialogService.Show<RazorLib.Components.ApiInternalErrorDialogue>("Intern Serverfejl", options);
+        var result = await dialog.Result;
+        return;
+    }
+
+    public static async Task<bool> ShowLoginRequired(IDialogService dialogService)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = dialogService.Show<RazorLib.Components.MustLoginToContinueDialogue>("Login Påkrævet", options);
+        var result = await dialog.Result;
+        return result.Canceled == false;
+    }
+
+    public static async Task<bool> ShowSendFeedback(IDialogService dialogService)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var dialog = dialogService.Show<RazorLib.Components.FeedbackDialogue>("Giv Feedback", options);
+        var result = await dialog.Result;
+        return result.Canceled == false;
     }
 }

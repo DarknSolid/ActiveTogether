@@ -1,0 +1,55 @@
+﻿@attribute [Route(RoutingConstants.SEARCH_USERS)]
+
+@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs.Authentication
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Users
+@using RazorLib.Interfaces
+
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<RazorLib.Components.ListViews.ListViewSearchScrollPagination SearchHelpText="Search Users"
+                                                              BuildListItemContent="BuildListItemContent"
+                                                              BuildSkeletonContent="BuildSkeletonContent"
+                                                              FetchFunction="FetchFunction" />
+
+
+@code {
+    private Func<UserListDTO, RenderFragment> BuildListItemContent;
+    private Func<RenderFragment> BuildSkeletonContent;
+    private Func<int, PaginationResult<UserListDTO>?, string, IList<UserListDTO>, Task<(PaginationResult<UserListDTO>, PaginationResult<UserListDTO>, IList<UserListDTO>)>> FetchFunction;
+
+    public SearchUsers()
+    {
+        BuildListItemContent = (UserListDTO user) =>
+    {
+        RenderFragment x = (
+    @<ListViewItem ClickAble="true" Color="Color.Surface" Id="user.Id" OnClicked="(int id) => NavigationManager.NavigateToUser(id)">
+        <UserCard User="user" />
+    </ListViewItem>
+        );
+        return x;
+    };
+
+        BuildSkeletonContent = () => @<ListViewItem ClickAble="false" Color="Color.Surface"> <UserCardSkeleton /> </ListViewItem>;
+
+        FetchFunction = async (int itemsPerPage, PaginationResult<UserListDTO>? previousPaginationResult, string searchString, IList<UserListDTO> users) =>
+        {
+            var dto = new UserSearchDTOPaginationRequest
+                {
+                    PaginationRequest = new StringPaginationRequest
+                    {
+                        ItemsPerPage = itemsPerPage,
+                        Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                        LastString = users.LastOrDefault()?.FullNameNormalized ?? "",
+                        LastId = previousPaginationResult?.LastId ?? -1
+                    },
+                    SearchString = searchString
+                };
+            var result = await ApiClient.SearchUsers(dto);
+            return (result, result, result?.Result ?? new List<UserListDTO>());
+        };
+    }
+}

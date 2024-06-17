@@ -1,0 +1,263 @@
+﻿@using ModelLib.DTOs.Authentication;
+@using MudBlazor
+@using MudBlazor.Utilities;
+@using RazorLib;
+@using RazorLib.Components
+@using RazorLib.Interfaces;
+@using RazorLib.Models;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@implements IDisposable
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject ITopicBroker TopicBroker
+@inject IApiClient ApiClient
+
+<MudThemeProvider Theme="@_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<PageTitle>DoggoWorld</PageTitle>
+
+<div id="fb-root" />
+<MudBreakpointProvider OnBreakpointChanged="OnBreakpointChanged" />
+
+    @if (_isLoginOrRegisterMenu)
+    {
+        <div style="min-height:100%; height:fit-content; width:100%; background: #00CBA6">
+            @Body
+        </div>
+    }
+    else
+    {
+        <MudLayout>
+            <MudAppBar Elevation="1" Class="px-5">
+                <MudStack Row="true" Spacing="0" Justify="Justify.SpaceBetween" Style="width:100%; color:black;">
+
+                    <MudStack Style="align-self:center; cursor:pointer; color:white;" onclick="@NavigationManager.NavigateToAbout" Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudImage Height=50 Src="@Images.LogoBorderedPng" />
+                        <MudText  Typo="Typo.h5" Class="ml-3"><strong>DoggoWorld</strong></MudText>
+                    </MudStack>
+
+                    @if (_isMobile)
+                    {
+                        <MudIconButton Style="color:white;" Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="@(() => _showBurgerMenu = !_showBurgerMenu)" />
+                    }
+                    else
+                    {
+                        <MudNavMenu Style="width:50%;">
+                            <MudStack Row="true" Justify="Justify.SpaceEvenly" Style="height: 100%; align-items: center;">
+                                <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" IconColor=@(Color.Inherit) Icon="@Icons.Material.Outlined.Info" Href="@(RoutingConstants.ABOUT)"><MudText>Om DoggoWorld</MudText></MudNavLink>
+                                <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.FEED)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Filled.Newspaper"><MudText>Opslag</MudText></MudNavLink>
+                                <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogInstructor))" IconColor=@(Color.Inherit) Icon="@Images.IconWhistleOutlined"><MudText>Hundetræning</MudText></MudNavLink>
+                                @*<MudNavLink Style="width:fit-content;" Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogPark))" Icon="@Icons.Filled.Forest"><MudText>Hundeparker</MudText> </MudNavLink>*@
+                                @if (_userInfo?.HasCompany ?? false)
+                                {
+                                    <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.Prefix" Href="@(RoutingConstants.ENTERPRISE_HOME)" IconColor=@Color.Inherit Icon="@Icons.Material.Outlined.BusinessCenter"><MudText>Mit Firma</MudText></MudNavLink>
+                                }
+                            </MudStack>
+                        </MudNavMenu>
+
+
+                        @if (_isLoggedIn)
+                        {
+                            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <ActivatorContent>
+                                    <MudButton Variant="Variant.Text">
+                                        <MudStack Row="true" Style="flex-wrap:wrap;" Spacing="2" AlignItems="AlignItems.Center">
+                                            @if (_userInfo.ProfilePictureUrl is not null)
+                                            {
+                                                <MudAvatar Image="@_userInfo.ProfilePictureUrl" />
+                                            }
+                                            else
+                                            {
+                                                <MudAvatar>@(_userInfo.FirstName.First().ToString().ToUpper())@(_userInfo.LastName.First().ToString().ToUpper()) </MudAvatar>
+                                            }
+                                            <MudText Style="color:white;">@(_userInfo.FirstName + " " + _userInfo.LastName)</MudText>
+                                            </MudStack>
+                                        </MudButton>
+                                    </ActivatorContent>
+                                    <ChildContent>
+                                        <MudMenuItem OnClick="() => NavigationManager.NavigateToUser(_userInfo.Id)">Profil</MudMenuItem>
+                                        <MudMenuItem OnClick="NavigationManager.NavigateToSettings">Indstillinger</MudMenuItem>
+                                        <MudMenuItem OnClick=SignOut><MudText Color="Color.Error">Log ud</MudText></MudMenuItem>
+                                    </ChildContent>
+                                </MudMenu>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Text" Style="color:white" OnClick="(() => NavigationManager.NavigateToLogin())">Login</MudButton>
+                        }
+                    }
+
+                </MudStack>
+            </MudAppBar>
+
+            <MudDrawer @ref=_drawerRef
+            @bind-Open="_showBurgerMenu"
+                       Variant="DrawerVariant.Responsive"
+                       ClipMode="DrawerClipMode.Docked"
+                       Elevation="1"
+                       Color="Color.Primary">
+                <MudNavMenu>
+                    @if (_isMobile)
+                    {
+                        <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.FEED)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Filled.Newspaper">Hyggehjørnet</MudNavLink>
+                        <MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.ABOUT)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Outlined.Info">Om DoggoWorld</MudNavLink>
+                        <MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogInstructor))" IconColor="@Color.Inherit" Icon="@Icons.Filled.Attribution">Hundetræning</MudNavLink>
+                        @*<MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogPark))" Icon="@Icons.Filled.Forest">Hundeparker</MudNavLink>*@
+                    }
+                    @if (_isLoggedIn && _userInfo.HasCompany)
+                    {
+
+                        <MudNavGroup HideExpandIcon="@(!_isMobile)" IconColor="@Color.Inherit" Icon="@Icons.Material.Outlined.BusinessCenter" Title="Mit Firma" Expanded="true">
+                            <MudNavLink IconColor="@Color.Inherit" Icon="@Icons.Material.Filled.AccountBox" Href="@(RoutingConstants.ENTERPRISE_HOME)" Match="NavLinkMatch.All">Profil</MudNavLink>
+                            <MudNavLink IconColor="@Color.Inherit" Icon="@Icons.Material.Filled.School" Href="@RoutingConstants.ENTERPRISE_MY_COURSES" Match="NavLinkMatch.All">Holdoversigt</MudNavLink>
+                            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                                <MudNavLink IconColor="@Color.Inherit" Icon="@Icons.Material.Filled.ShowChart" Href="@RoutingConstants.ENTERPRISE_STATISTICS" Match="NavLinkMatch.All">Statistik</MudNavLink>
+                                <IconUnderConstruction />
+                            </MudStack>
+                            <MudNavLink IconColor="@Color.Inherit" Icon="@Icons.Material.Filled.Settings" Href="@RoutingConstants.ENTERPRISE_SETTINGS" Match="NavLinkMatch.All">Indstillinger</MudNavLink>
+                        </MudNavGroup>
+                    }
+                    @if (_isMobile)
+                    {
+                        @if (_isLoggedIn)
+                        {
+                            <MudNavGroup IconColor="@Color.Inherit" Icon="@Icons.Material.Filled.Person" Title="Profil">
+                                <MudNavLink Match="NavLinkMatch.All" OnClick="() => NavigationManager.NavigateToUser(_userInfo.Id)">Profil</MudNavLink>
+                                <MudNavLink Match="NavLinkMatch.All" OnClick="NavigationManager.NavigateToSettings">Indstillinger</MudNavLink>
+                                <MudNavLink OnClick="SignOut"><MudText Color="Color.Error">Log ud</MudText></MudNavLink>
+                            </MudNavGroup>
+                        }
+                        else
+                        {
+                            <MudNavLink OnClick="(() => NavigationManager.NavigateToLogin())">LOGIN</MudNavLink>
+                        }
+                    }
+                </MudNavMenu>
+            </MudDrawer>
+
+
+
+            <MudMainContent Style="background-color: var(--mud-palette-background)">
+                <FeedbackSticker />
+
+                @if (!_isMobile)
+                {
+                    <MudContainer MaxWidth="MaxWidth.Medium" Style="height: 100%;">
+                        @Body
+                    </MudContainer>
+                }
+                else
+                {
+                    @Body
+                }
+            </MudMainContent>
+        </MudLayout>
+    }
+
+@code {
+    private bool _isMobile;
+    private bool _showBurgerMenu;
+    bool _showEnterpriseMenu;
+    bool _isLoginOrRegisterMenu = false;
+    private bool _isLoggedIn;
+
+    private MudDrawer? _drawerRef;
+
+    private UserDetailedDTO? _userInfo;
+
+    private MudTheme _theme;
+
+    private FacilityTypeThemes _facilityTypeThemes;
+
+    public MainLayout()
+    {
+        _facilityTypeThemes = new();
+        _theme = _facilityTypeThemes.GetTheme(FacilityType.DogPark);
+        //_theme.Palette.AppbarBackground = new MudColor("#FFF");
+        _theme.Palette.Primary = "#00CBA6";
+        _theme.Palette.AppbarBackground = _theme.Palette.Primary;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _userInfo = await UserManager.Get();
+        _isLoggedIn = _userInfo != null;
+        UserManager.Subscribe(OnUserChanged);
+
+    }
+
+    public void Dispose()
+    {
+        UserManager.UnSubscribe(OnUserChanged);
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        NavigationManager.LocationChanged += UrlLocationChanged;
+        UpdateOnUriChanged(NavigationManager.Uri);
+    }
+
+    private void UrlLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        UpdateOnUriChanged(e.Location);
+    }
+
+    private void UpdateOnUriChanged(string uri)
+    {
+        var relativeUrl = uri
+            .Replace("//", "")
+            .Split("/")
+            .Skip(1)
+            .FirstOrDefault("")
+            + "/";
+
+        _isLoginOrRegisterMenu = false;
+
+        if (relativeUrl == RoutingConstants.LOGIN || 
+            relativeUrl == RoutingConstants.REGISTER || 
+            relativeUrl == RoutingConstants.FORGOT_PASSWORD || 
+            relativeUrl == RoutingConstants.RESET_PASSWORD)
+        {
+            _isLoginOrRegisterMenu = true;
+        }
+
+        _showEnterpriseMenu = relativeUrl == RoutingConstants.ENTERPRISE_HOME;
+        // ensure that the side menu is open when navigating to enterprise on large device
+        if (!_isMobile)
+        {
+            _showBurgerMenu = _showEnterpriseMenu;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnUserChanged()
+    {
+        _userInfo = await UserManager.Get();
+        _isLoggedIn = _userInfo != null;
+        StateHasChanged();
+    }
+
+    private async Task SignOut()
+    {
+        await ApiClient.LogOut();
+        await UserManager.Delete();
+        NavigationManager.NavigateToDiscover(FacilityType.DogInstructor);
+    }
+
+    private void OnBreakpointChanged(Breakpoint breakPoint)
+    {
+        var before = _isMobile;
+        _isMobile = breakPoint <= Breakpoint.Sm;
+        if (before != _isMobile)
+        {
+            StateHasChanged();
+        }
+    }
+}

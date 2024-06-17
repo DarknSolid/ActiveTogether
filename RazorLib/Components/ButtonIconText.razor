@@ -1,0 +1,65 @@
+﻿
+<MudButton Class="@(_isSelected ? SelectedClass : Class)" Style="@(_isSelected ? SelectedStyle : Style)" OnClick="_onClick">
+    <div class="d-flex flex-column justify-center" style="align-items: center; color:inherit;">
+        <MudIcon Icon="@(_isSelected ? SelectedIcon : Icon)" Color="Color.Inherit" Size="@(Size ?? MudBlazor.Size.Medium)" />
+        <MudText Typo="Typo.subtitle2" Color="Color.Inherit">@Text</MudText>
+    </div>
+</MudButton>
+
+@code {
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public Action<MouseEventArgs>? OnClick { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public Size? Size { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Text { get; set; }
+
+    [Parameter]
+    public string? SelectedIcon { get; set; }
+
+    [Parameter]
+    public bool? IsSelected { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? SelectedStyle { get; set; }
+    [Parameter]
+    public string? SelectedClass { get; set; }
+
+    private bool _isSelected;
+
+    private Action<MouseEventArgs> _onClick;
+
+    public ButtonIconText()
+    {
+        _onClick = (MouseEventArgs e) => {};
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (OnClick is not null)
+        {
+            _onClick = OnClick;
+        }
+        if (IsSelected is not null)
+        {
+            _isSelected = IsSelected.Value;
+        }
+        StateHasChanged();
+    }
+
+
+
+}

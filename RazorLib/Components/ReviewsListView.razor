@@ -1,63 +1,60 @@
-﻿@using ModelLib.DTOs.Reviews
+﻿@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs.Reviews
+@using RazorLib.Components.ListViews
 @using RazorLib.Components.Review
 @using RazorLib.Interfaces
 @using RazorLib.Models
-@using RazorLib.Components.ScrollPagination
-@using static RazorLib.Components.ListViewBase
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 
 
-<ListViewScrollPagination ItemGap="20" Orientation="@ListViewOrientation.Horizontal" OnPagination="(e) => FetchRatings()">
-    @foreach (var review in Reviews) {
-        <Review ReviewDTO=@review />
-    }
-    @if (_loading)
-    {
-        @for (int i = 0; i < _ratingsPerPage; i++)
-        {
-            <ReviewSkeleton/>
-        }
-    }
-</ListViewScrollPagination>
+<ListViewScrollPagination ItemGap="20"
+                          SetSearchResultTotalCount="@SetSearchResultTotalCount"
+                          Orientation="@Orientation"
+                          BuildListItemContent="_buildListItemContent"
+                          BuildSkeletonContent="_buildSkeletonContent"
+                          FetchFunction="_fetchFunction" 
+                          UniqueItemKeyExtractor="(ReviewDetailedDTO r) => r.Id"/>
+
 
 
 @code {
-    [Parameter]
-    public int? MaxItems { get; set; }
 
     [Parameter]
     public int RevieweeId { get; set; }
 
-    private bool _loading;
+    [Parameter]
+    public ListViewOrientation Orientation { get; set; }
 
-    public List<ReviewDetailedDTO> Reviews { get; set; }
+    [Parameter]
+    public Action<int> SetSearchResultTotalCount { get; set; }
 
-    private int _page;
-    private int _ratingsPerPage;
-    private bool _hasNext;
+    private Func<ReviewDetailedDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, PaginationResult<ReviewDetailedDTO>?, IList<ReviewDetailedDTO>, Task<(PaginationResult<ReviewDetailedDTO>, PaginationResult<ReviewDetailedDTO>, IList<ReviewDetailedDTO>)>> _fetchFunction;
 
     public ReviewsListView()
     {
-        _page = 0;
-        _hasNext = true;
-        _ratingsPerPage = 10;
-        Reviews = new();
-    }
-
-    private async Task FetchRatings()
-    {
-        var hasLimitExceeded = MaxItems != null && Reviews.Count < MaxItems;
-        if (_hasNext && !hasLimitExceeded)
+        _buildListItemContent = (ReviewDetailedDTO dto) =>@<Review ReviewDTO="dto" />;
+        _buildSkeletonContent = () =>@<ReviewSkeleton />;
+        _fetchFunction = async (int itemsPerPage, PaginationResult<ReviewDetailedDTO>? previousPaginationResult, IList<ReviewDetailedDTO> items) =>
         {
-            _loading = true;
-            _hasNext = false;
-            var result = await ApiClient.GetReviewsAsync(RevieweeId, _page, _ratingsPerPage);
-            Reviews.AddRange(result.Reviews);
+            var request = new ReviewsDTOPaginationRequest
+                {
+                    PaginationRequest = new DateTimePaginationRequest
+                    {
+                        ItemsPerPage = itemsPerPage,
+                        Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                        LastDate = items.LastOrDefault()?.DateTime ?? DateTime.UtcNow.AddDays(1),
+                        LastId = previousPaginationResult?.LastId ?? -1,
+                    },
+                    PlaceId = RevieweeId
+                };
 
-            _page++;
-            _hasNext = result.PaginationResult.HasNext;
-            _loading = false;
-        }
+            var result = await ApiClient.GetReviewsAsync(request);
+            return (result, result, result.Result);
+        };
     }
+
 }

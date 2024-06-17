@@ -1,0 +1,147 @@
+﻿@using Microsoft.JSInterop
+@using ModelLib.ApiDTOs.Pagination
+@using RazorLib.Utils;
+@typeparam TItem
+@inject IJSRuntime JSRuntime
+@inherits ListViewBase<TItem>
+@implements IAsyncDisposable
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Xs" />
+
+
+@*Documentation: https://www.youtube.com/watch?v=n499hm7Zajo*@
+<div style="position:relative">
+
+    @*Horizontal scroll arrows*@
+    @if (_items.Count > 0 && Orientation == ListViewOrientation.Horizontal)
+    {
+        <HorizontalListViewScrollArrows MaxScrollRight="@_maxScrollRight" ListView="_listView" />
+    }
+
+    @if (!_items.Any())
+    {
+        <MudText>Ingen Resultater</MudText>
+    }
+
+    <div @ref=@_listView class=@base._class style=@base._style>
+
+        @foreach (var (item, i) in _items.Select((item, index) => (item, index)))
+        {
+            @if (i == 0)
+            {
+                <div @ref=@_gridItemRef>
+                    @BuildListItemContent(item)
+                </div>
+
+
+            }
+            else
+            {
+                @BuildListItemContent(item)
+            }
+        }
+        @if (IsLoading)
+        {
+            if (BuildSkeletonContent != null)
+            {
+                @for (int i = 0; i < _itemsPerPage; i++)
+                {
+                    @BuildSkeletonContent()
+                }
+            }
+            else
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+        }
+        <div id="@_intersectionElementTargetId" style="min-width:1px; min-height:1px;"></div> @*do not delete this item or re-create it, as it will break the event handling in the javascript code*@
+    </div>
+
+</div>
+
+
+
+
+@code {
+
+    [Parameter, EditorRequired]
+    public IList<TItem> Items { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<TItem, RenderFragment> BuildListItemContent { get; set; }
+
+    [Parameter]
+    public Func<RenderFragment>? BuildSkeletonContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool IsLoading { get; set; }
+
+    private ElementReference _listView;
+    private ElementReference? _gridItemRef;
+
+
+    private bool _isMobile;
+
+    private int? _maxScrollRight;
+
+    private List<TItem> _items;
+
+    private int _itemsPerPage = 20;
+
+    private string _intersectionElementTargetId;
+
+    private bool _isDisposed;
+
+    private DotNetObjectReference<ListViewScrollPaginationNoFetch<TItem>> objectRef;
+
+    public ListViewScrollPaginationNoFetch()
+    {
+        // generates a unique id for the html element to be observed:
+        _intersectionElementTargetId = Guid.NewGuid().ToString();
+        _items = new List<TItem>();
+    }
+
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!IsLoading)
+        {
+            Paginate();
+        }
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            objectRef = DotNetObjectReference.Create(this);
+            // calls the "scroll-pagination-oberser.js" script:
+            var iniResult = await JSRuntime.InvokeAsync<dynamic>("Observer.Add", objectRef, _intersectionElementTargetId);
+            Paginate();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("Observer.Remove", _intersectionElementTargetId);
+    }
+
+    public void Paginate()
+    {
+        _items.AddRange(Items.Skip(_items.Count).Take(_itemsPerPage));
+        UpdateMaxScrollWidth();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    // Invoked by the javascript code when the intersection element is entered into the viewport
+    public async Task OnIntersection()
+    {
+        Paginate();
+
+    }
+
+}

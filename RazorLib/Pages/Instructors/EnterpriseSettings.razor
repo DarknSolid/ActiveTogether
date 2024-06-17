@@ -1,0 +1,48 @@
+﻿@attribute [Route(RoutingConstants.ENTERPRISE_SETTINGS)]
+@using ModelLib.DTOs.Authentication;
+@using RazorLib.Interfaces;
+@using RazorLib.Utils
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserManager
+
+<MudContainer>
+
+    <MudText Typo="Typo.h4" Class="my-5">Enterprise Settings</MudText>
+
+    <MudCard>
+        <MudCardContent Class="mb-5">
+            <MudButton Class="mb-2" EndIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled" OnClick="(() => UnregisterDogTrainer())">Unregister as Dog Trainer</MudButton>
+            <MudText Typo="Typo.subtitle2">*All courses and data related to your dog trainer account will be deleted.</MudText>
+            <MudText Typo="Typo.subtitle2">*Your DoggoWorld account will not be deleted.</MudText>
+        </MudCardContent>
+    </MudCard>
+
+</MudContainer>
+
+
+@code {
+
+    public async Task UnregisterDogTrainer()
+    {
+        var user = await UserManager.Get();
+        if (user is null)
+        {
+            return;
+        }
+
+        var response = await ApiClient.UnregisterDogTrainer();
+        if (response.IsSuccessStatusCode)
+        {
+            UserManager.Set(await ApiClient.GetUserInfo());
+            Snackbar.Add($"Successfully Unregistered you as a Dog Trainer!", Severity.Success);
+            NavigationManager.NavigateToUser(user.Id);
+        }
+        else
+        {
+            Snackbar.Add($"Failed Unregistering you as aDog Trainer. Status code: {response.StatusCode}", Severity.Error);
+        }
+    }
+
+}

@@ -1,0 +1,136 @@
+﻿@using ModelLib.DTOs.Posts;
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@inject IApiClient ApiClient
+@inject ISnackbar snackbar
+@inherits UserContext
+@inject NavigationManager NavigationManager
+
+<MudStack Row=true Spacing="1" Style="width:100%; max-width: 540px;" Justify="Justify.Center">
+    @if (Comment.UserImageUrl is not null)
+    {
+        <MudAvatar>
+            <MudImage Src="@Comment.UserImageUrl" />
+        </MudAvatar>
+    }
+    else
+    {
+        <MudAvatar>@(Comment.UserName.Split(" ").First().First())@(Comment.UserName.Split(" ").Last().First())</MudAvatar>
+    }
+    <MudStack Spacing="1" Style="width:100%; max-width:410px;">
+        <MudPaper Elevation="1" Class="rounded-xl pa-2" Style="width:100%; position:relative">
+            <TextFormatted Text="@Comment.Text" />
+            @if (Comment.Likes.Any())
+            {
+                <MudMenu FullWidth="true" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Style="width:150px; position:absolute; right:0%; bottom:0%; transform: translate(-20%, +50%); justify-content: end;">
+                    <ActivatorContent>
+                        <MudPaper Class="rounded-xl pa-2">
+                            <MudStack Row=true AlignItems="AlignItems.Center">
+                                <MudIcon Size=Size.Small Icon=@Icons.Material.Outlined.ThumbUp />
+                                <MudText>@Comment.Likes.Count()</MudText>
+                            </MudStack>
+                        </MudPaper>
+                    </ActivatorContent>
+                    <ChildContent>
+                        @foreach (var like in Comment.Likes.Take(10))
+                        {
+                            <MudMenuItem OnClick="() => NavigationManager.NavigateToUser(like.UserId)"
+                                         OnTouch="()=> NavigationManager.NavigateToUser(like.UserId)"><MudText Typo="Typo.subtitle2">@like.UserName</MudText></MudMenuItem>
+                        }
+                        @if (Comment.Likes.Count() > 10)
+                        {
+                            <MudMenuItem Disabled="true"><MudText Typo="Typo.subtitle2">Og @(Comment.Likes.Count() - 10) andre</MudText></MudMenuItem>
+                        }
+                    </ChildContent>
+                </MudMenu>
+            }
+        </MudPaper>
+
+        <MudStack Row=true Spacing="2">
+            <MudButton OnClick="@OnLike">
+                <MudText>@(_hasLikedComment ? "Fjern Pote" : "Giv Pote")</MudText>
+                </MudButton>
+            </MudStack>
+        </MudStack>
+
+        @*Edit menu*@
+        @if (_isAuthor)
+    {
+        <MudMenu Style="align-self: baseline;" Disabled=@_loading Icon="@Icons.Material.Filled.MoreVert">
+            <MudMenuItem OnClick="@OnDeleteComment">Slet Kommentar</MudMenuItem>
+        </MudMenu>
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public CommentDetailedDTO Comment { get; set; }
+
+    [Parameter]
+    public Func<int, Task>? OnCommentDeleted { get; set; }
+
+    private bool _loading;
+
+    private bool _hasLikedComment;
+
+    private bool _isAuthor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (AuthenticatedUser is not null)
+        {
+            _hasLikedComment = Comment.Likes.Select(l => l.UserId).Contains(AuthenticatedUser.Id);
+            _isAuthor = Comment.UserId == AuthenticatedUser.Id;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnDeleteComment()
+    {
+        _loading = true;
+        var response = await ApiClient.DeleteCommentAsync(Comment.Id);
+        if (response.IsSuccessStatusCode)
+        {
+            if (OnCommentDeleted is not null)
+            {
+                await OnCommentDeleted(Comment.Id);
+            }
+            snackbar.Add("Din kommentar blev slettet!", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Kunne ikke slette din kommentar.", Severity.Error);
+        }
+        _loading = false;
+    }
+
+    private async Task OnLike()
+    {
+        var response = await ApiClient.LikeCommentAsync(Comment.Id);
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+        _hasLikedComment = !_hasLikedComment;
+
+        @if (AuthenticatedUser is null)
+        {
+            return;
+        }
+
+        if (!_hasLikedComment) // negation to accomodate for the state before api call
+        {
+            Comment.Likes.Remove(Comment.Likes.First(p => p.UserId == AuthenticatedUser.Id));
+        }
+        else
+        {
+            Comment.Likes.Add(new LikeDetailedDTO()
+                {
+                    UserId = AuthenticatedUser.Id,
+                    UserName = AuthenticatedUser.FullName
+                });
+        }
+        StateHasChanged();
+    }
+}

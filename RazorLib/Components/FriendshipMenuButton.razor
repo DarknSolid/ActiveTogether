@@ -1,0 +1,101 @@
+﻿@using static ModelLib.Repositories.RepositoryEnums
+@using RazorLib.Components.CustomMudMenus
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+
+@if (_loading)
+{
+    <MudButton Disabled=true>
+        <MudProgressCircular Indeterminate=true Color="Color.Primary"></MudProgressCircular>
+    </MudButton>
+}
+else
+{
+    @GetContent()
+}
+
+@code {
+    [Parameter]
+    public FriendShipStatus FriendshipStatus { get; set; }
+
+    [Parameter]
+    public int UserId { get; set; }
+
+    private bool _loading;
+
+    protected override void OnParametersSet()
+    {
+        GetContent();
+        base.OnParametersSet();
+    }
+
+    private RenderFragment GetContent()
+    {
+        switch (FriendshipStatus)
+        {
+            case FriendShipStatus.Friends:
+                return (
+                    @<CustomMudMenu Label="Friends" StartIcon="@Icons.Material.Filled.Check" EndIcon="@Icons.Filled.KeyboardArrowDown" Variant="Variant.Filled">
+                        <MudButton OnClick="RemoveFriend">Remove Friend</MudButton>
+                    </CustomMudMenu>
+                );
+            case FriendShipStatus.PendingRequest:
+                return ( 
+    @<CustomMudMenu Label="Friend Request Sent" StartIcon="@Icons.Material.Filled.Check" EndIcon="@Icons.Filled.KeyboardArrowDown" Variant="Variant.Filled">
+        <MudButton OnClick="DeclineFriendRequest">Cancel Friend Request</MudButton>
+                    </CustomMudMenu>
+                   );
+            case FriendShipStatus.NotFriends:
+                return (
+                    @<MudButton OnClick="AddFriend" Color="Color.Primary" StartIcon="@Icons.Filled.PersonAddAlt1">
+                         Add Friend
+                    </MudButton>
+                );
+            case FriendShipStatus.CanAcceptRequest:
+                return (
+                    @<MudButtonGroup OverrideStyles="false">
+                        <MudButton OnClick="AcceptFriendRequest" Color="Color.Primary" Variant="Variant.Filled">
+                            <MudText>Accept Friend Request</MudText>
+                        </MudButton>
+                        <MudButton OnClick="DeclineFriendRequest" Color="Color.Dark" Variant="Variant.Outlined">
+                            <MudText>Decline</MudText>
+                        </MudButton>
+                    </MudButtonGroup>
+                );
+            default:
+                return (
+                    @<MudAlert Severity="Severity.Warning">Error - Unhandled value for friendship status: @FriendshipStatus.ToString()</MudAlert >
+                );
+        }
+    }
+
+    private async Task AcceptFriendRequest() {
+        _loading = true;
+        await ApiClient.AcceptFriendRequest(UserId);
+        FriendshipStatus = FriendShipStatus.Friends;
+        _loading = false;
+    }
+
+    private async Task AddFriend()
+    {
+        _loading = true;
+        await ApiClient.AddFriend(UserId);
+        FriendshipStatus = FriendShipStatus.PendingRequest;
+        _loading = false;
+    }
+
+    private async Task DeclineFriendRequest()
+    {
+        _loading = true;
+        await ApiClient.DeclineFriendRequest(UserId);
+        FriendshipStatus = FriendShipStatus.NotFriends;
+        _loading = false;
+    }
+
+    private async Task RemoveFriend() {
+        _loading = true;
+        await ApiClient.RemoveFriend(UserId);
+        FriendshipStatus = FriendShipStatus.NotFriends;
+        _loading = false;
+    }
+}

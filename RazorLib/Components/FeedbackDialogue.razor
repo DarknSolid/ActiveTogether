@@ -1,0 +1,156 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using ModelLib.ApiDTOs;
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inherits UserContext
+
+<EditForm Model="@_model" OnValidSubmit="Submit">
+    <MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+        <DialogContent>
+            @if (!_loading && _didSubmit)
+            {
+                <MudStack Class="pa-5">
+
+                    @if (_submitSuccess)
+                    {
+                        <MudText Class="mb-5" Typo="Typo.h6">Din Feedback blev sendt.</MudText>
+                        <MudText>Tak for din feedback!</MudText>
+                        <MudText>Vi ved, at den bedste løsning bliver skabt i fællesskab :)</MudText>
+                        <MudText>Vi kigger på din feedback hurtigst muligt.</MudText>
+                    }
+                    else
+                    {
+                        <MudText Class="mb-5" Typo="Typo.h6">Noget gik galt</MudText>
+                        <MudText>Din feedback blev ikke indsent.</MudText>
+                        <MudText>Vi prøver at rette denne fejl hurtigst muligt.</MudText>
+                    }
+                </MudStack>
+            }
+            else
+            {
+                <MudContainer Style="min-height: 300px; max-height:500px; overflow-y: scroll" Class="pb-4">
+                    <MudText Typo="Typo.subtitle1">Hjælp os med at gøre DoggoWorld til et bedre sted for os allesammen, ved at give din værdifulde feedback.</MudText>
+                    <DataAnnotationsValidator />
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudTextField Disabled="_loading" Label="Titel" HelperText="En kort opsumering"
+                            @bind-Value="_model.Title" For="@(() => _model.Title)" />
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudTextField Disabled="_loading" Lines="6" Label="Beskrivelse" HelperText="Hjælp os med at forstå dit problem/forslag og beskriv alle detaljerne. Så kan vi bedre hjælpe :)"
+                            @bind-Value="_model.Description" For="@(() => _model.Description)" />
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudSelect Disabled="_loading" Required="true" @bind-Value="_model.Severity" MaxHeight="200" Label="Feedback type" For="@(() => _model.Severity)">
+                                @foreach (var item in Enum.GetValues<FeedbackSeverity>())
+                                {
+                                    <MudSelectItem Value="@item">
+                                        <MudStack Row=true  AlignItems="AlignItems.Center">
+                                            <MudIcon Icon="@SeverityToIcon(item)" />
+                                            @SeverityToString(item)
+                                        </MudStack>
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        @if (base.AuthenticatedUser is not null)
+                        {
+                            <MudItem xs="12">
+                                <MudCheckBox Disabled="_loading" Label="Må vi kontakte dig pr. email?"
+                                @bind-Checked="_model.MayContact" For="@(() => _model.MayContact)" />
+                                <MudText Typo="Typo.subtitle1">(Vi kontakter dig kun hvis det er nødvendigt)</MudText>
+                                <MudText Typo="Typo.subtitle1">(Vi bruger KUN din email til at kontakte i forbindelse med denne feedback)</MudText>
+                            </MudItem>
+                        }
+
+                    </MudGrid>
+                </MudContainer>
+            }
+
+        </DialogContent>
+
+        <DialogActions>
+            @if (_didSubmit)
+            {
+                <MudStack Style="width:100%;" Justify="Justify.Center">
+                    <MudButton Variant="Variant.Outlined" OnClick="Cancel">Ok</MudButton>
+                </MudStack>
+            }
+            else
+            {
+                <div style="width:100%; display:flex; justify-content:space-around">
+                    <MudButton Disabled=_loading OnClick="Cancel">Annuller</MudButton>
+                    <MudButton Disabled=_loading ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        @if (_loading)
+                        {
+                            <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+                        }
+                        else
+                        {
+                            <MudText>Send Feedback</MudText>
+                        }
+                    </MudButton>
+                </div>
+            }
+        </DialogActions>
+
+    </MudDialog>
+</EditForm>
+
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private bool _loading;
+    private bool _didSubmit;
+    private bool _submitSuccess;
+
+    public FeedbackCreateDTO _model;
+
+    public FeedbackDialogue()
+    {
+        _model = new()
+            {
+                Severity = FeedbackSeverity.Suggestion
+            };
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        _loading = true;
+        _model.Uri = NavigationManager.Uri;
+        var response = await ApiClient.SendFeedback(_model);
+        _submitSuccess = response.IsSuccessStatusCode;
+        _didSubmit = true;
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private string SeverityToString(FeedbackSeverity severity)
+    {
+        switch (severity)
+        {
+            case FeedbackSeverity.Suggestion: return "Jeg har et forslag";
+            case FeedbackSeverity.Bug: return "Jeg oplever en fejl";
+            default: return severity.ToString();
+        }
+    }
+
+    private string SeverityToIcon(FeedbackSeverity severity)
+    {
+        switch (severity)
+        {
+            case FeedbackSeverity.Suggestion: return Icons.Material.Filled.Lightbulb;
+            case FeedbackSeverity.Bug: return Icons.Material.Filled.BugReport;
+            default: return severity.ToString();
+        }
+    }
+}

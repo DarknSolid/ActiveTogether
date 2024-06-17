@@ -1,8 +1,0 @@
-﻿@attribute [Route(RoutingConstants.MAP)]
-@inject NavigationManager NavigationManager
-
-<RazorLib.Pages.Map OnDogParkPressed="(id) => NavigationManager.NavigateTo(DogParkEndpoint + id)"></RazorLib.Pages.Map>
-
-@code {
-    private readonly string DogParkEndpoint = RoutingConstants.DOG_PARK_DETAILS + "/";
-}

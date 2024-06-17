@@ -1,0 +1,102 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using ModelLib.DTOs.DogPark
+@using NpgsqlTypes
+@using RazorLib.Interfaces
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+
+<EditForm Model="@_model" OnValidSubmit="Ok">
+    <MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+
+        <DialogContent>
+            <MudContainer Style="min-height: 300px; max-height:500px; overflow-y: scroll" Class="pb-4">
+                <DataAnnotationsValidator />
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="7">
+                        <MudTextField Label="Name" HelperText="Your dogs name"
+                                      @bind-Value="_model.Name" For="@(() => _model.Name)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="7">
+                        <MudTextField Lines="5" Label="Description" HelperText="Describe the park"
+                                      @bind-Value="_model.Description" For="@(() => _model.Description)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="7">
+                        <MudSelect @bind-Value="_value" Label="Select facilities" MultiSelection="true" @bind-SelectedValues="_facilities">
+                            @foreach (var item in Enum.GetValues<DogParkFacilityType>())
+                            {
+                                <MudSelectItem Value="@item.ToString()">@item</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="7">
+                        <MudTextField Disabled="true" @bind-Value="_pointText" Label="Position on map" />
+                    </MudItem>
+
+                </MudGrid>
+            </MudContainer>
+        </DialogContent>
+
+        <DialogActions>
+            <div style="width:100%; display:flex; justify-content:space-around">
+                <MudButton Disabled=_loading OnClick="Cancel">Cancel</MudButton>
+                <MudButton Disabled=_loading ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+                    }
+                    else
+                    {
+                        <MudText>Create</MudText>
+                    }
+                </MudButton>
+            </div>
+        </DialogActions>
+
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public NpgsqlPoint Point { get; set; }
+
+    private DogParkRequestCreateDTO _model { get; set; }
+    private string _value;
+    private IEnumerable<string> _facilities = new HashSet<string>();
+
+    private bool _loading;
+
+    private string _pointText;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new();
+        _model.Point = Point;
+        _pointText = $"{(float)Point.Y}, {(float)Point.X}";
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task Ok()
+    {
+        _loading = true;
+        _model.Facilities = _facilities.Select(s => (DogParkFacilityType) Enum.Parse(typeof(DogParkFacilityType),s)).ToList();
+        var success = await ApiClient.CreateDogParkRequestAsync(_model);
+        if (success) {
+            Snackbar.Add("Successfully Created Dog Park Request", Severity.Success);
+        }
+        else {
+            Snackbar.Add("Failed Creating Your Dog Park Request", Severity.Error);
+        }
+
+        _loading = false;
+        MudDialog.Close(DialogResult.Ok<bool>(success));
+    }
+}

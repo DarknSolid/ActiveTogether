@@ -1,0 +1,364 @@
+﻿@attribute [Route(RoutingConstants.CREATE_INSTRUCTOR)]
+@attribute [Route(RoutingConstants.UPDATE_INSTRUCTOR + "{id:int}")]
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Instructors
+@using ModelLib;
+@using NpgsqlTypes
+@using RazorLib.Components
+@using RazorLib.Components.FileSelection
+@using RazorLib.Components.Maps
+@using RazorLib.Interfaces
+@using System.ComponentModel.DataAnnotations
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+@inject IDialogService DialogService
+@inject IStorageManager<UserDetailedDTO> UserManager
+
+
+<MudForm @ref=_form Model="@_model">
+
+    <MudContainer Style="overflow-y: scroll">
+        <MudText Class="my-5" Typo="Typo.h4" Align="Align.Center">@(_isCreatingCompany ? "Registrer dig som Hundetræner" : "Opdater din Hundetrænerprofil")</MudText>
+            @if (_isCreatingCompany)
+        {
+            <MudText Typo="Typo.subtitle1">
+                Ved at registrere dig som hundetræner, kan brugere finde dit firma og træningsforløb.
+            </MudText>
+            <MudText Class="mb-5" Typo="Typo.subtitle1">
+                Opret hold og link til din officielle hjemmeside for at forøge din brugerbase
+            </MudText>
+        }
+
+        <MudStack Spacing="0">
+
+            <MudText Typo="Typo.h6">Generelt</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <MudStack Spacing="5">
+
+                    <MudTextField Disabled="_loading" Style="max-width:300px;" Required="true" Label="Firmanavn"
+                    @bind-Value="_model.Name" For="@(() => _model.Name)" />
+
+                    <MudTextField Disabled="_loading"
+                    @ref=_websiteUrlRef
+                                  Clearable="true"
+                                  Required="false"
+                                  TextChanged="OnWebsiteURLChanged"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Link"
+                                  Label="Valgfrit: link til din hjemmeside"
+                                  HelperText="Dette er valgfrit og gør det muligt for brugere at klikke videre ind på din officielle hjemmeside."
+                    @bind-Value="_model.CompanyURL"
+                                  For="@(() => _model.CompanyURL)" />
+
+                    <MudTextField Disabled="_loading" Required="true" Lines="7" Style="height:fit-content;" Label="Firmabeskrivelse"
+                    @bind-Value="_model.Description" For="@(() => _model.Description)" />
+                </MudStack>
+
+            </MudPaper>
+
+            <MudText Typo="Typo.h6">Logo</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <ImageSelect Disabled=@_loading Class="mb-5" UploadImageText="Upload Logo"
+                             ChangeImageText="Skift Logo"
+                             InitialImageURL="@(_instructor?.ProfileImgUrl)"
+                             OnImageChanged="OnLogoImageChanged"
+                             OnImageRemoved="OnRemoveSelectedLogoImage"
+                             ImageStyle="height: 150px; width: 150px; border-radius: 50%; background-color:white" />
+            </MudPaper>
+
+            <MudText Typo="Typo.h6">Coverbillede</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <ImageSelect Disabled=@_loading Class="mb-5" UploadImageText="Upload Coverbillede"
+                             ChangeImageText="Skift Coverbillede"
+                             InitialImageURL="@(_instructor?.CoverImgUrl)"
+                             OnImageChanged="OnCoverImageChanged"
+                             OnImageRemoved="OnRemoveSelectedCoverImage" />
+            </MudPaper>
+
+            <MudText Typo="Typo.h6">Træning og Faciliteter</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <MudStack Spacing="5">
+                    <MudText Typo="Typo.subtitle2">Lad hundeejere vide hvad du træner og hvilke faciliteter du tilbyder</MudText>
+                    <MudSelect Disabled="_loading" Required="true" @bind-Value="_model.InstructorCategoryValue" MaxHeight="200" HelperText="WHvilke typer træning tilbyder du?" Label="Vælg træningskategorier" MultiSelection="true" @bind-SelectedValues="_instructorCategoryValues" For="@(() => _model.InstructorCategoryValue)">
+                        @foreach (var item in Enum.GetValues<InstructorCategory>())
+                        {
+                            <MudSelectItem Value="@item.ToString()">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSelect Disabled="_loading" Required="true" @bind-Value="_model.InstructorFacilityValue" MaxHeight="200" HelperText="Hvilke faciliteter kan du tilbyde dine deltagere?" Label="Vælg Faciliteter" MultiSelection="true" @bind-SelectedValues="_instructorFacilityValues" For="@(() => _model.InstructorFacilityValue)">
+                        @foreach (var item in Enum.GetValues<InstructorFacility>())
+                        {
+                            <MudSelectItem Value="@item.ToString()">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudStack>
+            </MudPaper>
+
+            <MudText Typo="Typo.h6">Kontakt Info</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <MudStack Spacing="5">
+
+                    <MudTextField Disabled="_loading" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" Label="Firma Email"
+                    @bind-Value="_model.Email" For="@(() => _model.Email)" />
+
+                    <MudTextField Disabled="_loading" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" Label="Firma Telefon"
+                    @bind-Value="_model.PhoneNumber" For="@(() => _model.PhoneNumber)" />
+                </MudStack>
+            </MudPaper>
+
+            <MudText Typo="Typo.h6">Lokation</MudText>
+            <MudPaper Class="mb-5 pa-5" Elevation="1">
+                <MudStack Row="true" Style="flex-wrap:wrap;">
+                    <div style="max-width:200px;">
+                        <MudTextField T="string" @ref="_locationInputRef" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.LocationOn" Disabled="_loading" @onfocusin="() => MapSelectPointRef.ShowMap()" ReadOnly="true" Required="true" @bind-Value="_model.PointText" For="@(() => _model.PointText)" Label="Lokation" />
+                    </div>
+                    <div style="align-self:flex-end">
+                        <MapSelectPoint @ref="@MapSelectPointRef" OnLocationConfirmed="(LatLng latLng) => OnLocationSet(latLng)" />
+                    </div>
+                </MudStack>
+            </MudPaper>
+
+        </MudStack>
+
+        <MudStack Row="true" Justify="Justify.SpaceAround" Class="mb-5">
+            <MudButton Disabled=_loading OnClick="Cancel">Annuller</MudButton>
+            <MudButton Disabled=_loading OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary">
+                @if (_loading)
+                {
+                    <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+                }
+                else
+                {
+                    <MudText>@(_isCreatingCompany ? "Registrer" : "Opdater")</MudText>
+                }
+            </MudButton>
+        </MudStack>
+    </MudContainer>
+
+</MudForm>
+
+@code {
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    private InstructorDetailedDTO? _instructor;
+
+    private Model _model { get; set; }
+
+    private MapSelectPoint? MapSelectPointRef;
+
+    private MudTextField<string>? _websiteUrlRef;
+    private MudTextField<string>? _locationInputRef;
+    private MudForm? _form;
+
+    private bool _loading;
+
+    private bool _isCreatingCompany;
+
+    private IEnumerable<string> _instructorCategoryValues = new HashSet<string>();
+    private IEnumerable<string> _instructorFacilityValues = new HashSet<string>();
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _model = new();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _isCreatingCompany = Id is null;
+
+        if (!_isCreatingCompany)
+        {
+            await Fetch();
+        }
+    }
+
+    private async Task Fetch()
+    {
+        _loading = true;
+
+        _instructor = await ApiClient.GetDogInstructor(Id.Value);
+
+        _model.Name = _instructor.Name;
+        _model.Description = _instructor.Description;
+        _model.CompanyURL = _instructor.CompanyURL;
+        _model.Email = _instructor.Email;
+        _model.PhoneNumber = _instructor.Phone;
+
+        OnLocationSet(new LatLng(lat: _instructor.Location.Y, lng: _instructor.Location.X));
+
+        _instructorCategoryValues = _instructor.Categories.Select(c => c.ToString()).ToHashSet<string>();
+        _instructorFacilityValues = _instructor.Facilities.Select(c => c.ToString()).ToHashSet<string>();
+        _model.Categories = _instructor.Categories;
+        _model.InstructorFacilities = _instructor.Facilities;
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+        _loading = true;
+        _model.Categories = _instructorCategoryValues.Select(c => Enum.Parse<InstructorCategory>(c)).ToList();
+        _model.InstructorFacilities = _instructorFacilityValues.Select(f => Enum.Parse<InstructorFacility>(f)).ToList();
+
+        int createId = 0;
+        bool success;
+        if (_isCreatingCompany)
+        {
+            createId = await ApiClient.CreateDogInstructor(_model);
+            success = createId > 0;
+        }
+        else
+        {
+            var updateDTO = new InstructorUpdateDTO
+                {
+                    InstructorCompanyId = Id.Value,
+                    CompanyURL = _model.CompanyURL,
+                    Name = _model.Name,
+                    Description = _model.Description,
+                    Categories = _model.Categories,
+                    InstructorFacilities = _model.InstructorFacilities,
+                    Point = _model.Point,
+                    Email = _model.Email,
+                    PhoneNumber = _model.PhoneNumber,
+                    CoverImage = _model.CoverImage,
+                    ProfileImage = _model.ProfileImage
+                };
+            var response = await ApiClient.UpdateDogInstructor(updateDTO);
+            success = response.IsSuccessStatusCode;
+        }
+        if (success)
+        {
+            var text = _isCreatingCompany ?
+            "Successfully registered you as a Dog Trainer!" :
+            "Sucessfully updated your Dog Trainer profile!";
+            Snackbar.Add(text, Severity.Success);
+        }
+        else
+        {
+            var text = _isCreatingCompany ?
+            "Failed registering you as a Dog Trainer" :
+            "Failed updating your Dog Trainer profile";
+            Snackbar.Add(text, Severity.Error);
+        }
+
+        if (success)
+        {
+            // register that the user now has a company
+            await UserManager.Set(await ApiClient.GetUserInfo());
+            NavigationManager.NavigateToEnterpriseProfile();
+        }
+        _loading = false;
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.GoBack(jsRuntime);
+    }
+
+    private async Task OnLocationSet(LatLng point)
+    {
+        _model.Point = new NpgsqlPoint(x: point.Lng, y: point.Lat);
+        _model.PointText = $"{(float)point.Lat}, {(float)point.Lng}";
+        StateHasChanged();
+        await _locationInputRef.Validate();
+    }
+
+    private async Task OnCoverImageChanged(IBrowserFile file)
+    {
+        if (_model.CoverImage is null)
+        {
+            _model.CoverImage = new();
+        }
+        _model.CoverImage.IsDeleteCommand = false;
+        _model.CoverImage.ContentType = file.ContentType;
+        _model.CoverImage.Bytes = await file.ToByteArray(MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+    }
+
+    private async Task OnLogoImageChanged(IBrowserFile file)
+    {
+        if (_model.ProfileImage is null)
+        {
+            _model.ProfileImage = new();
+        }
+        _model.ProfileImage.IsDeleteCommand = false;
+        _model.ProfileImage.ContentType = file.ContentType;
+        _model.ProfileImage.Bytes = await file.ToByteArray(MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+    }
+
+    private async Task OnRemoveSelectedCoverImage()
+    {
+        if (_isCreatingCompany)
+        {
+            _model.CoverImage = null;
+        }
+        else
+        {
+            _model.CoverImage = new()
+                {
+                    IsDeleteCommand = true
+                };
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnRemoveSelectedLogoImage()
+    {
+        if (_isCreatingCompany)
+        {
+            _model.ProfileImage = null;
+        }
+        else
+        {
+            _model.ProfileImage = new()
+                {
+                    IsDeleteCommand = true
+                };
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnWebsiteURLChanged(string value)
+    {
+        _model.CompanyURL = value;
+        if (String.IsNullOrEmpty(value))
+        {
+            _model.CompanyURL = null;
+            _websiteUrlRef.Text = null;
+            await _websiteUrlRef.ForceUpdate();
+        }
+    }
+
+    private class Model : InstructorCreateDTO
+    {
+        [Required(ErrorMessage = "Choose a location")]
+        public string PointText { get; set; }
+
+        [Required(ErrorMessage = "Select at least one category")]
+        public string InstructorCategoryValue { get; set; }
+
+        [Required(ErrorMessage = "Select at least one facility")]
+        public string InstructorFacilityValue { get; set; }
+    }
+}

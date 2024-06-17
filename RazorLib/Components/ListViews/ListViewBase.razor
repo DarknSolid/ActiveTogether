@@ -1,0 +1,92 @@
+﻿@using Microsoft.JSInterop;
+@typeparam TItem
+@inject IJSRuntime JSRuntime
+
+@code {
+    [Parameter, EditorRequired]
+    public Func<TItem, object> UniqueItemKeyExtractor { get; set; }
+
+    [Parameter]
+    public int ItemGap { get; set; }
+
+    [Parameter]
+    public ListViewOrientation Orientation { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    protected int? _maxScrollRight;
+    protected ElementReference? _listView;
+    protected ElementReference? _gridItemRef;
+    protected string _gridDivStyle;
+    private bool _isDisposed;
+
+
+    protected string _class;
+    protected string _style;
+
+    protected bool _isMobile;
+
+    protected List<TItem> _items;
+
+
+    protected override void OnParametersSet()
+    {
+        var scroll = _isMobile ? "scroll" : "hidden";
+        _style = $"gap:{ItemGap}px; height: 100%; width: 100%; overflow-x:{scroll}; position:relative; ";
+        _class = "d-flex pa-3 ";
+        if (Orientation == ListViewOrientation.Vertical)
+        {
+            _class += "flex-column ";
+            _style += "align-items:center; ";
+        }
+        else
+        {
+            _class += "flex-row ";
+        }
+        base.OnParametersSet();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        var scroll = _isMobile ? "scroll" : "hidden";
+        _style = $"gap:{ItemGap}px; height: 100%; width: 100%; overflow-x:{scroll}; position:relative; ";
+    }
+
+    public void DeleteItems(Predicate<TItem> condition)
+    {
+        var removedItemsCount = _items.RemoveAll(condition);
+        if (removedItemsCount > 0)
+        {
+            StateHasChanged();
+        }
+    }
+
+    public void AddItemToStart(TItem item)
+    {
+        _items.Insert(0, item);
+        StateHasChanged();
+
+    }
+
+    protected async Task UpdateMaxScrollWidth()
+    {
+        while (!_listView.HasValue || !_gridItemRef.HasValue)
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+            await Task.Delay(100);
+        }
+        if (_isDisposed)
+        {
+            return;
+        }
+        var width = await JSRuntime.InvokeAsync<int>("GetElementWidth", _gridItemRef.Value);
+        var listViewWidth = await JSRuntime.InvokeAsync<int>("GetElementWidth", _listView);
+        _maxScrollRight = _items.Count * (width + ItemGap) - listViewWidth + 24;
+        StateHasChanged();
+    }
+}

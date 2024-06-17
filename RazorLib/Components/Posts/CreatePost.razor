@@ -1,0 +1,333 @@
+﻿@using EntityLib.Entities;
+@using Microsoft.AspNetCore.Components.Forms;
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Dogs;
+@using ModelLib.DTOs.Posts;
+@using ModelLib;
+@using RazorLib.Components.Avatars
+@using RazorLib.Components.CustomMudComponents
+@using RazorLib.Components.Dogs
+@using RazorLib.Components.FileSelection
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@using RazorLib.Models;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inherits UserContext
+@inject IApiClient ApiClient
+@inject ISnackbar snackbar
+@inject CloudClient cloudClient
+@inject IDialogService DialogService
+
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => {_top = b <= Breakpoint.Sm ? 56 : 64; StateHasChanged();}" />
+
+
+<MudTextField Class="mt-0" T=string @onclick="() => _showOverlay = true" Variant="Variant.Outlined" Adornment=Adornment.Start AdornmentIcon="@Icons.Material.Filled.Comment" AdornmentColor=Color.Primary Placeholder="Skriv et opslag..." Style="width:100%;"></MudTextField>
+
+@*<MudButton Style="width:100%;" Variant=Variant.Filled Color=Color.Primary OnClick="() => _showOverlay = true" StartIcon="@Icons.Material.Filled.AddComment">Skriv Opslag</MudButton>*@
+
+<MudOverlay onclose="@OnCloseOverlay" @bind-Visible="_showOverlay" DarkBackground="true" AutoClose="false" Style="height:100%; width:100%; position:fixed">
+
+    <MudCard Style=@($"top:{_top}px; max-height:calc(100% - {_top}px); position:absolute; left:50%; transform: translate(-50%,0%); width:100%; min-width:320px; max-width:600px; overflow-y: scroll;")>
+
+
+        <MudCardContent Class="pt-2">
+            <MudStack Class="mb-5" Style="width:100%;">
+                <MudText Align="Align.Center" Class="mb-1" Typo="Typo.h6">Skriv et Opslag</MudText>
+                <MudDivider Light="true" />
+            </MudStack>
+
+            @if (_selectedDog is null)
+            {
+                <MudStack Style="width:100%;" AlignItems="AlignItems.Center">
+                    <MudButton Style="width:fit-content;" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowDogSelectionMenu">Tilføj din Hund</MudButton>
+                </MudStack>
+            }
+            else
+            {
+                <MudText Align="Align.Center" Typo="Typo.h6">Du skriver på vegne af:</MudText>
+
+                <MudStack Row=true Style="flex-wrap: wrap;" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                    <DogCard Dog="@_selectedDog" DisableNavigation=true />
+                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="RemoveSelectedDog" Style="height:fit-content;" />
+                </MudStack>
+            }
+
+            <div style="max-height:500px; overflow-y:scroll; overflow-x:hidden">
+                <div class="mb-5" style="max-height:300px; overflow-y:scroll;">
+                    <CustomMultilineTextField T=string Disabled=_loading Variant=Variant.Text AutoFocus=true TextChanged=@OnTextChange Placeholder="Beskrivelse..." />
+                </div>
+
+                <MultiMediaSelect ChangeMediaText="Ændre Billeder/Videoer"
+                                  UploadMediaText="Tilføj Billeder/Videoer"
+                                  OnMediaChanged="OnMediaChanged" Class="mb-5" />
+
+                <MudStack Class="px-5 pb-5" Row="false" Justify="Justify.Center" AlignItems="AlignItems.Center">
+
+                    <InputHider OnHiddenText="Kategori" OnShow="OnCategoryShow" OnHide=OnCategoryRemoved>
+                        <MudSelect Style="min-width:200px;" @bind-Value=_selectedCategory T=PostCategory MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Kategori">
+                            @foreach (var item in Enum.GetValues<PostCategory>())
+                            {
+                                <MudSelectItem Value="@(item)">
+                                    <MudStack Style="width:fit-content;" Row=true>
+                                        <MudIcon Color=@EnumToTextConversion.PostCategoryToColor(item) Icon=@EnumToTextConversion.PostCategoryToIcon(item) />
+                                        <MudText Color=@EnumToTextConversion.PostCategoryToColor(item)>@EnumToTextConversion.PostCategoryToString(item)</MudText>
+                                    </MudStack>
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+                    </InputHider>
+
+                    @if (CanChoosePostArea && _model.Category is not null)
+                    {
+                        <InputHider OnHiddenText="Område" OnShow="OnAreaShow" OnHide=OnAreaRemoved>
+                            <MudSelect Style="min-width:200px;" T=PostArea @bind-Value=_selectedArea MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Område">
+                                @foreach (var item in Enum.GetValues<PostArea>())
+                                {
+                                    <MudSelectItem Value="@(item)">@EnumToTextConversion.PostAreaToString(item)</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </InputHider>
+                    }
+                </MudStack>
+
+            </div>
+        </MudCardContent>
+
+        <MudCardActions>
+            <MudStack Style="width:100%;">
+
+                @if (_isUploadingFiles)
+                {
+                    <MudProgressLinear Color="Color.Primary" Size="Size.Medium" Value="@_currentUploadPercent">
+                        <MudText>Uploader Filer (@(_currentUploadPercent)%)</MudText>
+                    </MudProgressLinear>
+                }
+                <MudStack Row=true Justify="Justify.SpaceBetween" Style="width:100%;">
+                    <MudButton Disabled=_loading OnClick=@OnCloseOverlay Variant="Variant.Outlined">Luk</MudButton>
+                    <MudButton Disabled=@(_loading || !_validPost) OnClick=@(() =>OnSubmit()) Variant=Variant.Filled Color="Color.Primary">
+                        @if (_loading)
+                        {
+                            <MudProgressCircular Indeterminate=true />
+                        }
+                        Opret
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudCardActions>
+
+    </MudCard>
+
+</MudOverlay>
+@code {
+    [Parameter]
+    public Func<int, Task>? OnPostCreated { get; set; }
+
+    [Parameter]
+    public int? PlaceId { get; set; }
+
+    [Parameter]
+    public bool CanChoosePostArea { get; set; } = true;
+
+    [Parameter]
+    public PostArea? DefaultPostArea { get; set; }
+
+    private DogListDTO? _selectedDog;
+
+    private bool _showOverlay;
+    private bool _loading;
+    private PostCreateDTO _model;
+    private bool _validPost;
+    private IReadOnlyList<IBrowserFile>? _browserFiles;
+
+    private float _currentFileBeingUploaded;
+    private int _currentUploadPercent;
+    private bool _isUploadingFiles;
+
+    private int _top = 64;
+
+    private PostCategory _selectedCategory = PostCategory.Help;
+    private PostArea _selectedArea = PostArea.Social;
+
+    private PostArea _postCategory;
+
+
+
+    public CreatePost()
+    {
+        _model = new();
+    }
+
+    private void RemoveSelectedDog()
+    {
+        _selectedDog = null;
+        _model.DogId = null;
+    }
+
+    private async Task ShowDogSelectionMenu()
+    {
+        var (didAccept1, dogsToCheckIn) = await DialogServiceExtender
+                .ShowMyDogsListViewSelection(
+                    DialogService,
+                    ApiClient,
+                    "Hvem skriver du opslaget på vegne af?",
+                    true,
+                    "Vælg"
+                );
+        if (dogsToCheckIn.Any())
+        {
+            _model.DogId = dogsToCheckIn.First().Id;
+            _selectedDog = dogsToCheckIn.First();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _model.Area = DefaultPostArea ?? _model.Area;
+    }
+
+    private void OnCategoryChanged(PostCategory category)
+    {
+        _model.Category = category;
+    }
+
+    private void OnAreaChanged(PostArea category)
+    {
+        _model.Area = category;
+    }
+
+    private void OnAreaShow()
+    {
+        _model.Area = _selectedArea;
+        StateHasChanged();
+    }
+
+    private void OnCategoryShow()
+    {
+        _model.Category = _selectedCategory;
+        StateHasChanged();
+    }
+
+    private void OnTextChange(string text)
+    {
+        _model.Body = text;
+        Validate();
+    }
+
+    private void OnMediaChange()
+    {
+        Validate();
+    }
+
+    private void Validate()
+    {
+        _validPost = !string.IsNullOrEmpty(_model.Body) || (_browserFiles?.Any() ?? false);
+        StateHasChanged();
+    }
+
+    private void OnCloseOverlay()
+    {
+        _showOverlay = false;
+        _model = new();
+        StateHasChanged();
+    }
+
+    private void OnAreaRemoved()
+    {
+        _model.Area = null;
+        StateHasChanged();
+    }
+
+    private void OnCategoryRemoved()
+    {
+        _model.Category = null;
+        _model.Area = null;
+        StateHasChanged();
+    }
+
+    private async Task OnMediaChanged(IReadOnlyList<IBrowserFile>? files)
+    {
+        _browserFiles = files;
+        Validate();
+    }
+
+    private async Task OnSubmit()
+    {
+        _loading = true;
+
+        _model.PlaceId = PlaceId;
+
+        if (CanChoosePostArea)
+        {
+            if (_model.Area is not null)
+            {
+                _model.Area = _selectedArea;
+            }
+        }
+        else
+        {
+            _model.Area = DefaultPostArea;
+        }
+
+        if (_model.Category is not null)
+        {
+            _model.Category = _selectedCategory;
+        }
+
+        if (_browserFiles is not null)
+        {
+            _model.Media = _browserFiles.Select(f => new FileListDTO
+                {
+                    ContentType = f.ContentType
+                }).ToArray();
+        }
+
+        var createdResult = await ApiClient.CreatePost(_model);
+        if (createdResult.Success)
+        {
+            if (createdResult.BlobUploadUrls is not null)
+            {
+                _isUploadingFiles = true;
+                StateHasChanged();
+                for (int i = 0; i < _browserFiles.Count; i++)
+                {
+                    var file = _browserFiles[i];
+                    await cloudClient.UploadFile(
+                        file: file,
+                        blobPath: createdResult.BlobUploadUrls[i],
+                        onProgressUpdate: ((long s) => OnUploadProgressChanged(i, s))
+                    );
+                }
+                _isUploadingFiles = false;
+
+            }
+            snackbar.Add("Dit opslag er blevet oprettet!", Severity.Success);
+            _showOverlay = false;
+            _model = new();
+            _browserFiles = null;
+            _currentFileBeingUploaded = 0;
+            _currentUploadPercent = 0;
+            _selectedDog = null;
+            await OnPostCreated(createdResult.PostId.Value);
+        }
+        else
+        {
+            snackbar.Add("Dit opslag kunne ikke oprettes.", Severity.Error);
+
+        }
+        _loading = false;
+    }
+
+    private async Task OnUploadProgressChanged(int fileIndex, long bytesUploaded)
+    {
+        if (fileIndex != _currentFileBeingUploaded)
+        {
+            _currentFileBeingUploaded = fileIndex;
+            _currentUploadPercent = (int)((_currentFileBeingUploaded / (float)_browserFiles.Count()) * 100);
+            StateHasChanged();
+        }
+    }
+}

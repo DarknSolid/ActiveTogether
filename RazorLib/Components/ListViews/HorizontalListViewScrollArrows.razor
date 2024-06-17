@@ -1,0 +1,106 @@
+﻿@using Microsoft.JSInterop
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+
+<div class="px-2" style="display:flex; align-items:center; flex-direction:row; position:absolute; top:50%; width:100%; transform: translateY(-50%); z-index:1; height:100%; justify-content:space-between; pointer-events:none;">
+    @if (_scrollPosition > 0)
+    {
+        <div class="scroll-arrow" @onmouseenter=@(()=> OnMouseEnterScroll(false)) @onmouseleave=OnMouseExitScroll>
+            <MudIcon Size="Size.Large" Icon="@Icons.Material.Filled.KeyboardArrowLeft" />
+        </div>
+    }
+    else
+    {
+        <div style="width:1px;" />
+    }
+
+    @if (_scrollPosition < _maxScrollRight)
+    {
+        <div class="scroll-arrow" @onmouseenter=@(()=> OnMouseEnterScroll(true)) @onmouseleave=OnMouseExitScroll>
+            <MudIcon Size="Size.Large" Icon="@Icons.Material.Filled.KeyboardArrowRight" />
+        </div>
+    }
+    else
+    {
+        <div style="width:1px;" />
+    }
+</div>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public ElementReference? ListView { get; set; }
+
+
+    [Parameter]
+    public int? MaxScrollRight { get; set; } = int.MaxValue;
+
+    private int _maxScrollRight = int.MaxValue;
+
+    private bool _displayScrollArrows;
+    private bool _shouldScroll;
+
+    private float _scrollAmount;
+
+    private float _scrollPosition;
+    private int containerWidth;
+
+    private async Task Scroll()
+    {
+        while (_shouldScroll)
+        {
+            if ((_scrollPosition <= 0 && _scrollAmount < 0) || (_scrollAmount > 0 && _scrollPosition >= MaxScrollRight))
+            {
+                _shouldScroll = false;
+                StateHasChanged();
+                return;
+                _scrollPosition = await JSRuntime.InvokeAsync<float>("GetElementScroll", ListView);
+
+            }
+            await JSRuntime.InvokeAsync<dynamic>("ScrollElement", ListView, _scrollAmount);
+            _scrollPosition = await JSRuntime.InvokeAsync<float>("GetElementScroll", ListView);
+            await Task.Delay(7);
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _maxScrollRight = Math.Max(0, MaxScrollRight ?? _maxScrollRight);
+
+        StateHasChanged();
+    }
+
+    private void OnMouseEnterList()
+    {
+        _displayScrollArrows = true;
+    }
+
+    private void OnMouseLeaveList()
+    {
+        _displayScrollArrows = false;
+    }
+
+    private void OnMouseEnterScroll(bool directionRight)
+    {
+        if (!_shouldScroll)
+        {
+            _shouldScroll = true;
+            _scrollAmount = directionRight ? 5 : -5;
+            StateHasChanged();
+            Scroll();
+        }
+    }
+
+    private async Task OnMouseExitScroll()
+    {
+        _scrollAmount = await JSRuntime.InvokeAsync<float>("GetElementScroll", ListView);
+        _shouldScroll = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _shouldScroll = false;
+    }
+}

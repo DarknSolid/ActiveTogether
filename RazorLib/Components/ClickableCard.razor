@@ -1,0 +1,13 @@
+﻿
+<div class="mud-ripple" @onclick="OnClick" style="overflow:visible">
+    @ChildContent
+</div>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public Action OnClick { get; set; }
+}

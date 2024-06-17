@@ -1,11 +1,6 @@
-﻿using EntityLib.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static EntityLib.Entities.DogParkFacility;
+﻿using NpgsqlTypes;
 using static EntityLib.Entities.Enums;
+using static ModelLib.DTOEnums;
 
 namespace ModelLib.DTOs.DogPark
 {
@@ -13,23 +8,19 @@ namespace ModelLib.DTOs.DogPark
     {
         public string Description { get; set; }
         public double Rating { get; set; }
-        public IEnumerable<DogPackFacilityType> Facilities { get; set; }
+        public IEnumerable<DogParkFacilityType> Facilities { get; set; }
         public List<string> ImageUrls { get; set; }
         public int TotalReviews { get; set; }
+
+        public List<NpgsqlPoint>? Bounds { get; set; }
+        public float? SquareKilometers { get; set; }
 
         public DogParkDetailedDTO()
         {
             ImageUrls = new List<string>();
-            Facilities = new List<DogPackFacilityType>();
+            Facilities = new List<DogParkFacilityType>();
         }
 
         public ReviewStatus CurrentReviewStatus { get; set; }
-        public enum ReviewStatus
-        {
-            MustCheckIn,
-            CanUpdateReview,
-            CanReview
-
-        }
     }
 }

@@ -1,0 +1,21 @@
+﻿
+
+<div style=@($"position:relative; width:100%; height:{Height}px; " + (BlurAmount > 0 ? "filter: blur(8px); -webkit-filter: blur(8px); " : "") + Style) class=@Class>
+    <div style=@($"position:absolute; background-image: url({Url}); background-position: center; background-repeat: no-repeat; background-size: cover; height:100%; width:100%; top:0%;") />
+</div>
+
+@code {
+    [Parameter]
+    public int Height { get; set; } = 300;
+
+    [Parameter, EditorRequired]
+    public string? Url { get; set; }
+
+    [Parameter]
+    public int BlurAmount { get; set; }
+
+    [Parameter]
+    public string Class { get; set; }
+    [Parameter]
+    public string Style { get; set; }
+}

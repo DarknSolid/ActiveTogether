@@ -1,0 +1,27 @@
+﻿@attribute [Route(RoutingConstants.ENTERPRISE_STATISTICS)]
+@using RazorLib.Components
+
+
+<MudContainer>
+
+    <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h4" Class="my-5">Your Statistics</MudText>
+        <IconUnderConstruction />
+    </MudStack>
+
+    <MudText>This page will show statistics in your area such as:</MudText>
+
+    <MudList Clickable="false">
+        <MudListItem Text="Most trending dog training categories in your area" Icon="@Icons.Material.Filled.Check" />
+        <MudListItem Text="How many dog owners visit your official website through your profile and courses" Icon="@Icons.Material.Filled.Check" />
+        <MudListItem Text="What categories of dog training that dog owners want to apply for here and now in your area." Icon="@Icons.Material.Filled.Check" />
+        <MudListItem Text="Distribution of dog races and age in your area" Icon="@Icons.Material.Filled.Check" />
+    </MudList>
+
+    <MudText>Feel free to contact us at hampus@doggoworld.dk for more information and/or to make suggestions</MudText>
+</MudContainer>
+
+
+@code {
+
+}

@@ -1,0 +1,116 @@
+﻿@using ModelLib;
+@using RazorLib.Components.FileSelection;
+@using RazorLib.Components.Media
+
+
+<MediaPopup SelectedIndex="@_selectedIndex" Urls="@Urls">
+
+    <MudGrid Spacing=0 Class=@("mt-5 " + Class) Style=@($"width:100%; max-height:{MaxHeight}px; cursor:pointer;")>
+        @if (Urls.Count() == 1)
+        {
+            <MudItem xs="12" Style="height:100%; max-height:inherit;">
+                @if (MediaUtils.IsVideo(@Urls.First()))
+                {
+                    <Video PreventDefaultAndPropagation=true Height="@MaxHeight" Src="@Urls.First()" />
+                }
+                else
+                {
+                    <MudImage @onclick="@(() => OnImageClick(0))" Style=@($"width:100%; height:{MaxHeight}px; " + Style) ObjectFit=ObjectFit.Contain Src="@Urls.First()"></MudImage>
+                }
+            </MudItem>
+        }
+        else if (Urls.Count() == 2)
+        {
+            @foreach (var (url, index) in Urls.Select((url, index) => (url, index)))
+            {
+                <MudItem xs="6" Style="max-height:inherit;">
+                    @if (MediaUtils.IsVideo(url))
+                    {
+                        <Video PreventDefaultAndPropagation=true Height="@MaxHeight" Src="@url" />
+                    }
+                    else
+                    {
+                        <MudImage @onclick="@(() => OnImageClick(index))" Style=@($"width:100%; height:{MaxHeight}px;") ObjectFit=ObjectFit.Contain Src="@url"></MudImage>
+                    }
+                </MudItem>
+            }
+        }
+        else
+        {
+            <MudItem xs="6">
+                @if (MediaUtils.IsVideo(@Urls[0]))
+                {
+                    <Video PreventDefaultAndPropagation=true Style="width:100%;" Height="@MaxHeight" Src="@Urls[0]" />
+                }
+                else
+                {
+                    <MudImage @onclick="@(() => OnImageClick(0))" Style=@($"width:100%; height:{MaxHeight}px;") ObjectFit=ObjectFit.Contain Src="@Urls[0]"></MudImage>
+                }
+            </MudItem>
+
+            <MudItem xs="6" Style=@($"height:{MaxHeight}px;")>
+
+                <MudGrid Spacing="0" Style="height:100%;">
+
+                    <MudItem xs="12" Style="height:50%;">
+                        @if (MediaUtils.IsVideo(@Urls[1]))
+                        {
+                            <Video PreventDefaultAndPropagation=true Style="height:100%;" Src="@Urls[1]" />
+                        }
+                        else
+                        {
+                            <MudImage @onclick="@(() => OnImageClick(1))" Style="width:100%; height:100%;" ObjectFit=ObjectFit.Cover Src="@Urls[1]"></MudImage>
+                        }
+                    </MudItem>
+
+                    <MudItem xs="12" Style="position:relative; height:50%;">
+                        @if (MediaUtils.IsVideo(@Urls[2]))
+                        {
+                            <Video PreventDefaultAndPropagation=true Style="height:100%;" Src="@Urls[2]" />
+                        }
+                        else
+                        {
+                            <MudImage Style="width:100%; height:100%;" ObjectFit=ObjectFit.Cover Src="@Urls[2]"></MudImage>
+                        }
+                        @if (Urls.Count() > 3)
+                        {
+                            <MudStack @onclick="@(() => OnImageClick(2))" AlignItems="AlignItems.Center" Justify=Justify.Center Style="height:100%; width:100%; position:absolute; background-color:rgba(0,0,0,0.5); top:0%; left:0%;">
+                                <MudText Style="color:white; " Align="Align.Center">+@((Urls.Count() - 3))</MudText>
+                                </MudStack>
+                        }
+                    </MudItem>
+                </MudGrid>
+
+            </MudItem>
+        }
+    </MudGrid>
+
+</MediaPopup>
+
+@code {
+    [Parameter]
+    public string[] Urls { get; set; }
+
+    [Parameter]
+    public int MaxHeight { get; set; } = 250;
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private int _selectedIndex;
+
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    private void OnImageClick(int index)
+    {
+        _selectedIndex = index;
+        StateHasChanged();
+    }
+}

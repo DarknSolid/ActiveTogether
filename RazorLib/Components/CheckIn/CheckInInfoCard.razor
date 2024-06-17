@@ -2,17 +2,19 @@
 @using ModelLib.DTOs.CheckIns
 @using RazorLib.Interfaces
 @using RazorLib.Models
-@inject IStorageManager<CurrentlyCheckedInDTO> StorageManager 
+@using RazorLib.Utils
+@implements IDisposable
+@inject IStorageManager<CurrentlyCheckedInDTO> CheckInManager 
 @inject ITopicBroker TopicBroker
 @inject IJSRuntime JSRuntime
 
 
-@if (CurrentlyCheckedInDTO != null)
+@if (_urrentlyCheckedInDTO != null)
 {
-    <MudPaper onclick="@(() => OnClicked(CurrentlyCheckedInDTO.PlaceId))" Height="200px" Width="100%" Class="mud-theme-primary">
-        <MudText Color="Color.Surface" Typo="Typo.body1">Checked in:</MudText>
-        <MudText Color="Color.Surface" Typo="Typo.body2">@CurrentlyCheckedInDTO.CheckInDate</MudText>
+    <MudPaper Style="@Style" onclick="@(() => OnClicked(_urrentlyCheckedInDTO.PlaceId))" Class="mud-theme-primary">
+        <MudText Color="Color.Surface" Typo="Typo.body1">Checked in: </MudText>
         <MudText Color="Color.Surface" Typo="Typo.body2">Duration: @_duration</MudText>
+        <MudText Color="Color.Surface" Typo="Typo.body2">Mood: @EnumToTextConversion.MoodToString(_urrentlyCheckedInDTO.Mood)</MudText>
     </MudPaper>
 }
 
@@ -21,28 +23,40 @@
     [Parameter]
     public Action<int> OnClicked { get; set; }
 
-    public CurrentlyCheckedInDTO CurrentlyCheckedInDTO { get; set; }
+    [Parameter]
+    public string? Style { get; set; }
+
+    private string _style = "";
+
+    private CurrentlyCheckedInDTO? _urrentlyCheckedInDTO;
 
     private string _duration;
 
-    protected override async Task OnInitializedAsync()
+    public async Task OnChechInChanged()
     {
-        TopicBroker.Subscribe(StorageManager.GetBrokerTopicString(), async () => await OnCheckInStateChanged());
         await Fetch();
-        await base.OnInitializedAsync();
+        StateHasChanged();
     }
 
-    public async Task OnCheckInStateChanged()
+    protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+        _style = Style ?? "";
+        CheckInManager.Subscribe(Fetch);
         await Fetch();
+    }
+
+    public void Dispose()
+    {
+        CheckInManager.UnSubscribe(OnChechInChanged);
     }
 
     public async Task Fetch()
     {
-        CurrentlyCheckedInDTO = await StorageManager.Get();
-        if (CurrentlyCheckedInDTO != null)
+        _urrentlyCheckedInDTO = await CheckInManager.Get();
+        if (_urrentlyCheckedInDTO != null)
         {
-            var (hours, minutes) = Utils.DateUtils.TimeInHoursMinutes(CurrentlyCheckedInDTO.CheckInDate, null);
+            var (hours, minutes) = Utils.DateUtils.TimeInHoursMinutes(_urrentlyCheckedInDTO.CheckInDate, null);
             _duration = $"{hours}h {minutes} m";
         }
         StateHasChanged();

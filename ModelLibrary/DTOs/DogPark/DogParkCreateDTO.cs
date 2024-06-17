@@ -1,22 +1,22 @@
-﻿using EntityLib.Entities;
+﻿using EntityLib.Entities.Constants;
 using NetTopologySuite.Geometries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NpgsqlTypes;
+using System.ComponentModel.DataAnnotations;
+using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.DogPark
 {
-    public class DogParkCreateDTO
+    public class DogParkCreateDTO : LocationCreateDTO
     {
-        public string Name { get; set; }
+        public IList<NpgsqlPoint>? Bounds { get; set; }
+        public float? SquareKilometers { get; set; }
 
-        public string Description { get; set; }
+        public IEnumerable<DogParkFacilityType> Facilities { get; set; }
 
-        public float Latitude { get; set; }
-        public float Longitude { get; set; }
-
-        public List<DogParkFacility> Facilities { get; set; }
+        public DogParkCreateDTO()
+        {
+            Point = new();
+            Facilities = new List<DogParkFacilityType>();
+        }
     }
 }

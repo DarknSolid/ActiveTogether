@@ -1,0 +1,139 @@
+﻿@using ChartJs.Blazor.BarChart.Axes
+@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Util
+@using ModelLib.DTOs.CheckIns
+@using ChartJs.Blazor.BarChart
+@using System.Drawing
+@using ChartJs.Blazor.Common.Enums
+
+<MudContainer>
+    @*Header menu*@
+    <div class="d-flex flex-row gap-4">
+        <MudText Typo="Typo.h5" Style="align-self: end;">Statistics</MudText>
+        <MudSelect Style="margin-top:0px;" Value="_selectedDayOfWeek" ValueChanged="(DayOfWeek day) => SetSelectedDay(day)" OpenIcon="@Icons.Material.Filled.CalendarToday">
+            @foreach (var day in Enum.GetValues<DayOfWeek>())
+            {
+                <MudSelectItem Value="@day">@day</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    <Chart Config="_config" @ref="_chart" />
+    <MudText Typo="Typo.h5">Check-ins last month:</MudText>
+    <MudText Typo="Typo.body1">@Statistics.PeopleCheckIns people</MudText>
+    <MudText Typo="Typo.body1">@Statistics.DogCheckIns dogs</MudText>
+
+</MudContainer>
+
+@code {
+    [Parameter, EditorRequired]
+    public CheckInStatisticsDetailedDTO Statistics { get; set; }
+
+    private DayOfWeek _selectedDayOfWeek;
+
+    private int minHour = 6;
+    private int maxHour = 23;
+    private int hourRange;
+    private int _xAxisSkipEveryN = 2;
+
+    private Chart _chart;
+    private BarConfig _config;
+
+    public CheckInStatistics()
+    {
+        _config = new();
+        hourRange = maxHour - minHour + 1;
+        Statistics = new();
+        _selectedDayOfWeek = DateTime.Now.DayOfWeek;
+    }
+
+    protected override void OnInitialized()
+    {
+        ConfigureBarChartOptions();
+        UpdateChartSeries();
+    }
+
+    private void ConfigureBarChartOptions()
+    {
+        _config = new BarConfig(horizontal: false)
+            {
+                Options = new BarOptions
+                {
+                    Responsive = true,
+                    Scales = new BarScales
+                    {
+                        XAxes = new List<CartesianAxis>
+                        {
+                            new BarCategoryAxis
+                            {
+                                BarPercentage = 1,
+                                CategoryPercentage = .95,
+
+                            }
+                        },
+                        YAxes = new List<CartesianAxis>
+                        {
+                            new BarLinearCartesianAxis
+                            {
+                                GridLines = new() {
+                                    Display = false
+                                },
+                            }
+                        }
+                    }
+                },
+            };
+        // sets the x axis with hours:
+        Enumerable
+        .Range(minHour, hourRange)
+        .Select(d => d % _xAxisSkipEveryN == 0 ? d.ToString() : "")
+        .ToList()
+        .ForEach(label => _config.Data.Labels.Add(label));
+    }
+
+    private void SetSelectedDay(DayOfWeek day)
+    {
+        _selectedDayOfWeek = day;
+        UpdateChartSeries();
+    }
+
+    private void UpdateChartSeries()
+    {
+        var peopleChartSeries = new ChartSeries() { Name = "people" };
+        var dogChartSeries = new ChartSeries() { Name = "dogs" };
+        int[] peopleData = new int[hourRange];
+        int[] dogData = new int[hourRange];
+        for (int hour = minHour; hour < maxHour; hour++)
+        {
+            if (Statistics.IntraDayStatistics.ContainsKey(_selectedDayOfWeek))
+            {
+                if (Statistics.IntraDayStatistics[_selectedDayOfWeek].ContainsKey(hour))
+                {
+                    var x = Statistics.IntraDayStatistics[_selectedDayOfWeek][hour];
+                    peopleData[hour - minHour] = (x.People);
+                    dogData[hour - minHour] = (x.Dogs);
+                }
+            }
+        }
+
+        IDataset<int> datasetPeople = new BarDataset<int>(peopleData, horizontal: false)
+            {
+                Label = "people",
+                BackgroundColor = "rgba(72, 143, 237, 1)",
+
+            };
+        IDataset<int> datasetDogs = new BarDataset<int>(dogData, horizontal: false)
+            {
+                Label = "dogs",
+                BackgroundColor = "rgba(133, 180, 243, 1)",
+            };
+
+        _config.Data.Datasets.Clear();
+        _config.Data.Datasets.Add(datasetPeople);
+        _config.Data.Datasets.Add(datasetDogs);
+        if (_chart != null)
+        {
+            _chart.Update();
+        }
+    }
+}

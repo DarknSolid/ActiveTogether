@@ -1,0 +1,153 @@
+﻿@using FisSst.BlazorMaps.Factories.Rectangles
+@using FisSst.BlazorMaps.Models.Basics
+@using FisSst.BlazorMaps.Models.Rectangles
+@using ModelLib.DTOs
+@using ModelLib.Utils
+@using RazorLib.Components.Maps
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@inherits BaseMap
+@inject IRectangleFactory RectangleFactory
+@inject IStorageManager<SearchAreaDTO> SearchAreaStorageManager
+@inject IStorageManager<MapOptions> MapOptionsStorageManager
+
+<MudButton OnClick="@(() => _show = true)"
+           Variant="Variant.Filled"
+           EndIcon="@Icons.Filled.KeyboardArrowDown"
+           Style="@Style">
+    <MudText>
+        @($"Valgt Område | {SearchAreaDTO?.RadiusKilometers} km")
+    </MudText>
+</MudButton>
+
+<MudOverlay Visible="_show" DarkBackground="true" Absolute="false">
+
+    <div style="height: 80%;
+                    width: 80%;
+                    margin: auto;
+                    position: relative;
+                    max-width:600px;
+                    min-width:350px;
+                    min-height:600px;
+                    top:10%;">
+
+        <div style="position:relative; height:80%;">
+            <FisSst.BlazorMaps.Map CssClass="map-full-size" @ref="@_map" MapOptions="@_mapOptions" AfterRender="@(async () => await OnAfterInitAsync())" />
+        </div>
+
+        <MudPaper Class="px-10 py-5">
+            <MudStack>
+                <MudSlider Class="mb-5" T="int" Step="5" TickMarks="true" TickMarkLabels="@labels" Min="5" Max="50" ValueChanged="OnRadiusChanged" @ref="_slider">Kilometer</MudSlider>
+                <MudButton Class="mt-5" OnClick="OnConfirm" FullWidth="true" Variant="Variant.Filled" Color="Color.Primary">Vælg Område</MudButton>
+            </MudStack>
+        </MudPaper>
+
+    </div>
+</MudOverlay>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public Func<SearchAreaDTO, Task> OnSearchAreaSelected { get; set; }
+
+    private MudSlider<int> _slider;
+
+    [Parameter]
+    public string Style { get; set; }
+
+    private bool _show;
+    private LatLng _mapCenter;
+    private Rectangle _searchAreaRectangle;
+    public SearchAreaDTO SearchAreaDTO { private get; set; }
+
+    public async Task<SearchAreaDTO> GetSearchAreaDTOAsync()
+    {
+        var mapOptions = await MapOptionsStorageManager.Get();
+        if (mapOptions is not null)
+        {
+            SearchAreaDTO.Center = mapOptions.Center;
+        }
+        return SearchAreaDTO;
+    }
+
+    string[] labels;
+
+    public SearchAreaSelect() : base()
+    {
+        labels = Enumerable.Range(5, 50)
+                    .Where(i => i % 5 == 0)
+                    .Select(i => i.ToString())
+                    .ToArray();
+
+    }
+
+    private async Task OnRadiusChanged(int newRadius)
+    {
+        SearchAreaDTO.RadiusKilometers = newRadius;
+        await RedrawShapesOnMap();
+        await _map.FitBounds((await _searchAreaRectangle.GetBounds()).ToLatLng());
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        SearchAreaDTO = await SearchAreaStorageManager.Get();
+        if (SearchAreaDTO is null)
+        {
+            SearchAreaDTO = new SearchAreaDTO
+                {
+                    Center = _mapOptions.Center,
+                    RadiusKilometers = 15
+                };
+            await SearchAreaStorageManager.Set(SearchAreaDTO);
+        }
+    }
+
+    protected override async Task OnAfterInitAsync()
+    {
+        await base.OnAfterInitAsync();
+        var _searchAreaOptions = new RectangleOptions
+            {
+                Color = "#616161",
+                Stroke = true,
+                Weight = 3, // size of the stroke/border
+                DashArray = "16"
+            };
+
+        var bounds = Geographics.SphereToBounds(await _map.GetCenter(), radiusInMeters: SearchAreaDTO.RadiusKilometers * 1000).ToLatLng();
+        _searchAreaRectangle = await RectangleFactory.CreateAndAddToMap(
+            latLngs: bounds,
+            map: _map,
+            options: _searchAreaOptions
+        );
+        await _map.FitBounds(bounds);
+        await _map.OnMove(async (FisSst.BlazorMaps.MouseEvent e) => await OnBoundsChanged());
+        _slider.Value = SearchAreaDTO.RadiusKilometers;
+    }
+
+    private async Task OnBoundsChanged()
+    {
+        await RedrawShapesOnMap();
+    }
+
+    private async Task RedrawShapesOnMap()
+    {
+        // draw the search area box depending on the current width in kilometers of the map.
+        var searchBounds = Geographics.SphereToBounds(await _map.GetCenter(), radiusInMeters: SearchAreaDTO.RadiusKilometers * 1000);
+        await _searchAreaRectangle.SetBounds(searchBounds);
+    }
+
+    private string FormattedCenter()
+    {
+        return _mapOptions.Center.Lat.ToString().Substring(0, 6) + ", " + _mapOptions.Center.Lng.ToString().Substring(0, 6);
+    }
+
+    private async Task OnConfirm()
+    {
+        SearchAreaDTO.Center = await _map.GetCenter();
+        await SearchAreaStorageManager.Set(SearchAreaDTO);
+
+        OnSearchAreaSelected(SearchAreaDTO);
+        _show = false;
+    }
+}

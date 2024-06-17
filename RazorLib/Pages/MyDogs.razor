@@ -1,40 +1,68 @@
-﻿@using ModelLib.DTOs.Dogs
+﻿@attribute [Route(RoutingConstants.MY_DOGS)]
+
+@using ModelLib.DTOs.Dogs
 @using RazorLib.Components
+@using RazorLib.Components.CustomMudMenus
 @using RazorLib.Components.Dogs
 @using RazorLib.Interfaces
 @inject IApiClient ApiClient
+@inject NavigationManager NavigationManager;
 
 
-<MudContainer>
-    <MudText Typo="Typo.h4" Align="Align.Center">My Dogs</MudText>
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Md" />
 
-    <MudList Clickable=@(_loading == false)>
+
+<MudContainer Class="mb-5">
+    <MudText Class="my-5" Typo="Typo.h4" Align="Align.Center">Mine Hunde</MudText>
+
+    <MudStack AlignItems="AlignItems.Center" Style="width:100%;">
+
+        @if (!_isMobile)
+        {
+            <MudButton Class="mb-5" StartIcon="@Icons.Material.Filled.Add"
+                       Variant=Variant.Filled
+                       Color=Color.Primary
+                       Style="width:fit-content"
+                       OnClick="() => NavigationManager.NavigateToCreateDog()">
+                Tilføj Hund
+            </MudButton>
+        }
+    </MudStack>
+
+    <MudStack>
+
         @if (_loading)
         {
             @for (int i = 0; i < 4; i++)
             {
-                <MudListItem Class="px-1 py-1">
-                    <DogCardSkeleton />
-                </MudListItem>
+                <DogCardSkeleton />
             }
         }
         else
         {
             @foreach (var dog in _dogs)
             {
-                <MudListItem OnClick="() => OnDogListItemClicked(dog.Id)" Class="px-2 py-1">
-                    <DogCard Dog="@dog" >
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                            <MudMenuItem OnClick="() => OnDogEditButtonClicked(dog.Id)">Edit</MudMenuItem>
-                            <MudMenuItem OnClick="() => DeleteDog(dog.Id)"><MudText Color="Color.Error">Delete</MudText></MudMenuItem>
-                        </MudMenu>
-                    </DogCard>
-                </MudListItem>
+                <DogCard Dog="@dog">
+                    <MudMenu StartIcon="@Icons.Material.Filled.MoreVert">
+                        <div class="d-flex flex-column">
+
+                            <MudMenuItem OnTouch="() => NavigationManager.NavigateToCreateDog(dog.Id)" OnClick="() => NavigationManager.NavigateToCreateDog(dog.Id)">
+                                Edit
+                            </MudMenuItem>
+                            <MudMenuItem OnTouch=@(() => DeleteDog(dog.Id)) OnClick="@(() => DeleteDog(dog.Id))">
+                                <MudText Color="Color.Error">Delete</MudText>
+                            </MudMenuItem>
+                        </div>
+                    </MudMenu>
+                </DogCard>
             }
         }
-    </MudList>
+    </MudStack>
 
-    <MudFab  OnClick="() => OnDogCreateButtonClicked()" Style="position: absolute; bottom: 12%; right: 10%;" Color="Color.Primary" Size="Size.Large" StartIcon="@Icons.Material.Filled.Add" />
+    @if (_isMobile)
+    {
+        <MudFab OnClick="() => NavigationManager.NavigateToCreateDog()" Style="position: absolute; bottom: 30px; right: 30px;" Color="Color.Primary" Size="Size.Large" StartIcon="@Icons.Material.Filled.Add" />
+    }
 
 </MudContainer>
 
@@ -42,14 +70,7 @@
     private List<DogListDTO> _dogs;
     private bool _loading;
 
-    [Parameter]
-    public Action<int> OnDogListItemClicked { get; set; }
-
-    [Parameter]
-    public Action OnDogCreateButtonClicked { get; set; }
-
-    [Parameter]
-    public Action<int> OnDogEditButtonClicked { get; set; }
+    private bool _isMobile;
 
     protected override async Task OnInitializedAsync()
     {

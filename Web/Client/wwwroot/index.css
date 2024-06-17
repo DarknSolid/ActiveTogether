@@ -1,0 +1,5 @@
+﻿.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
+    color: white;
+    font-weight: bold;
+    background-color: var(--mud-palette-action-default-hover);
+}

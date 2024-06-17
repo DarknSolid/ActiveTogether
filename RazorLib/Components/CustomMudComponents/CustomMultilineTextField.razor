@@ -1,0 +1,44 @@
+﻿@typeparam T
+@inherits MudTextField<T>
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+
+@code {
+    protected override void OnParametersSet()
+    {
+        //CalculateSize();
+        base.OnParametersSet();
+    }
+
+    public CustomMultilineTextField()
+    {
+        Lines = 2;
+        OnKeyDown = new EventCallback<KeyboardEventArgs>(this, (KeyboardEventArgs args) => CalculateSize());
+        ValueChanged = new EventCallback<T>(this, (T args) => CalculateSize());
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        //base.OnKeyDown = new EventCallback<KeyboardEventArgs>(this, (KeyboardEventArgs args) => CalculateSize());
+    }
+
+    private void CalculateSize()
+    {
+        if (base.Text is not null)
+        {
+            var prev = Lines;
+            Lines = Math.Max(base.Text.Split('\n').Length, base.Text.Split('\r').Length);
+            Lines = Math.Max(Lines, 2);
+            if (prev != Lines)
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+
+}

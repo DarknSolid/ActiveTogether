@@ -1,0 +1,98 @@
+﻿@using Microsoft.JSInterop
+
+<MudIconButton OnClick="ToggleShowItems" Variant="Variant ?? MudBlazor.Variant.Text"
+               Color="Color ?? MudBlazor.Color.Inherit">
+
+    <MudBadge Visible="ShowBadge ?? false" Content="BadgeContent ?? null" Color="BadgeColor ?? MudBlazor.Color.Error" Overlap="true">
+        <div class="d-flex flex-row gap-4">
+
+            @_startIcon
+            @_label
+            @_endIcon
+        </div>
+    </MudBadge>
+
+    <MudPopover OverflowBehavior="OverflowBehavior.FlipNever"
+                Open="@_showItems"
+                AnchorOrigin="AnchorOrigin ?? Origin.BottomRight"
+                TransformOrigin="TransformOrigin ?? Origin.TopRight"
+                Class="mt-2">
+        @ChildContent
+    </MudPopover>
+</MudIconButton>
+
+
+
+@if (_showItems)
+{
+    <div style="position:fixed; z-index:1;" @onclick:stopPropagation="true">
+        <div onclick="@(() => ToggleShowItems())" style="position:fixed; left:0; top:0; width:100%; height:100%;" />
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public string? StartIcon { get; set; }
+    [Parameter]
+    public string? EndIcon { get; set; }
+    [Parameter]
+    public MudBlazor.Color? IconColor { get; set; }
+    [Parameter]
+    public string? Label { get; set; }
+    [Parameter]
+    public Variant? Variant { get; set; }
+    [Parameter]
+    public MudBlazor.Color? Color { get; set; }
+    [Parameter]
+    public Size? IconSize { get; set; }
+    [Parameter]
+    public Typo? LabelTypo { get; set; }
+
+    [Parameter]
+    public Origin? TransformOrigin { get; set; }
+    [Parameter]
+    public Origin? AnchorOrigin { get; set; }
+
+    [Parameter]
+    public bool? ShowBadge { get; set; }
+    [Parameter]
+    public int? BadgeContent { get; set; }
+    [Parameter]
+    public MudBlazor.Color? BadgeColor { get; set; }
+
+
+    private RenderFragment _startIcon, _endIcon;
+    private RenderFragment _label;
+
+    private bool _showItems;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _startIcon = null;
+        if (StartIcon != null)
+        {
+            _startIcon = @<MudIcon Color="IconColor ?? MudBlazor.Color.Inherit"
+         Icon="@StartIcon" Size="IconSize ?? Size.Medium" />;
+        }
+        _endIcon = null;
+        if (EndIcon != null)
+        {
+            _endIcon = @<MudIcon Color="IconColor ?? MudBlazor.Color.Inherit"
+         Icon="@EndIcon" Size="IconSize ?? Size.Medium" />;
+        }
+        _label = null;
+        if (Label != null)
+        {
+            _label =@<MudText Typo="LabelTypo ?? Typo.body1">@Label</MudText>;
+        }
+    }
+
+    private void ToggleShowItems()
+    {
+        _showItems = !_showItems;
+    }
+}

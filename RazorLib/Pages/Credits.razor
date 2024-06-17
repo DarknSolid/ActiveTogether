@@ -1,0 +1,77 @@
+﻿@using RazorLib.Utils;
+@attribute [Route(RoutingConstants.CREDITS)]
+
+<MudContainer>
+    <MudText Class="my-5" Typo="Typo.h4">Credits</MudText>
+
+    <MudText Typo="Typo.h6">Images used from Freepik</MudText>
+    <MudCard Class="mb-5" Style="width:100%">
+        <MudCardContent>
+
+            <MudStack Row="true" Style="flex-wrap:wrap; width:100%;">
+
+                @foreach (var (href, i) in FreePikHref.Select((item, index) => (item,index)))
+                {
+                    <MudStack Justify="Justify.Center" Spacing="1">
+                        <MudImage ObjectFit=ObjectFit.Contain Height="@_imageHeight" Src="@(FreePikUrlLocation[i])" />
+                        <MudText Align=Align.Center Typo="Typo.caption">
+                            (image by
+                            <MudLink Target="_blank" Href="@href">
+                                <MudText Typo="Typo.caption">
+                                    @(FreePikFrom[i])
+                                </MudText>
+                            </MudLink>
+                            )
+                        </MudText>
+                    </MudStack>
+                }
+
+
+            </MudStack>
+
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private int _imageHeight = 200;
+
+    private List<string> FreePikHref;
+
+    private List<string> FreePikFrom;
+
+    private List<string> FreePikUrlLocation;
+
+    public Credits()
+    {
+        FreePikHref = new()
+    {
+        "https://www.freepik.com/free-photo/woman-walking-with-her-dog-walkway-park_3212103.htm#query=dog%20walk&position=11&from_view=search&track=ais",
+        "https://www.freepik.com/free-psd/group-puppies-celebrating-new-year-together_3730302.htm#query=dog%20party&position=1&from_view=search&track=ais",
+        "https://www.freepik.com/free-photo/close-up-hand-holding-dog-paw_19894380.htm#query=dog%20care&position=3&from_view=search&track=ais",
+        "https://www.freepik.com/free-photo/two-dogs-playing-with-flying-disc-park_11138099.htm#query=dogs%20playing%20together&position=33&from_view=search&track=ais",
+        "https://www.freepik.com/free-photo/dog-trainer-teaching-dog-run-though-obstacles_27830055.htm#query=dog%20trainer&position=39&from_view=search&track=ais",
+        "https://www.freepik.com/free-photo/hands-holding-smartphone-social-media-concept_38689780.htm#query=social%20media%20advertising&position=22&from_view=search&track=ais",
+    };
+
+        FreePikFrom = new()
+        {
+        "Freepik",
+        "rawpixel.com",
+        "Freepik",
+        "aleksandarlittlewolf",
+        "Freepik",
+        "Freepik",
+        };
+
+        FreePikUrlLocation = new()
+        {
+        Images.RoyaltyDogWalk,
+        Images.RoyaltyDogSocial,
+        Images.RoyaltyDogCare,
+        Images.RoyaltyDogPark,
+        Images.RoyaltyDogTraining,
+        Images.RoyaltySocialMedia
+        };
+    }
+}

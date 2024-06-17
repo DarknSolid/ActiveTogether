@@ -9,6 +9,7 @@ namespace RazorLib.Interfaces
         public Task<bool> Exists();
         public Task<T?> Get();
 
-        public string GetBrokerTopicString();
+        public void Subscribe(Func<Task> onNotificationReceived);
+        public void UnSubscribe(Func<Task> onNotificationReceived);
     }
 }

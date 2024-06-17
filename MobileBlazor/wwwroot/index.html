@@ -1,35 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>MobileBlazor</title>
-	<base href="/" />
-	<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-	<link href="css/app.css" rel="stylesheet" />
-	<link href="MobileBlazor.styles.css" rel="stylesheet" />
-	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-	<link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-	<!-- BlazorGoogleMap dependencies: -->
-	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaosvKM91uhsko59BHdtnqBVysOqFFEkM&v=3&libraries=places,visualization,drawing"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DoggoWorld</title>
+    <base href="/" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="MobileBlazor.styles.css" rel="stylesheet" />
+
+    <!-- BlazorMaps dependencies: -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin="" />
+
+    <!-- RazorLib -->
+    <link href="_content/RazorLib/css/app.css" rel="stylesheet" />
+    <link href="_content/RazorLib/css/map.css" rel="stylesheet" />
+    <link href="_content/RazorLib/css/leaflet-overrides.css" rel="stylesheet" />
+    <link href="_content/RazorLib/css/mud-overrides.css" rel="stylesheet" />
+
 </head>
 
 <body>
 
-	<div id="app">Loading...</div>
-	<div id="blazor-error-ui">
-		An unhandled error has occurred.
-		<a href="" class="reload">Reload</a>
-		<a class="dismiss">🗙</a>
-	</div>
+    <div id="app">
+        <div class="app-loading-box">
 
-	<script src="_framework/blazor.webview.js" autostart="false"></script>
-	<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+            <div class="app-loading-img-wrapper">
+                <img src="_content/RazorLib/images/paw_icon.svg" class="app-loading-img" />
+            </div>
+            <h2 style="text-align:center; color:white; margin-top: -25px; z-index:1;">Dogging Around...</h2>
+        </div>
+    </div>
 
-	<!-- PaginationScroll dependencies -->
-	<script src="./js/scroll-pagination-observer.js"></script>
-	<!-- BlazorGoogleMap dependencies: -->
-	<script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
+    <!-- BlazorMaps dependencies: -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+
+    <!-- Chartjs Blazor dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
+
+    <!-- RazorLib -->
+    <script src="_content/RazorLib/scroll-pagination-observer.js"></script>
 
 </body>
 

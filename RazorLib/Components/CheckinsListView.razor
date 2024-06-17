@@ -1,77 +1,62 @@
 ﻿@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
 @using ModelLib.DTOs.CheckIns
 @using RazorLib.Components.CheckIn
+@using RazorLib.Components.ListViews
 @using RazorLib.Interfaces
 @using RazorLib.Models
-@using RazorLib.Components.ScrollPagination
-@using static RazorLib.Components.ListViewBase
 @using static EntityLib.Entities.Enums
 @inject IApiClient ApiClient
 
 
-<ListViewScrollPagination ItemGap="20" Orientation="@ListViewOrientation.Horizontal" OnPagination="(e) => Fetch()">
-    @foreach (var checkin in CheckIns) {
-        <CheckInCard CheckInDetails=@checkin />
-    }
-    @if (_loading)
-    {
-        @for (int i = 0; i < _checkInsPerPage; i++)
-        {
-            <CheckInCardSkeleton/>
-        }
-    }
-</ListViewScrollPagination>
+<ListViewScrollPagination TPaginationResult="PaginationResult<CheckInListDTO>"
+    ItemGap="20" 
+    Orientation="@ListViewOrientation.Horizontal"
+    TItem="CheckInListDTO" 
+    BuildListItemContent="_buildListItemContent"
+    BuildSkeletonContent="_buildSkeletonContent"
+    FetchFunction="_fetchFunction"
+    UniqueItemKeyExtractor="(CheckInListDTO t) => t.Id"
+    />
 
 
 @code {
-    [Parameter]
-    public int? MaxItems { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public int FacilityId { get; set; }
 
     [Parameter]
     public bool ShowOnlyCurrentlyCheckedIn { get; set; }
 
-    private bool _loading;
-
-    public List<CheckInListDTO> CheckIns { get; set; }
-
-    private int _page;
-    private int _checkInsPerPage;
-    private bool _hasNext;
+    private Func<CheckInListDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, PaginationResult<CheckInListDTO>?, IList<CheckInListDTO>, Task<(PaginationResult<CheckInListDTO>, PaginationResult<CheckInListDTO>, IList<CheckInListDTO>)>> _fetchFunction;
 
     public CheckinsListView()
     {
-        _page = 0;
-        _hasNext = true;
-        _checkInsPerPage = 10;
-        CheckIns = new();
-    }
-
-    private async Task Fetch()
-    {
-        var hasLimitExceeded = MaxItems != null && CheckIns.Count < MaxItems;
-        if (_hasNext && !hasLimitExceeded)
+        _buildListItemContent = (CheckInListDTO dto) =>@<CheckInCard CheckInDetails="dto"/>;
+        _buildSkeletonContent = () =>@<CheckInCardSkeleton/>;
+        _fetchFunction = async (int itemsPerPage, PaginationResult<CheckInListDTO>? previousPaginationResult, IList<CheckInListDTO> items) =>
         {
-            _loading = true;
-            _hasNext = false;
-            var dto = new GetCheckInListDTO
+            var dto = new CheckInListDTOPaginationRequest
                 {
-                    PaginationRequest = new PaginationRequest
+                    PaginationRequest = new DateTimePaginationRequest
                     {
-                        ItemsPerPage = _checkInsPerPage,
-                        Page = _page
+                        ItemsPerPage = itemsPerPage,
+                        Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                        LastDate = items.LastOrDefault()?.CheckedInDate ?? DateTime.UtcNow.AddDays(1),
+                        LastId = previousPaginationResult?.LastId ?? -1
                     },
                     PlaceId = FacilityId,
                     OnlyActiveCheckIns = ShowOnlyCurrentlyCheckedIn
                 };
             var result = await ApiClient.GetCheckIns(dto);
-            CheckIns.AddRange(result.CheckIns);
-
-            _page++;
-            _hasNext = result.PaginationResult.HasNext;
-            _loading = false;
-        }
+            if (result is null)
+            {
+                return (new PaginationResult<CheckInListDTO>(), new PaginationResult<CheckInListDTO>(), new List<CheckInListDTO>());
+            }
+            return (result, result, result.Result);
+        };
     }
+
 }

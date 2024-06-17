@@ -1,0 +1,46 @@
+﻿
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClicked" Style="@Style">
+    @_listMapText
+</MudButton>
+
+@code {
+    [Parameter, EditorRequired]
+    public Action<bool> OnSwitch { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool ShowOnMap { get; set; }
+    private string _listMapText;
+
+    [Parameter]
+    public string Style { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Style == null)
+        {
+            Style = "position:absolute; top:20px; "; // position at upper right corner
+        }
+        UpdateText();
+    }
+
+    private void UpdateText()
+    {
+        if (!ShowOnMap)
+        {
+            _listMapText = "Kort";
+        }
+        else
+        {
+            _listMapText = "Liste";
+        }
+    }
+
+    private void OnClicked()
+    {
+        ShowOnMap = !ShowOnMap;
+        UpdateText();
+        OnSwitch(ShowOnMap);
+    }
+}

@@ -1,0 +1,72 @@
+﻿@using RazorLib.Utils;
+@inject NavigationManager NavigationManager
+
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isXS = b <= Breakpoint.Xs" />
+
+<MudStack Row="true" Spacing="2" Justify="Justify.Center">
+    @if (Rating == 0)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.StarBorder" />
+    }
+    else
+    {
+        <div class="Stars" style="@(_style)" />
+    }
+    @if (PlaceId is not null)
+    {
+        <MudLink OnClick="OnRatingClicked" Underline="Underline.Hover">
+            <MudText Typo="Typo.subtitle1">@GetReviewText()</MudText>
+        </MudLink>
+    }
+    else
+    {
+        <MudText Typo="Typo.subtitle1">@GetReviewText()</MudText>
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public double Rating { get; set; }
+
+    [Parameter, EditorRequired]
+    public int RatingCount { get; set; }
+
+    [Parameter]
+    public int? PlaceId { get; set; }
+
+    private bool _isXS;
+
+    [Parameter]
+    public int? StarFontSize { get; set; }
+
+    [Parameter]
+    public bool Compressed { get; set; }
+
+    private string _style = "--rating: 0.0;";
+
+    private string GetReviewText()
+    {
+        if (_isXS || Compressed)
+        {
+            return $"({RatingCount})";
+        }
+        var plural = RatingCount != 1 ? "s" : "";
+        return $"({RatingCount} review{plural})";
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Rating = Rating % 6;
+        _style = $"--rating: {Rating}; font-size: {StarFontSize ?? 30}px;";
+    }
+
+    private void OnRatingClicked()
+    {
+        if (PlaceId is not null)
+        {
+            NavigationManager.NavigateToReviews(PlaceId.Value);
+        }
+    }
+}

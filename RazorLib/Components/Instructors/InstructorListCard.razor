@@ -1,0 +1,57 @@
+﻿@using ModelLib.DTOs.Instructors
+@using RazorLib.Components.CardBases
+@using RazorLib.Components.Ratings
+@inherits PlaceListCardBase<DogTrainerListDTO>
+
+<MudPaper @onclick="_onClick" Style="max-height: 275px; max-height: 275px; min-width: 250px; max-width:250px;" Class="mud-ripple card-clickable">
+
+    <div style="position:relative; height:125px; width:100%;">
+        <CoverImage Height="125" Url="@PlaceListDTO.CoverImgUrl" />
+
+        <div style="position:absolute;
+                    height:100%;
+                    width:100%;
+                    background: rgb(0,0,0);
+                    background: linear-gradient(0deg, rgba(0,0,0,0.6727065826330532) 0%, rgba(0,0,0,0.5886729691876751) 10%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%);
+                    top:0%;" />
+    </div>
+
+
+    <MudStack Class="pa-2" Spacing="0" Style="position:relative">
+
+        <MudPaper Elevation="3" Style="height:110px; width:110px; border-radius: 50%; position:absolute; left:50%; transform: translate(-50%,-60%);">
+            <MudImage ObjectFit="ObjectFit.Cover" Src="@PlaceListDTO.ProfileImgUrl" Style="height:100%; width:100%; border-radius: 50%;" />
+        </MudPaper>
+
+        <MudStack Row="true" Justify="Justify.SpaceAround" AlignItems="AlignItems.Baseline" Spacing="1" Style="position:absolute; right:0%; top:0%;" Class="mr-2 mt-2">
+            <MudText Typo="Typo.subtitle2">@(_distanceKilometers)</MudText>
+            </MudStack>
+
+        <MudText Typo="Typo.h6" Style="width:100%; margin-top:45px;" Align="Align.Center">@PlaceListDTO.Name</MudText>
+
+
+        <MudStack AlignItems="AlignItems.Center" Spacing="1">
+
+
+                <MudStack Spacing="1" Row="true" AlignItems="AlignItems.Center">
+                    <RatingReadOnly Compressed="true" Rating="@(PlaceListDTO?.Rating ?? 0)" RatingCount="@(PlaceListDTO?.RatingCount ?? 0)" />
+                </MudStack>
+
+
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.School" />
+                <MudText Typo="Typo.subtitle2">@categories</MudText>
+            </MudStack>
+
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+    @code {
+    public string categories { get; set; }
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        categories = string.Join(", ", PlaceListDTO.Categories.Select(c => c.ToString()).ToList());
+    }
+}

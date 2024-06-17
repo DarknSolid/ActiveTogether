@@ -1,0 +1,91 @@
+﻿@typeparam TItem
+@typeparam TPaginationResult
+@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs.Authentication
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Users
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+
+<MudContainer>
+
+    <MudTextField @bind-Value="_searchString" TextChanged="OnSearchStringChanged" Label="@SearchHelpText" Variant="Variant.Text" Clearable=true />
+    <MudText Typo="Typo.subtitle1">Found @_searchResultTotalCount results</MudText>
+    <ListViewScrollPagination @ref="_child"
+                              ItemGap="20"
+                              Orientation="@ListViewOrientation.Vertical"
+                              FetchFunction="async (int itemsPerPage, TPaginationResult previousPaginationResult, IList<TItem> items) => await FetchPagination(false, itemsPerPage, items)"
+                              BuildListItemContent="BuildListItemContent"
+                              BuildSkeletonContent="BuildSkeletonContent"
+                              SetSearchResultTotalCount="(int count) => SetSeachResultTotalCount(count)"/>
+
+</MudContainer>
+
+
+
+@code {
+
+    [Parameter]
+    public string SearchHelpText { get; set; }
+
+    [Parameter]
+    public Func<TItem, RenderFragment> BuildListItemContent { get; set; }
+
+    [Parameter]
+    public Func<RenderFragment> BuildSkeletonContent { get; set; }
+
+    private int _searchResultTotalCount;
+    private void SetSeachResultTotalCount(int count) {
+        _searchResultTotalCount = count;
+        StateHasChanged();
+    }
+
+    ///<summary>
+    /// Is used to fetch new data asynchronously.
+    /// input args: page, items per page, search string, current list of items
+    /// </summary>
+    [Parameter]
+    // items per page, previous paginationResult, search string, existing list of items, returns pagination result and list of items
+    public Func<int, TPaginationResult?, string, IList<TItem>, Task<(TPaginationResult, PaginationResult<TItem>, IList<TItem>)>> FetchFunction { get; set; }
+
+    private ListViewScrollPagination<TItem, TPaginationResult>? _child;
+
+    private string _searchString { get; set; }
+    private string _previousSeachString;
+
+    private int _minSearchString = 2;
+
+    private bool _hasInitialized = false;
+
+    private TPaginationResult? _previousPaginationResult;
+
+    public ListViewSearchScrollPagination()
+    {
+        _searchString = "";
+        _previousSeachString = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        _hasInitialized = true;
+        base.OnInitialized();
+    }
+
+    private async Task OnSearchStringChanged()
+    {
+        if (!_hasInitialized || _child == null)
+        {
+            return;
+        }
+        _child.Reset();
+        await _child.FetchPagination();
+        _previousSeachString = _searchString;
+    }
+
+    private async Task<(TPaginationResult, PaginationResult<TItem>, IList<TItem>)> FetchPagination(bool isNewSearchString, int itemsPerPage, IList<TItem> items)
+    {
+        var (pagination, paginationBase, newItems) = await FetchFunction(itemsPerPage, _previousPaginationResult, _searchString, items);
+        return (pagination, paginationBase, newItems);
+    }
+}

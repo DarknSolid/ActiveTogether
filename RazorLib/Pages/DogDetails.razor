@@ -1,20 +1,80 @@
-﻿@using ModelLib.DTOs.Dogs
+﻿@attribute [Route(RoutingConstants.DOG_DETAILS + "{id:int}")]
+
+@using ModelLib.DTOs.Dogs
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components
+@using RazorLib.Components.Avatars
+@using RazorLib.Components.Posts
 @using RazorLib.Interfaces
 @inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 @if (!_loading)
 {
-    <MudCard>
-        <MudCardMedia Image="https://ichef.bbci.co.uk/news/976/cpsprodpb/17638/production/_124800859_gettyimages-817514614.jpg" Height="200" />
-        <MudCardContent>
-            <MudText Typo="Typo.h5">@_dog.Name</MudText>
-            <MudText Typo="Typo.body2">@Utils.DateUtils.TimeInYears(_dog.Birth) years old</MudText>
-            <MudText Typo="Typo.body2">@(_dog.IsGenderMale ? "Male" : "Female")</MudText>
-                <MudText Typo="Typo.body2">@_dog.Description</MudText>
-                <MudText Typo="Typo.body2">@_dog.BreedName</MudText>
-                <MudText Typo="Typo.body2">Weight class: @_dog.WeightClass.ToString()</MudText>
-            </MudCardContent>
-        </MudCard>
+    <MudStack Style="height:300px; width:100%; position:relative; overflow:hidden;" Justify="Justify.Center">
+        <CoverImage Height="300" Url="@(_dog.ProfilePictureUrl ?? @Icons.Material.Filled.ImageNotSupported)" BlurAmount="4" Style="position:absolute;" />
+        <MediaPopup Url="@(_dog.ProfilePictureUrl ?? @Icons.Material.Filled.ImageNotSupported)">
+            <MudImage ObjectFit="ObjectFit.Contain" Style="height:100%; position:relative" Src="@(_dog.ProfilePictureUrl ?? Icons.Material.Filled.ImageNotSupported)" />
+        </MediaPopup>
+    </MudStack>
+    <MudPaper Class="mb-5 pa-5">
+        <MudStack Row=true Justify="Justify.SpaceBetween" Style="flex-wrap:wrap;">
+
+            <MudStack>
+
+                <MudText Typo="Typo.h5">@_dog.Name</MudText>
+
+                <MudStack Row=true AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" />
+                    <MudText Typo="Typo.body2">@Utils.DateUtils.TimeInYears(_dog.Birth) years old</MudText>
+                </MudStack>
+
+                <MudStack Row=true AlignItems="AlignItems.Center" Spacing="2">
+
+                    <MudIcon Icon=@(_dog.IsGenderMale ? @Icons.Material.Filled.Male : @Icons.Material.Filled.Female) />
+
+                    <MudText Typo="Typo.body2">@(_dog.IsGenderMale ? "Han" : "Hun")</MudText>
+                    </MudStack>
+
+                    <MudStack Row=true AlignItems="AlignItems.Center" Spacing="2">
+
+                        <MudText Typo="Typo.body2">@_dog.Race.ToString()</MudText>
+                    </MudStack>
+
+                    <MudStack Row=true AlignItems="AlignItems.Center" Spacing="2">
+
+                        <MudText Typo="Typo.body2">Vægtklasse: @_dog.WeightClass.ToString()</MudText>
+                    </MudStack>
+                </MudStack>
+
+                <div>
+                    <MudText Class="mb-2" Typo="Typo.h6">Ejer</MudText>
+                    <AvatarImageWithName FirstName="@_dog.UserFirstName" LastName="@_dog.UserLastName" ImageUrl="@_dog.UserProfilePictureUrl" OnClick="() => NavigationManager.NavigateToUser(_dog.UserId)" />
+                </div>
+
+            </MudStack>
+        </MudPaper>
+
+    <MudContainer Class="mb-5">
+        <MudStack>
+
+            <div>
+                <MudText Class="mb-2" Typo="Typo.h6">Beskrivelse</MudText>
+                <MudPaper Class="pa-5">
+                    <TextFormatted Text="@_dog.Description" />
+                </MudPaper>
+            </div>
+
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6">@(_dog.Name)'s Opslag</MudText>
+                <MudDivider Class="mb-2" />
+
+                <PostsListView CanPost=false Filter=@(new PostFilter {DogId = Id, IncludePlaceDetails=true}) />
+            </MudStack>
+        </MudStack>
+
+
+    </MudContainer>
 }
 else
 {

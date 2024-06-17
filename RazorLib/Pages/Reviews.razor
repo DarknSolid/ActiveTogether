@@ -1,0 +1,55 @@
+﻿@using ModelLib.DTOs.Places;
+@using RazorLib.Components
+@using RazorLib.Components.ListViews;
+@using RazorLib.Interfaces;
+@attribute [Route(RoutingConstants.REVIEWS + "{PlaceId:int}")]
+@inject IApiClient ApiClient
+
+<MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
+    <MudText Class="mt-5" Align="Align.Center" Typo="Typo.h4">Anmeldelser af @(_place?.Name ?? "indlæser...")</MudText>
+
+    <MudText Typo="Typo.h6">@GetReviewText()</MudText>
+    <MudDivider />
+    <div style="max-width:500px; width:100%;">
+        <ReviewsListView Orientation="ListViewOrientation.Vertical"
+                         RevieweeId="PlaceId"
+                         SetSearchResultTotalCount="SetReviewCount" />
+    </div>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public int PlaceId { get; set; }
+
+    private PlaceListDTO? _place;
+
+    private bool _loading;
+
+    private int _totalReviews;
+
+    private void SetReviewCount(int count)
+    {
+        _totalReviews = count;
+        StateHasChanged();
+    }
+
+    private string GetReviewText()
+    {
+        return _totalReviews != 1 ? $"{_totalReviews} Anmeldelser" : $"{_totalReviews} Anmeldelse";
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await Fetch();
+    }
+
+    private async Task Fetch()
+    {
+        _loading = true;
+        _place = await ApiClient.GetPlaceAsync(PlaceId);
+        _loading = false;
+    }
+}

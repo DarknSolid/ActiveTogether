@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using WebApp.Entities;
+﻿using Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace UnitTests
 {

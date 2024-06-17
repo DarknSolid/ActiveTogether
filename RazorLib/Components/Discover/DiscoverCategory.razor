@@ -1,0 +1,61 @@
+﻿@using ModelLib.ApiDTOs.Pagination
+@using RazorLib.Components.ListViews
+@typeparam TItem
+@typeparam TPaginationResult
+
+<MudItem Class="mb-5">
+    <MudStack Row="true" Justify="Justify.SpaceBetween">
+
+        <MudText Typo="Typo.h5">
+            @($"{Title} ({_totalSearchCount})")
+        </MudText>
+
+        <MudButton Variant="Variant.Text" OnClick="(() => OnSeeAllClicked())" EndIcon="@Icons.Material.Filled.ArrowForward">FLERE</MudButton>
+
+    </MudStack>
+
+    <MudDivider Light="true" Class="mb-2"/>
+
+    <div style="overflow-y:hidden;">
+
+        <ListViewScrollPagination BuildListItemContent="BuildListItemContent"
+                                  FetchFunction="FetchFunction" 
+                                  Orientation="ListViewOrientation.Horizontal" ItemGap="15" SetSearchResultTotalCount="SetSearchResultTotalCount"
+                                  @ref="listView"
+                                  UniqueItemKeyExtractor="UniqueItemKeyExtractor"
+                                  />
+    </div>
+</MudItem>
+
+@code {
+    [Parameter, EditorRequired]
+    public Func<TItem, object> UniqueItemKeyExtractor { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; }
+
+    [Parameter]
+    public Action OnSeeAllClicked { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<int, TPaginationResult, IList<TItem>, Task<(TPaginationResult, PaginationResult<TItem>, IList<TItem>)>> FetchFunction { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<TItem, RenderFragment> BuildListItemContent { get; set; }
+
+    private int _totalSearchCount;
+
+    private ListViewScrollPagination<TItem, TPaginationResult> listView;
+
+    private void SetSearchResultTotalCount(int count)
+    {
+        _totalSearchCount = count;
+        StateHasChanged();
+    }
+
+    public async Task Reset()
+    {
+        listView.Reset();
+        await listView.FetchPagination();
+    }
+}

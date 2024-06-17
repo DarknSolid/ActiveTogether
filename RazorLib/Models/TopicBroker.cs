@@ -1,48 +1,69 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static RazorLib.Models.ITopicBroker;
+using System.Collections.Concurrent;
 
 namespace RazorLib.Models
 {
     public interface ITopicBroker
     {
-        public void Subscribe(string topic, Action onNotificationReceived);
+        public void Subscribe(string topic, Func<Task> onNotificationReceived);
+        public void Unsubscribe(string topic, Func<Task> onNotificationReceived);
         public Task Notify(string topic);
     }
 
     public class TopicBroker : ITopicBroker
     {
-        private readonly IDictionary<string, List<Action>> _subscribers;
+        private readonly IDictionary<string, ConcurrentDictionary<Func<Task>, object?>> _subscribers;
 
         public TopicBroker()
         {
-            _subscribers = new Dictionary<string, List<Action>>();
+            _subscribers = new Dictionary<string, ConcurrentDictionary<Func<Task>, object?>>();
         }
 
         public async Task Notify(string topic)
         {
-            var exists = _subscribers.TryGetValue(topic, out List<Action>? subscribers);
+            var exists = _subscribers.TryGetValue(topic, out ConcurrentDictionary<Func<Task>, object?>? subscribers);
             if (exists)
             {
-                foreach (var action in subscribers) {
-                    action.Invoke();
+                foreach (var action in subscribers)
+                {
+                    await action.Key.Invoke();
                 }
             }
         }
 
-        public void Subscribe(string topic, Action onNotificationReceived)
+        public void Subscribe(string topic, Func<Task> onNotificationReceived)
         {
-            var exists = _subscribers.TryGetValue(topic, out List<Action>? subscribers);
-            if (!exists)
+            lock (this)
             {
-                _subscribers.Add(topic, new List<Action>() { onNotificationReceived });
+                var exists = _subscribers.TryGetValue(topic, out ConcurrentDictionary<Func<Task>, object?>? subscribers);
+                if (!exists)
+                {
+                    var x = new ConcurrentDictionary<Func<Task>, object>();
+                    x.TryAdd(onNotificationReceived, null);
+                    _subscribers.Add(topic, x);
+                }
+                else
+                {
+                    subscribers.TryAdd(onNotificationReceived,null);
+                }
             }
-            else
+        }
+
+        public void Unsubscribe(string topic, Func<Task> onNotificationReceived)
+        {
+            lock (this)
             {
-                subscribers.Add(onNotificationReceived);
+                var exists = _subscribers.TryGetValue(topic, out ConcurrentDictionary<Func<Task>, object?>? subscribers);
+                if (exists)
+                {
+                    subscribers.Remove(onNotificationReceived, out object x);
+                }
             }
         }
     }

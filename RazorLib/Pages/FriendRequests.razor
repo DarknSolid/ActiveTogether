@@ -1,0 +1,64 @@
+﻿@attribute [Route(RoutingConstants.FRIEND_REQUESTS)]
+
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs.Authentication
+@using ModelLib.Repositories
+@using RazorLib.Components
+@using RazorLib.Components.ListViews
+@using RazorLib.Components.Users
+@using RazorLib.Interfaces
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<MudContainer>
+
+    <MudText Align="Align.Center" Typo="Typo.h5">Friend Requests</MudText>
+    <MudText Typo="Typo.subtitle1">You have @_searchResultTotalCount friend requests:</MudText>
+    <ListViewScrollPagination ItemGap="20"
+                              Orientation="ListViewOrientation.Vertical"
+                              BuildListItemContent="_buildListItemContent"
+                              BuildSkeletonContent="_buildSkeletonContent"
+                              FetchFunction="_fetchFunction"
+                              SetSearchResultTotalCount="(int count) => SetSeachResultTotalCount(count)" />
+</MudContainer>
+
+@code {
+
+    private Func<UserListDTO, RenderFragment> _buildListItemContent;
+    private Func<RenderFragment> _buildSkeletonContent;
+    private Func<int, PaginationResult<UserListDTO>?, IList<UserListDTO>, Task<(PaginationResult<UserListDTO>, PaginationResult<UserListDTO>, IList<UserListDTO>)>> _fetchFunction;
+
+    private int _searchResultTotalCount;
+
+    private void SetSeachResultTotalCount(int count)
+    {
+        _searchResultTotalCount = count;
+        StateHasChanged();
+    }
+
+    public FriendRequests()
+    {
+        _buildListItemContent = (UserListDTO dto) =>
+    @<ListViewItem ClickAble="true" Id="dto.Id" OnClicked="(int id) => NavigationManager.NavigateToUser(id)">
+        <UserCard User="dto">
+            <FriendshipMenuButton UserId="dto.Id" FriendshipStatus="RepositoryEnums.FriendShipStatus.CanAcceptRequest" />
+        </UserCard>
+    </ListViewItem>;
+        _buildSkeletonContent = () =>
+    @<ListViewItem ClickAble="false" Id="-1">
+        <UserCardSkeleton />
+    </ListViewItem>;
+        _fetchFunction = async (int itemsPerPage, PaginationResult<UserListDTO>? previousPaginationResult, IList<UserListDTO> items) =>
+        {
+            var pagination = new StringPaginationRequest
+                {
+                    Page = previousPaginationResult?.CurrentPage + 1 ?? 0,
+                    ItemsPerPage = itemsPerPage,
+                    LastString = items.LastOrDefault()?.FullNameNormalized ?? "",
+                    LastId = previousPaginationResult?.LastId ?? -1
+                };
+            var result = await ApiClient.GetFriendRequests(pagination);
+            return (result, result, result.Result);
+        };
+    }
+}

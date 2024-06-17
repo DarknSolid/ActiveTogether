@@ -1,0 +1,136 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+@using ModelLib;
+@using RazorLib.Utils;
+
+<MudStack Class="@Class" Spacing="2" Style=@("position:relative; " + Style) AlignItems="AlignItems.Center">
+
+    <MudPaper Elevation="2" Style=@("position:relative; " + ImageStyle)>
+        @if (_imageUrl is not null)
+        {
+            <MudImage ObjectFit="ObjectFit.Cover" Style="height:100%; width:100%; border-radius:inherit;" Src="@(_imageUrl)"></MudImage>
+        }
+        else
+        {
+            <MudText Style="position: absolute;top: 50%; transform: translateY(-50%); width: 100%; text-align: center;"
+                     Typo="Typo.subtitle1">
+                intet valgt
+            </MudText>
+        }
+    </MudPaper>
+
+    <MudStack Row=true Justify="Justify.Center" Style="flex-wrap:wrap;" AlignItems="AlignItems.Center">
+        <MudFileUpload Class="mt-0" @ref=_inputSelectRef
+                       MaximumFileCount="1"
+                       Accept="@MediaUtils.AcceptedImages"
+                       T="IBrowserFile"
+        @bind-Files="_selectedBrowserFile"
+                       OnFilesChanged="(InputFileChangeEventArgs e) => OnFileChanged(e)">
+            <ButtonTemplate>
+                <MudButton Disabled=@Disabled HtmlTag="label"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Image"
+                           for="@context">
+                    @(_imageUrl is null ? UploadImageText : ChangeImageText)
+                </MudButton>
+            </ButtonTemplate>
+        </MudFileUpload>
+
+        @if (_imageUrl is not null)
+        {
+            <MudButton Disabled=@Disabled Variant="Variant.Outlined"
+                       OnClick=RemoveImage
+                       StartIcon="@Icons.Material.Outlined.Cancel">
+                Fjern
+            </MudButton>
+        }
+    </MudStack>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public bool Disabled { get; set; }
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? InitialImageURL { get; set; }
+    [Parameter, EditorRequired]
+    public string ChangeImageText { get; set; } = "Change Image";
+
+    [Parameter, EditorRequired]
+    public string UploadImageText { get; set; } = "Select Image";
+
+    [Parameter, EditorRequired]
+    // the string is the URI
+    public Func<IBrowserFile, Task> OnImageChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    // the string is the URI
+    public Func<Task> OnImageRemoved { get; set; }
+
+    [Parameter]
+    public string? ImageStyle { get; set; } = "height: 300px; max-height:300px; width:100%; background-color:white";
+
+    private IBrowserFile? _selectedBrowserFile;
+
+    private bool _defaultToInitialImageUrl = true;
+
+    private MudFileUpload<IBrowserFile>? _inputSelectRef;
+
+    private string? _imageUrl;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (_defaultToInitialImageUrl)
+        {
+            _imageUrl = InitialImageURL;
+        }
+    }
+
+    private async Task OnFileChanged(InputFileChangeEventArgs e)
+    {
+        _defaultToInitialImageUrl = false;
+        if (e.FileCount == 0)
+        {
+            _imageUrl = null;
+        }
+        bool shouldRemoveImage = false;
+        var extension = "." + e.File.ContentType.Split("/").Last().ToLower();
+
+        if (e.File.Size > MediaUtils.FORTY_MEGABYTES_IN_BYTES ||
+            !MediaUtils.GetImageExtensionsSet().Contains(extension))
+        {
+            shouldRemoveImage = true;
+        }
+
+        if (shouldRemoveImage)
+        {
+            _imageUrl = null;
+            StateHasChanged();
+            await _inputSelectRef.Validate();
+        }
+        else
+        {
+            _imageUrl = await e.File.ToDataURL(MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+        }
+
+        StateHasChanged();
+        //Todo notify
+        await OnImageChanged(e.File);
+    }
+
+    private async Task RemoveImage()
+    {
+        _imageUrl = null;
+        _selectedBrowserFile = null;
+        _defaultToInitialImageUrl = false;
+        StateHasChanged();
+        await OnImageRemoved();
+    }
+}

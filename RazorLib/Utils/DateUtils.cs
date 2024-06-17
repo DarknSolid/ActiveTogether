@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EntityLib.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,6 +36,32 @@ namespace RazorLib.Utils
         {
             TimeSpan span = time.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             return span.TotalSeconds;
+        }
+
+        public static string DateTimeToSimpleDateTime(DateTime dateTime)
+        {
+            var localDate = dateTime.ToLocalTime();
+            return $"{localDate.ToShortDateString()} {localDate.ToShortTimeString()}";
+        }
+
+        public static TimeSpan LocalTimeSpanToUTC(TimeSpan ts)
+        {
+            DateTime dt = DateTime.Now.Date.Add(ts);
+            DateTime dtUtc = dt.ToUniversalTime();
+            TimeSpan tsUtc = dtUtc.TimeOfDay;
+            return tsUtc;
+        }
+
+        public static TimeSpan? UTCTimeSpanToLocal(TimeSpan? ts)
+        {
+            if (ts == null)
+            {
+                return null;
+            }
+            DateTime dtUTC = DateTime.Now.Date.Add(ts.Value);
+            var diff = dtUTC.Subtract(dtUTC.ToUniversalTime());
+            var dtLocal = dtUTC.Add(diff);
+            return dtLocal.TimeOfDay;
         }
     }
 }

@@ -24,9 +24,7 @@ namespace EntityLib.Entities
         public string Description { get; set; }
 
         [Required]
-        [ForeignKey(nameof(DogBreed))]
-        public int DogBreedId { get; set; }
-        public DogBreed DogBreed { get; set; }
+        public DogRace Race { get; set; }
 
         [Required]
         public DogWeightClass WeightClass { get; set; }
@@ -37,6 +35,10 @@ namespace EntityLib.Entities
         [Required]
         public bool IsGenderMale { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+
         public ICollection<DogCheckIn> CheckIns { get; set; }
+
+        public string? ProfilePictureUrl { get; set; }
     }
 }

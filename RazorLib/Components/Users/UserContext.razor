@@ -1,0 +1,29 @@
+﻿@using ModelLib.DTOs.Authentication;
+@using RazorLib.Interfaces;
+@inject IStorageManager<UserDetailedDTO> UserManager
+@implements IDisposable
+
+@code {
+    public UserDetailedDTO? AuthenticatedUser { get; private set; }
+    protected bool _isLoggedIn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        AuthenticatedUser = await UserManager.Get();
+        _isLoggedIn = AuthenticatedUser is not null;
+        UserManager.Subscribe(OnUserUpdatedAsync);
+    }
+
+    private async Task OnUserUpdatedAsync()
+    {
+        AuthenticatedUser = await UserManager.Get();
+        _isLoggedIn = AuthenticatedUser is not null;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        UserManager.UnSubscribe(OnUserUpdatedAsync);
+    }
+}

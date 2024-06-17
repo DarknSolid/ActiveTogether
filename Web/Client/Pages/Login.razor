@@ -1,0 +1,250 @@
+﻿@attribute [Route(RoutingConstants.LOGIN)]
+@using Microsoft.Extensions.Localization;
+@using ModelLib.ApiDTOs;
+@using RazorLib.Interfaces
+@using System.ComponentModel.DataAnnotations
+@using ModelLib.DTOs.Authentication
+@using RazorLib;
+@using static EntityLib.Entities.Enums
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserInfoStorageManager
+@inject IJSRuntime JSRuntime
+@using RazorLib.Resources
+@using RazorLib.Utils;
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Xs" />
+
+
+<div style=@("max-width: 400px; margin-left:auto; margin-right:auto; " + (_isMobile ? "" : "padding-top: 50px;"))>
+    <EditForm Model="@_loginModel" OnValidSubmit="LoginManually">
+        <DataAnnotationsValidator />
+        <MudStack Spacing="5" Justify="Justify.Center">
+            <MudCard Class="rounded-lg">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Justify="Justify.Center">
+                            <MudText Align="Align.Center" Typo="Typo.h3">DoggoWorld</MudText>
+                            <MudImage ObjectFit="ObjectFit.Contain" Height=115 Src=@Images.LogoBorderedPng />
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField Disabled=_loading Variant="Variant.Outlined" Label="@Language.Login_Email" Class="mb-5"
+                                  @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" />
+                    <MudTextField Disabled=_loading Variant="Variant.Outlined" Label="@Language.Login_Password" Class="mb-3"
+                                  @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)" InputType="InputType.Password" />
+
+                    @if (!_didLoginSucceed)
+                    {
+                        <MudAlert Severity="Severity.Error">@Language.Login_LoginFailed</MudAlert>
+                        @if (_manualLoginResult is not null && _manualLoginResult.MustConfirmEmail)
+                        {
+                            <MudAlert Severity="Severity.Info">Bekræft din email for at fortsætte. Vi har sendt dig en emailbekræftigelse til @_loginModel.Email</MudAlert>
+                        }
+                        if (_loginErrors is not null)
+                        {
+                            @foreach (var error in _loginErrors)
+                            {
+                                <MudText Color="Color.Error" Typo="Typo.subtitle2">*@error</MudText>
+                            }
+                        }
+                    }
+
+                    <MudButton Disabled="@_loading" Class="mt-5 mb-2" FullWidth="true" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        @if (_manualLoading)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="MudBlazor.Size.Small" Indeterminate="true" />
+                        }
+                        else
+                        {
+                            <MudText>@Language.Login_Login</MudText>
+                        }
+                    </MudButton>
+
+                    <MudStack Class="mb-5" Justify="Justify.FlexEnd" Style="width:100%" AlignItems="AlignItems.End">
+                        <MudLink Disabled=_loading OnClick=" NavigationManager.NavigateToForgotPassword">Glemt Password?</MudLink>
+                    </MudStack>
+
+                    <MudStack Class="mb-5" Row="true">
+                        <MudDivider Style="transform: translateY(50%);" />
+                        <div class="px-5" style="background:white; position:relative; left:-50%; transform: translateX(-75%)">
+                            <MudText Typo="Typo.button" Style="opacity:50%">@Language.Login_OR</MudText>
+                        </div>
+                    </MudStack>
+
+                    <MudStack>
+                        <!--Facebook Login button-->
+                        <MudButton Disabled="@_loading" StartIcon="@Icons.Custom.Brands.Facebook" Style=@($"color:#4267B2;") OnClick=LoginWithFacebook Variant="Variant.Filled">@(_isConnectedWithFacebook ? "Fortsæt med Facebook" : "Opret med Facebook")</MudButton>
+                            <WorkInProgress>
+                                <MudButton Style="width:100%;" Disabled="_loading" StartIcon="@Icons.Custom.Brands.Google" Variant="Variant.Filled">@Language.Login_LoginWithGoogle</MudButton>
+                            </WorkInProgress>
+                        </MudStack>
+
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Class="rounded-lg">
+                    <MudCardContent>
+                        <MudStack Class="mb-2" Justify="Justify.Center" Row="true">
+                            <MudText>@Language.Login_DontHaveAnAccount</MudText>
+                            <MudLink Disabled=_loading OnClick=" NavigationManager.NavigateToRegister">@Language.Login_Signup</MudLink>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudStack>
+        </EditForm>
+    </div>
+
+    @code {
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "callback")]
+    public string? CallBackURI { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "access")]
+    public string? ThridPartyAccess { get; set; }
+
+    private IList<string>? _loginErrors;
+
+    private bool _isMobile;
+
+    private bool _loading;
+    private bool _manualLoading;
+    private LoginModel _loginModel;
+    private bool _isConnectedWithFacebook;
+    private LoginResult? _manualLoginResult;
+
+    private FacebookLoginResult? _facebookLoginResult;
+    private bool _didLoginSucceed;
+
+    private bool _didLogin;
+
+    public Login()
+    {
+        _didLoginSucceed = true;
+        _loginModel = new()
+            {
+                Email = "hampus@wadum.com",//"developer_user@hotmail.com",
+                Password = "0206Hampus!"//"Test123!"
+            };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            _loading = true;
+            var (isAuthorized, userInfo) = await ApiClient.IsAuthorized();
+            _loading = false;
+            if (isAuthorized)
+            {
+                await UserInfoStorageManager.Set(userInfo);
+                LoginSuccess();
+            }
+            else
+            {
+                //clear any cached and outdated user info
+                await UserInfoStorageManager.Delete();
+                _facebookLoginResult = await JSRuntime.InvokeAsync<FacebookLoginResult>("FacebookGetLoginStatusWrapper");
+                if (_facebookLoginResult.status == "connected")
+                {
+                    _isConnectedWithFacebook = true;
+                    StateHasChanged();
+                }
+                else
+                {
+                    _facebookLoginResult = null;
+                }
+            }
+
+        }
+
+    }
+
+    public async Task LoginWithFacebook()
+    {
+        _loading = true;
+        if (_facebookLoginResult is null)
+        {
+            _facebookLoginResult = await JSRuntime.InvokeAsync<FacebookLoginResult>("FacebookLoginWrapper");
+        }
+        var result = await ApiClient.FacebookLogin(_facebookLoginResult?.authResponse?.accessToken ?? "");
+        _loading = false;
+        if (result.Success)
+        {
+            await UserInfoStorageManager.Set(result.UserInfo);
+            if (result.DidRegisterNewUser)
+            {
+                NavigationManager.NavigateToRegisteredUserWelcome();
+            }
+            else
+            {
+                LoginSuccess();
+            }
+        }
+        else
+        {
+            _loginErrors = result.Errors;
+            _didLoginSucceed = false;
+        }
+    }
+
+    public async Task LoginManually()
+    {
+        _loading = true;
+        _manualLoading = true;
+        _manualLoginResult = await ApiClient.Login(_loginModel.Email, _loginModel.Password);
+        _didLoginSucceed = _manualLoginResult?.Success ?? false;
+        _manualLoading = false;
+        _loading = false;
+        if (_manualLoginResult is not null && _manualLoginResult.Success)
+        {
+            await UserInfoStorageManager.Set(_manualLoginResult.UserDetailedInfo);
+            LoginSuccess();
+        }
+    }
+
+    private void LoginSuccess()
+    {
+        if (!_didLogin)
+        {
+            _didLogin = true;
+
+            if (CallBackURI is not null)
+            {
+                NavigationManager.NavigateTo(CallBackURI);
+            }
+            else
+            {
+                NavigationManager.NavigateToDiscover(FacilityType.DogInstructor);
+            }
+        }
+    }
+
+    private class LoginModel
+    {
+        [EmailAddress]
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    //https://developers.facebook.com/docs/facebook-login/web#logindialog
+    private class FacebookLoginResult
+    {
+        public string status { get; set; }
+        public AuthResponse? authResponse { get; set; }
+    }
+
+    private class AuthResponse
+    {
+        public string accessToken { get; set; }
+        public long expiresIn { get; set; }
+        public string reauthorize_required_in { get; set; }
+        public string signedRequest { get; set; }
+        public string userID { get; set; }
+    }
+}
+

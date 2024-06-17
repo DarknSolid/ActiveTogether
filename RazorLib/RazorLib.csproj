@@ -1,10 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Pages\Map\Filters\**" />
+    <Content Remove="Pages\Map\Filters\**" />
+    <EmbeddedResource Remove="Pages\Map\Filters\**" />
+    <None Remove="Pages\Map\Filters\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\Hampus\.nuget\packages\chartjs.blazor.fork\2.0.2\contentFiles\any\netstandard2.1\wwwroot\ChartJsBlazorInterop.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Components\Ratings\RatingReadOnly.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Ratings\RatingReadOnly.razor.css" />
+  </ItemGroup>
 
 
   <ItemGroup>
@@ -12,17 +31,49 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlazorGoogleMaps" Version="1.5.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.2" />
-    <PackageReference Include="MudBlazor" Version="6.0.6" />
+    <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.7" />
+    <PackageReference Include="MudBlazor" Version="6.4.1" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FisSst.BlazorMaps\FisSst.BlazorMaps.csproj" />
     <ProjectReference Include="..\ModelLibrary\ModelLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\" />
+    <Compile Update="Resources\Language.Designer.cs">
+      <DependentUpon>Language.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\images\paw_icon.svg">
+      <Color>#00CBA6</Color>
+      <BaseSize>512,512</BaseSize>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Language.da-DK.resx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>Language.da.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Language.resx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>Language.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Components\ListViews\HorizontalListViewScrollArrows.razor.css">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

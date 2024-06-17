@@ -1,0 +1,27 @@
+﻿@using RazorLib.Models;
+@inject IDialogService DialogService
+
+<MudPaper Style="
+    position:fixed;
+    right:0%;
+    top:50%;
+    background-color:#00cba6ff;
+    width:fit-content;
+    color:white;
+    transform: translate(30px) rotate(90deg);
+    cursor:pointer;
+z-index:1"
+          Class="pa-2"
+          Elevation="4"
+@onclick="OnClick">
+
+    <MudText Typo="Typo.h6">Feedback</MudText>
+
+</MudPaper>
+
+@code {
+    private async Task OnClick()
+    {
+        await DialogServiceExtender.ShowSendFeedback(DialogService);
+    }
+}

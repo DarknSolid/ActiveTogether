@@ -1,0 +1,100 @@
+﻿@using FisSst.BlazorMaps.Models.Basics
+@using ModelLib.ApiDTOs
+@using ModelLib.ApiDTOs.Pagination
+@using ModelLib.DTOs
+@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Instructors
+@using ModelLib.Utils
+@using NpgsqlTypes
+@using RazorLib.Components.DogParks
+@using RazorLib.Components.Instructors
+@using RazorLib.Interfaces
+@using RazorLib.Models
+@using RazorLib.Models.MapSearch
+@using static RazorLib.Models.DialogServiceExtender
+@inherits DiscoverBase
+@inject IDialogService DialogService
+@inject DogParkMapSearcher MapSearcher
+@inject NavigationManager NavigationManager
+@inject IApiClient ApiClient
+
+
+@{
+    base.BuildRenderTree(__builder);
+}
+@if (_showMap)
+{
+    <RazorLib.Pages.Map.Map OnSearchBtnPressed="_onMapSearchBtnPressed"
+                        CanCreateMapPoint="true"
+                        MapCreatingTitle="Foreslå en Hundepark"
+                        MapCreationMessage="@_mapPointCreationMessage"
+                        OnMapPointSelected="async (LatLng center) => await DialogServiceExtender.ShowDogParkCreateDialog(DialogService, center)" />
+}
+else
+{
+    <MudContainer>
+        <DiscoverCategory Title="Omkringliggende Hundeparker"
+                      FetchFunction="_fetchNearbyDogParks"
+                      BuildListItemContent="_buildDogParkListItemContent"
+                      @ref="_nearbyDogParks" />
+    </MudContainer>
+}
+
+
+@code {
+
+    private string _mapPointCreationMessage;
+
+    //nearby instructors:
+    private Func<int, DistancePaginationResult<DogParkListDTO>?, IList<DogParkListDTO>, Task<(DistancePaginationResult<DogParkListDTO>?, PaginationResult<DogParkListDTO>, IList<DogParkListDTO>)>> _fetchNearbyDogParks;
+    private Func<DogParkListDTO, RenderFragment> _buildDogParkListItemContent;
+
+    private DiscoverCategory<DogParkListDTO, DistancePaginationResult<DogParkListDTO>?> _nearbyDogParks;
+
+    private NpgsqlPoint _selectedCenter;
+
+    public DiscoverDogParks()
+    {
+        _mapPointCreationMessage = @"<div>
+                                    <p>Help the community by suggesting a new dog park onto the map.
+                                    <br/>
+                                    Your dog park suggestion will be received and confirmed once reviewed.</p>
+                                    <p>Pres 'Ok' to select a point on the map.</p>
+                                </div>";
+        //TODO refactor this into a dog park category list view component where we can define custom search filters
+        //nearby instructors:
+        _fetchNearbyDogParks = async (int itemsPerPage, DistancePaginationResult<DogParkListDTO>? distancePaginationResult, IList<DogParkListDTO> items) =>
+        {
+            var request = new DogParksDTOPaginationRequest
+                {
+                    PaginationRequest = new DistancePaginationRequest
+                    {
+                        ItemsPerPage = itemsPerPage,
+                        Page = distancePaginationResult != null ? distancePaginationResult.CurrentPage + 1 : 0,
+                        PreviousDistance = distancePaginationResult?.LastDistance ?? -1f,
+                        SearchArea = await _searchAreaSelect.GetSearchAreaDTOAsync(),
+                        LastId = distancePaginationResult?.LastId ?? -1,
+                    }
+                };
+
+            var result = await ApiClient.GetDogParkList(request);
+            var paginationResult = result ?? new DistancePaginationResult<DogParkListDTO>();
+
+            return (paginationResult, paginationResult, paginationResult.Result ?? new List<DogParkListDTO>());
+        };
+
+        _buildDogParkListItemContent = (DogParkListDTO dto) =>@<DogParkListCard OnClick="@(() => NavigationManager.NavigateToDogParkDetails(dto.Id))" PlaceListDTO="@dto" />;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _onMapSearchBtnPressed = async (Map map, SearchAreaDTO searchArea) => await MapSearcher.UpdateMapIcons(map, searchArea);
+    }
+
+    protected override async Task OnSearchAreaChanged(SearchAreaDTO searchArea)
+    {
+        base.OnSearchAreaChanged(searchArea);
+        await _nearbyDogParks.Reset();
+    }
+}

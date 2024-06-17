@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
+using ModelLib.ApiDTOs.Pagination;
 using ModelLib.Repositories;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,11 @@ namespace UnitTests
 {
     public class FriendsRepositoryTests : TestBase
     {
-        private readonly IFriendsRepository _friendsRepository;
+        private readonly IFriendshipsRepository _friendsRepository;
 
         public FriendsRepositoryTests()
         {
-            _friendsRepository = new FriendsRepository(_context);
+            _friendsRepository = new FriendshipsRepository(_context);
         }
 
         [Theory]
@@ -27,8 +28,8 @@ namespace UnitTests
         public async Task AddFriendRequestAsync_Given_Input_Returns_Expected(int userId, int friendId, ResponseType expectedResponse, bool expectNull)
         {
             var result = await _friendsRepository.CreateFriendRequestAsync(userId, friendId);
-            var friendsRelation = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == userId && f.FriendId == friendId);
-            var shouldBeNull = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == friendId && f.FriendId == userId);
+            var friendsRelation = await _context.Friendships.FirstOrDefaultAsync(f => f.RequesterId == userId && f.RequesteeId == friendId);
+            var shouldBeNull = await _context.Friendships.FirstOrDefaultAsync(f => f.RequesterId == friendId && f.RequesteeId == userId);
 
             Assert.Equal(expectedResponse, result);
             if (!expectNull)
@@ -54,17 +55,19 @@ namespace UnitTests
             var expectedFriends = 2;
             var expectedFriend1 = 4;
             var expectedFriend2 = 5;
-            var pagination = new PaginationRequest
+            var pagination = new StringPaginationRequest
             {
+                LastString = "",
+                LastId = 0,
                 ItemsPerPage = 10,
                 Page = 0
             };
 
             var result = await _friendsRepository.GetFriendsAsync(userId, pagination);
-            Assert.False(result.PaginationResult.HasNext);
-            Assert.Equal(expectedFriends, result.Friends.Count);
-            Assert.Equal(expectedFriend1, result.Friends.First().UserId);
-            Assert.Equal(expectedFriend2, result.Friends.Last().UserId);
+            Assert.False(result.HasNext);
+            Assert.Equal(expectedFriends, result.Result.Count);
+            Assert.Equal(expectedFriend1, result.Result.First().Id);
+            Assert.Equal(expectedFriend2, result.Result.Last().Id);
         }
 
         [Theory]
@@ -73,9 +76,9 @@ namespace UnitTests
         [InlineData(1,2, ResponseType.NotFound)]
         public async Task RemoveFriendAsync_Given_Input_Returns_Expected(int userId, int friendId, ResponseType expectedRespone)
         {
-            var countBefore = await _context.Friends.CountAsync();
+            var countBefore = await _context.Friendships.CountAsync();
             var result = await _friendsRepository.RemoveFriendAsync(userId, friendId);
-            var countAfter = await _context.Friends.CountAsync();
+            var countAfter = await _context.Friendships.CountAsync();
             if (expectedRespone == ResponseType.Deleted)
             {
                 Assert.Equal(countBefore - 1, countAfter);
@@ -86,10 +89,10 @@ namespace UnitTests
         [Theory]
         [InlineData(3,1, ResponseType.Deleted)]
         [InlineData(1,3, ResponseType.NotFound)]
-        public async Task RemoveFriendRequest_Given_Input_Returns_Expected(int userId, int friendId, ResponseType expectedResponse)
+        public async Task RemoveFriendRequest_Given_Input_Returns_Expected(int requesterId, int requesteeId, ResponseType expectedResponse)
         {
-            var response = await _friendsRepository.DeclineFriendRequestAsync(userId, friendId);
-            var relation = await _context.Friends.FirstOrDefaultAsync(f => f.UserId == userId && f.FriendId == friendId);
+            var response = await _friendsRepository.DeclineFriendRequestAsync(requesterId, requesteeId);
+            var relation = await _context.Friendships.FirstOrDefaultAsync(f => f.RequesterId == requesterId && f.RequesteeId == requesteeId);
             Assert.Null(relation);
             Assert.Equal(expectedResponse, response);
         }
@@ -111,16 +114,18 @@ namespace UnitTests
         [InlineData(1,1, 3)]
         public async Task GetFriendRequests_Given_Input_Returns_Expected(int userId, int expectedCount, int expectedFriendId)
         {
-            var pagination = new PaginationRequest
+            var pagination = new StringPaginationRequest
             {
+                LastString = "",
+                LastId = -1,
                 ItemsPerPage = 10,
                 Page = 0
             };
             var result = await _friendsRepository.GetFriendRequestsAsync(userId, pagination);
-            Assert.Equal(expectedCount, result.Friends.Count);
+            Assert.Equal(expectedCount, result.Result.Count);
             if (expectedCount == 1)
             {
-                Assert.Equal(expectedFriendId, result.Friends.First().UserId);
+                Assert.Equal(expectedFriendId, result.Result.First().Id);
             }
         }
     }

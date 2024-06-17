@@ -1,0 +1,197 @@
+﻿@attribute [Route(RoutingConstants.REGISTER)]
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop;
+@using ModelLib.ApiDTOs;
+@using ModelLib.DTOs.Authentication;
+@using ModelLib;
+@using RazorLib.Components.FileSelection
+@using RazorLib.Interfaces;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient;
+@inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject IJSRuntime JSRuntime
+
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isMobile = b <= Breakpoint.Xs" />
+
+
+<MudContainer MaxWidth="MaxWidth.Small" Style=@("max-width: 600px; margin-left:auto; margin-right:auto; " + (_isMobile ? "width:100%;" : "padding-top: 50px;")) Class=@(_isMobile ? "pa-0" : "")>
+
+    <EditForm Model="@_registerDTO" OnValidSubmit="OnRegisterClicked">
+        <DataAnnotationsValidator />
+
+        <MudCard Class="rounded-lg" Style=@(_isMobile ? "height:100%;" : "")>
+
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudStack Class="mb-5" Justify="Justify.Center">
+                        <MudText Align="Align.Center" Typo="Typo.h3">DoggoWorld</MudText>
+                        <MudImage ObjectFit="ObjectFit.Contain" Height=115 Src=@Images.LogoBorderedPng />
+                    </MudStack>
+                    <MudDivider Class="mb-3" Light="true"/>
+                    @if (_registerResult is not null && _registerResult.MustConfirmEmail)
+                    {
+                        <MudText Align="Align.Center" Typo="Typo.h4">Bruger Oprettet!</MudText>
+                    }
+                    else
+                    {
+                        <MudText Align="Align.Center" Typo="Typo.h4">Opret Bruger</MudText>
+                    }
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (_registerResult is not null && _registerResult.MustConfirmEmail)
+                {
+                    
+                    <MudText Align="Align.Center" Class="mb-2">Bekræft din email for at fortsætte.</MudText>
+                    <MudText Align="Align.Center">Vi har sendt en email til @_registerResult.UserInfo.Email med et bekræftigelseslink.</MudText>
+                    <MudAlert Severity="Severity.Info">Tjek din spam mappe hvis du ikke har modtaget en email inden for et par minutter.</MudAlert>
+                }
+                else
+                {
+                    <MudGrid Spacing="2" Class="mb-5">
+
+                        <MudItem xs="12">
+                            @if (_registerFailed)
+                            {
+
+                                <MudStack AlignItems="AlignItems.Center">
+
+                                    <MudAlert Class="mb-1" Variant="Variant.Outlined" Severity="Severity.Error">Oprettelsen Fejlede</MudAlert>
+                                    <MudStack Spacing="2">
+                                        @foreach (var error in _errors)
+                                        {
+                                            <MudText Color="Color.Error">*@error</MudText>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+                            }
+                        </MudItem>
+
+                        <MudItem xs="12" Class="mb-5">
+                            <ImageSelect Disabled=@_loading Class="mb-5" UploadImageText="Vælg Profilbillede"
+                                         ImageStyle="height: 150px; width: 150px; border-radius: 50%; background-color:white"
+                                         ChangeImageText="Skift Profilbillede"
+                                         OnImageChanged="OnProfilePictureChanged"
+                                         OnImageRemoved="OnRemoveSelectedProfilePicture" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Fornavn"
+                            @bind-Value="_registerDTO.FirstName" For="@(() => _registerDTO.FirstName)" />
+                        </MudItem>
+
+
+                        <MudItem xs="12" sm="6" Class="mb-5">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Efternavn"
+                            @bind-Value="_registerDTO.LastName" For="@(() => _registerDTO.LastName)" />
+                        </MudItem>
+
+
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Email"
+                            @bind-Value="_registerDTO.Email" For="@(() => _registerDTO.Email)" InputType="InputType.Email" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" Class="mb-5">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Gentag Email"
+                            @bind-Value="_registerDTO.RepeatedEmail" For="@(() => _registerDTO.RepeatedEmail)" InputType="InputType.Email" />
+                        </MudItem>
+
+
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Password"
+                            @bind-Value="_registerDTO.Password" For="@(() => _registerDTO.Password)" InputType="InputType.Password" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Disabled=_loading Required="true" Variant="Variant.Outlined" Label="Gentag Password"
+                            @bind-Value="_registerDTO.RepeatedPassword" For="@(() => _registerDTO.RepeatedPassword)" InputType="InputType.Password" />
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudCheckBox  Disabled=_loading Required="true" Label="Jeg bekræfter at jeg er mindst 13 år gammel"
+                            @bind-Checked="_registerDTO.ConfirmAtLeastThirteen" For="@(() => _registerDTO.ConfirmAtLeastThirteen)"/>
+                        </MudItem>
+
+                    </MudGrid>
+
+                    <MudStack Justify="Justify.SpaceBetween" Row="true">
+                        <MudButton Disabled=_loading OnClick="()=>NavigationManager.GoBack(JSRuntime)" Variant="Variant.Text">Tilbage</MudButton>
+                        <MudButton Disabled=_loading Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit">
+                            @if(_loading)
+                            {
+                                <MudProgressCircular Indeterminate="true"/>
+                            }
+                            Opret Bruger
+                            </MudButton>
+                    </MudStack>
+                }
+
+            </MudCardContent>
+        </MudCard>
+
+    </EditForm>
+
+</MudContainer>
+
+
+@code {
+    private RegisterDTO _registerDTO;
+    private RegisterResultDTO? _registerResult;
+    private bool _loading;
+    private bool _isMobile;
+
+    private bool _registerFailed;
+    private IEnumerable<string> _errors;
+
+    public Register()
+    {
+        _registerDTO = new();
+        _errors = new List<string>();
+    }
+
+    private async Task OnRegisterClicked()
+    {
+        _loading = true;
+        _registerResult = await ApiClient.RegisterAsync(_registerDTO);
+        _registerFailed = _registerResult.Success == false;
+
+        if (_registerResult.Success)
+        {
+            if (!_registerResult.MustConfirmEmail)
+            {
+                await UserManager.Set(_registerResult.UserInfo);
+                NavigationManager.NavigateToRegisteredUserWelcome();
+            }
+        }
+        else
+        {
+            _errors = _registerResult.ErrorMessages;
+        }
+        _loading = false;
+    }
+
+    private async Task OnProfilePictureChanged(IBrowserFile file)
+    {
+        if (_registerDTO.ProfilePicture is null)
+        {
+            _registerDTO.ProfilePicture = new();
+        }
+        _registerDTO.ProfilePicture.IsDeleteCommand = false;
+        _registerDTO.ProfilePicture.ContentType = file.ContentType;
+        _registerDTO.ProfilePicture.Bytes = await file.ToByteArray(maxAllowedSize: MediaUtils.FORTY_MEGABYTES_IN_BYTES);
+    }
+
+    private Task OnRemoveSelectedProfilePicture()
+    {
+        _registerDTO.ProfilePicture = null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+
+}

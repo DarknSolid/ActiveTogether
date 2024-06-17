@@ -1,0 +1,25 @@
+﻿@using ModelLib.DTOs.Authentication
+
+<MudCard Style="width: 100%">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">@User.FirstName.First()</MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Align="Align.Left" Typo="Typo.body1">@User.FullName</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            @ChildContent
+        </CardHeaderActions>
+    </MudCardHeader>
+</MudCard>
+
+
+
+@code {
+    [Parameter]
+    public UserListDTO User { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

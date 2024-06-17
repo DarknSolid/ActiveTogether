@@ -1,29 +1,89 @@
 ﻿@using ModelLib.DTOs.Dogs
 @using RazorLib.Utils
+@inject NavigationManager NavigationManager
 
+<MudPaper Class=@($"{_class} ") @onclick="_onClick" Style="@Style">
 
-<MudCard>
-    <MudCardHeader>
-        <CardHeaderAvatar>
-            <MudAvatar Color="Color.Secondary">@Dog.Name.First()</MudAvatar>
-        </CardHeaderAvatar>
-        <CardHeaderContent>
-            <div class="d-flex flex-row justify-start gap-4">
-                <MudText Typo="Typo.body1">@Dog.Name</MudText>
-                <MudText Typo="Typo.subtitle1">@(DateUtils.TimeInYears(Dog.Birth)) years</MudText>
-            </div>
-            <MudText class="d-flex flex-row justify-start" Typo="Typo.body2">@Dog.BreedName</MudText>
-        </CardHeaderContent>
-        <CardHeaderActions>
-            @ChildContent
-        </CardHeaderActions>
-    </MudCardHeader>
-</MudCard>
+    <MudStack Justify="Justify.SpaceBetween" Row=true>
+        <div>
+            <MudStack Row=true>
+                <MudAvatar Size=Size.Large Color="Color.Secondary" Image="@Dog.ProfilePictureUrl">
+                    @if (string.IsNullOrEmpty(Dog.ProfilePictureUrl))
+                    {
+                        @Dog.Name.First()
+                    }
+                </MudAvatar>
+
+                <MudStack Spacing="1">
+                    <MudStack Row=true Spacing=4 AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body1">@Dog.Name</MudText>
+                        <MudText Typo="Typo.subtitle1">@(DateUtils.TimeInYears(Dog.Birth)) År</MudText>
+                    </MudStack>
+                    <MudText class="d-flex flex-row justify-start" Typo="Typo.body2">@Dog.Race</MudText>
+                </MudStack>
+            </MudStack>
+        </div>
+        @ChildContent
+    </MudStack>
+
+</MudPaper>
 
 @code {
     [Parameter]
     public DogListDTO Dog { get; set; }
 
     [Parameter]
+    public bool ClickAble { get; set; } = true;
+
+    [Parameter]
+    public bool DisableNavigation { get; set; }
+
+    [Parameter]
+    public Func<Task>? OnClick { get; set; }
+
+    [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public string Style { get; set; }
+
+    private string _class;
+    private Func<Task> _onClick;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (ClickAble)
+        {
+            _class = "mud-ripple card-clickable ";
+        }
+        else
+        {
+            _class = "";
+        }
+
+        _class += Class;
+
+        if (Class is null || !Class.Contains("pa-"))
+        {
+            _class += " pa-5 ";
+        }
+
+        if (DisableNavigation)
+        {
+            _onClick = async () => { };
+        }
+        else
+        {
+            _onClick = async () => NavigationManager.NavigateToDogDetails(Dog.Id);
+        }
+
+        _onClick = OnClick ?? _onClick;
+
+        StateHasChanged();
+
+    }
 }

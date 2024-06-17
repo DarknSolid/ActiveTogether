@@ -1,10 +1,11 @@
-﻿namespace ModelLib.DTOs.DogPark
+﻿using ModelLib.DTOs.Places;
+
+namespace ModelLib.DTOs.DogPark
 {
-    public class DogParkListDTO
+    public class DogParkListDTO : PlaceListDTO
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public float Latitude { get; set; }
-        public float Longitude { get; set; }
+        public DateTime DateAdded { get; set; }
+        public int RatingCount { get; set; }
+        public float Rating { get; set; }
     }
 }

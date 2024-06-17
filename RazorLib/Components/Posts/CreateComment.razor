@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@using RazorLib.Components.CustomMudComponents;
+@inject ISnackbar snackbar
+@inject IApiClient ApiClient
+@inherits UserContext
+
+<MudStack Row=true Spacing="3" Style="width:100%; max-width:600px;">
+    @if (!string.IsNullOrEmpty(AuthenticatedUser?.ProfilePictureUrl))
+    {
+        <MudAvatar>
+            <MudImage Src="@AuthenticatedUser.ProfilePictureUrl" />
+        </MudAvatar>
+    }
+    else if (AuthenticatedUser is not null)
+    {
+        <MudAvatar>@(AuthenticatedUser.FirstName.ToUpper().First())@(AuthenticatedUser.LastName.ToUpper().First())</MudAvatar>
+    }
+    else
+    {
+        <MudAvatar>MIG</MudAvatar>
+    }
+
+    <MudPaper Class="rounded-xl pa-2" Style="width:100%; max-width:550px;">
+        <EditForm Model="_model" OnSubmit="OnSubmit">
+            <MudStack Row=true Spacing="2">
+                <CustomMultilineTextField Placeholder="Skriv kommentar..." Style="height:fit-content" DisableUnderLine=true Variant="Variant.Text" T="string" @bind-Text=_model.Content />
+                <MudIconButton Size="Size.Small" Color=Color.Primary ButtonType=ButtonType.Submit Icon="@Icons.Material.Filled.Send" />
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+</MudStack>
+
+@code {
+    [Parameter]
+    public Func<int, Task>? OnCommentCreated { get; set; }
+
+    [Parameter, EditorRequired]
+    public int PostId { get; set; }
+
+    private bool _loading;
+
+    private string _text;
+
+    private CommentCreateDTO _model = new();
+
+    private async Task OnSubmit()
+    {
+        _loading = true;
+        _model.PostId = PostId;
+
+        var id = await ApiClient.CreateCommentAsync(_model);
+        _loading = false;
+        if (id is not null)
+        {
+            if (OnCommentCreated is not null)
+            {
+                await OnCommentCreated(id.Value);
+            }
+            snackbar.Add("Dit opslag er blevet oprettet!", Severity.Success);
+            _model = new();
+        }
+        else
+        {
+            snackbar.Add("Dit opslag kunne ikke oprettes.", Severity.Error);
+
+        }
+
+    }
+}

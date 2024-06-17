@@ -1,0 +1,189 @@
+﻿@attribute [Route(RoutingConstants.DOG_PARK_DETAILS + "{PlaceId:int}")]
+
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.CheckIns
+@using RazorLib.Components
+@using RazorLib.Components.CheckIn
+@using RazorLib.Components.Ratings
+@using RazorLib.Interfaces
+@using ModelLib.DTOs.DogPark
+@using static ModelLib.DTOEnums;
+@using static EntityLib.Entities.Enums
+@implements IDisposable
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject IStorageManager<UserDetailedDTO> UserManager;
+
+
+@if (!_isLoading)
+{
+    <MudCard style="background-color:transparent">
+        <MudCarousel Class="mud-width-full" Style="height:200px;" ShowArrows="@false" ShowBullets="true" AutoCycle="true" TData="object">
+            @foreach (var url in _dogParkDetails.ImageUrls)
+            {
+                <MudCarouselItem Transition="Transition.Slide" Color="@Color.Primary">
+                    <div class="d-flex" style="height:100%">
+                        <MudImage ObjectFit="ObjectFit.Cover" Style="width:100%" Src="@url" Alt="Dog Park Front Page Image" />
+                    </div>
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+        <MudCardContent>
+            <MudGrid Spacing="40" style="grid-row-gap:20px">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h4">@_dogParkDetails.Name</MudText>
+                    <RatingReadOnly PlaceId="PlaceId" Rating="_dogParkDetails.Rating" RatingCount="_dogParkDetails.TotalReviews" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <CheckInButton OnCheckOut="() => UpdateReviewStatus()" FacilityId="PlaceId" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    @*Display facilities:*@
+                    @if (_dogParkDetails.Facilities.Count() == 0)
+                    {
+                        <MudText Type="Typo.h5">Ingen Faciliteter</MudText>
+                    }
+                    else
+                    {
+                        <MudText Type="Typo.h5">Faciliteter:</MudText>
+                        @foreach (var f in _dogParkDetails.Facilities)
+                        {
+                            <MudText Type="Typo.caption">@f.ToString()</MudText>
+                        }
+                    }
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2">@_dogParkDetails.Description</MudText>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">Currently Checked In</MudText>
+                    <div style="max-height:300px; overflow:scroll">
+                        <CheckinsListView ShowOnlyCurrentlyCheckedIn="true" FacilityId="@PlaceId" />
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <CheckInStatistics Statistics="_checkInStatistics" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    @*Review Button*@
+                    <MudButton Disabled="_dogParkDetails.CurrentReviewStatus == ReviewStatus.MustCheckIn"
+                            StartIcon="@Icons.Material.Filled.RateReview"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           FullWidth="true" OnClick="OnReviewButtonClicked">
+                        @(_dogParkDetails.CurrentReviewStatus == ReviewStatus.CanUpdateReview ? "Update Review" : "Write Review")
+                    </MudButton>
+
+                    @*Info text*@
+                    @if (_dogParkDetails.CurrentReviewStatus == ReviewStatus.MustCheckIn)
+                    {
+                        <MudAlert Severity="Severity.Info">Check-in to write a review</MudAlert>
+                    }
+                    else if (_dogParkDetails.CurrentReviewStatus == ReviewStatus.CanUpdateReview)
+                    {
+                        <MudAlert Severity="Severity.Info">You have already reviewed this park</MudAlert>
+                    }
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">Reviews</MudText>
+                    <div style="max-height:300px; overflow:scroll">
+                        <ReviewsListView RevieweeId="@PlaceId" />
+                    </div>
+                </MudItem>
+
+
+            </MudGrid>
+
+
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudCard>
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Animation="MudBlazor.Animation.Wave" />
+        <MudCardContent>
+            <MudSkeleton Width="30%" Height="42px;" Animation="MudBlazor.Animation.Wave" />
+            <MudSkeleton Width="80%" Animation="MudBlazor.Animation.Wave" />
+            <MudSkeleton Width="100%" Animation="MudBlazor.Animation.Wave" />
+        </MudCardContent>
+    </MudCard>
+}
+
+
+@code {
+
+    [Parameter, EditorRequired]
+    public int PlaceId { get; set; }
+
+    private bool _isLoading;
+    private DogParkDetailedDTO _dogParkDetails;
+    private CheckInStatisticsDetailedDTO _checkInStatistics;
+
+    private UserDetailedDTO? _user;
+    private bool _isLoggedIn;
+
+
+
+    public DogParkDetails()
+    {
+        _checkInStatistics = new();
+        _dogParkDetails = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await UpdateUser();
+        UserManager.Subscribe(UpdateUser);
+        await Fetch();
+    }
+
+    private void UpdateReviewStatus()
+    {
+        if (_dogParkDetails.CurrentReviewStatus == ReviewStatus.MustCheckIn)
+        {
+            _dogParkDetails.CurrentReviewStatus = ReviewStatus.CanReview;
+            StateHasChanged();
+        }
+    }
+
+    private void OnReviewButtonClicked()
+    {
+        if (_dogParkDetails.CurrentReviewStatus == ReviewStatus.CanReview)
+        {
+            NavigationManager.NavigateToReviewCreate(PlaceId, _dogParkDetails.Name);
+        }
+        else if (_isLoggedIn && _user is not null)
+        {
+            NavigationManager.NavigateToReviewUpdate(PlaceId, _user.Id, _dogParkDetails.Name);
+        }
+    }
+
+    private async Task Fetch()
+    {
+        _isLoading = true;
+        _dogParkDetails = await ApiClient.GetDogParkAsync(PlaceId);
+        _checkInStatistics = await ApiClient.GetCheckInStatisticsAsync(PlaceId);
+        _isLoading = false;
+    }
+
+    private async Task UpdateUser()
+    {
+        _user = await UserManager.Get();
+        _isLoggedIn = _user is not null;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        UserManager.UnSubscribe(UpdateUser);
+    }
+}

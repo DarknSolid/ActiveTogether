@@ -1,0 +1,146 @@
+﻿@attribute [Route(RoutingConstants.USER + "{id:int}")]
+
+@using ModelLib.DTOs.Authentication;
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components
+@using RazorLib.Components.Avatars
+@using RazorLib.Components.Dogs
+@using RazorLib.Components.Instructors
+@using RazorLib.Components.Places
+@using RazorLib.Components.Posts
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inherits UserContext
+
+
+@if (!_loading)
+{
+    <MudCard Class="mb-5">
+        <MudStack Style="height:300px; width:100%; position:relative; overflow:hidden;" Justify="Justify.Center">
+            <CoverImage Height="300" Url="@_user.ProfilePictureUrl" BlurAmount="4" Style="position:absolute;" />
+            <MediaPopup Url="@(_user.ProfilePictureUrl)">
+                <MudImage ObjectFit="ObjectFit.Contain" Style="height:100%; position:relative" Src="@_user.ProfilePictureUrl" />
+            </MediaPopup>
+        </MudStack>
+        <MudCardContent>
+
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">@_user.FullName @(_isUserMe ? "(Mig)" : "")</MudText>
+                @if (_isUserMe)
+                {
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert">
+                        <MudMenuItem OnClick="NavigationManager.NavigateToSettings">Indstillinger</MudMenuItem>
+                    </MudMenu>
+                }
+            </MudStack>
+
+            @if (!_isUserMe)
+            {
+                <Authenticated>
+                    <FriendshipMenuButton FriendshipStatus="_user.FriendShipStatus" UserId="_user.Id" />
+                </Authenticated>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <MudContainer>
+
+        <MudStack Class="mb-2" Row=true Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">@(_isUserMe ? "Mine Hunde" : $"{_user.FirstName}'s Hunde")</MudText>
+            @if (_isUserMe && _user.Dogs.Any())
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary" OnClick="() => NavigationManager.NavigateToMyDogs()">
+                    Rediger Hunde
+                </MudButton>
+            }
+        </MudStack>
+
+        <MudPaper Class="pa-5 mb-5">
+            @if (_user.Dogs.Any())
+            {
+                <MudStack>
+                    @foreach (var d in _user.Dogs)
+                    {
+                        <DogCard Dog="@d"></DogCard>
+                    }
+                </MudStack>
+            }
+            else
+            {
+                <MudText>@(_isUserMe ? "Du " : _user.FirstName) har ingen hunde.</MudText>
+                @if (_isUserMe)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary" OnClick="() => NavigationManager.NavigateToCreateDog()">
+                        Tilføj Hund
+                    </MudButton>
+                }
+            }
+        </MudPaper>
+
+        @if (_user.HasCompany)
+        {
+            @if (_user.CompanyType == FacilityType.DogInstructor)
+            {
+                <MudText Typo="Typo.h6">@(_isUserMe ? $"Du er Hundetræner hos:" : $"{_user.FirstName} er Hundetræner hos:")</MudText>
+            }
+            <MudPaper Class="pa-5 mb-5">
+                <AvatarImageWithName FirstName="@_user.CompanyName" ImageUrl="@_user.CompanyProfilePictureUrl" OnClick="() => NavigationManager.NavigateToPlace(_user.CompanyId.Value, _user.CompanyType.Value)" />
+            </MudPaper>
+        }
+
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h6">@(_isUserMe ? "Mine Opslag" : $"{_user.FirstName}'s Opslag") </MudText>
+            <MudDivider Class="mb-2" />
+
+            <PostsListView CanPost=@_isUserMe Filter=@(new PostFilter {UserId = Id, IncludePlaceDetails=true}) />
+        </MudStack>
+
+    </MudContainer>
+}
+else
+{
+    <MudCard Class="mb-5">
+        <MudSkeleton Height="200px" Width="100%" Style="transform: none;" />
+        <MudCardContent>
+            <MudStack>
+                <MudSkeleton Width="30%" Height="60px" Style="transform: none;" />
+                <MudSkeleton Width="40%" Height="20px" Style="transform: none;" />
+                <MudSkeleton Width="40%" Height="20px" Style="transform: none;" />
+                <MudSkeleton Width="40%" Height="20px" Style="transform: none;" />
+                <MudSkeleton Width="40%" Height="20px" Style="transform: none;" />
+                <MudSkeleton Width="40%" Height="20px" Style="transform: none;" />
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private bool _loading = true;
+
+    private bool _isUserMe;
+
+    private UserDetailedDTO _user { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await Fetch();
+    }
+
+    private async Task Fetch()
+    {
+        _loading = true;
+        _user = await ApiClient.GetUserAsync(Id);
+        _isUserMe = (AuthenticatedUser?.Id ?? -1) == Id;
+
+        _loading = false;
+    }
+}

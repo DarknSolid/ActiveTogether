@@ -1,0 +1,28 @@
+﻿
+<MudDialog DisableSidePadding="true" Style="background-color:var(--mud-palette-background);">
+
+    <DialogContent>
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0" Style="min-height: 300px overflow-y: scroll" Class="pa-5">
+            <MudText Typo="Typo.body1">We are experiencing technical difficulties with your request.</MudText>
+            <MudText Typo="Typo.body1">Please try again later or contact support for help.</MudText>
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <div style="width:100%; display:flex; justify-content:center">
+            <MudButton OnClick="Ok" Variant="Variant.Filled" Color="Color.Primary">Close</MudButton>
+        </div>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task Ok()
+    {
+        MudDialog.Close(true);
+    }
+}

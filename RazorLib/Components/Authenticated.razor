@@ -1,0 +1,70 @@
+﻿@using ModelLib.DTOs.Authentication;
+@using RazorLib.Interfaces;
+@using RazorLib.Models;
+@implements IDisposable
+@inject IStorageManager<UserDetailedDTO> UserManager
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+@*
+    This component ensures that the user is logged in before attempting to use a given funcitonality as child content
+*@
+
+@if (_isLoggedIn)
+{
+    @ChildContent
+}
+else
+{
+    <div style="position:relative;">
+        <div 
+            @onclick:stopPropagation="true" 
+            @onclick:preventDefault="true" 
+            @onclick=ShowDialog 
+        style="position:absolute; width:100%; height:100%; z-index:1;"
+             class="cursor-pointer">
+        </div>
+        @ChildContent
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _isLoggedIn;
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UserManager.Subscribe(CheckIsLoggedIn);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await CheckIsLoggedIn();
+    }
+
+    private async Task CheckIsLoggedIn()
+    {
+        _isLoggedIn = (await UserManager.Get()) is not null;
+        StateHasChanged();
+    }
+
+    public async Task ShowDialog()
+    {
+        var willLogin = await DialogServiceExtender.ShowLoginRequired(DialogService);
+        if (willLogin)
+        {
+            NavigationManager.NavigateToLogin();
+        }
+
+    }
+
+    public void Dispose()
+    {
+        UserManager.UnSubscribe(ShowDialog);
+    }
+}

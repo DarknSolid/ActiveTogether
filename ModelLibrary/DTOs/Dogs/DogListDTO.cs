@@ -1,5 +1,5 @@
 ﻿
-using System.ComponentModel.DataAnnotations;
+using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.Dogs
 {
@@ -13,8 +13,7 @@ namespace ModelLib.DTOs.Dogs
 
         public bool IsGenderMale { get; set; }
 
-        public int Breed { get; set; }
-        public string BreedName { get; set; }
-
+        public DogRace Race { get; set; }
+        public string? ProfilePictureUrl { get; set; }
     }
 }

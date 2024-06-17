@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EntityLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
+using ModelLib.ApiDTOs.Pagination;
 using ModelLib.DTOs.CheckIns;
 using ModelLib.Repositories;
 using Moq;
@@ -23,7 +25,7 @@ namespace UnitTests
             var facilityId = 1;
             var createDto = new CheckInCreateDTO
             {
-                DogsToCheckIn = new() { 0},
+                DogsToCheckIn = new() { 0 },
                 PlaceId = facilityId
             };
 
@@ -73,11 +75,13 @@ namespace UnitTests
             var userId = 4;
             var facilityId = 1;
             var dogId = 4;
+            var mood = Enums.CheckInMood.Social;
             var dateBefore = DateTime.UtcNow;
             var createDto = new CheckInCreateDTO
             {
                 DogsToCheckIn = new() { dogId },
-                PlaceId = facilityId
+                PlaceId = facilityId,
+                Mood = mood
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
@@ -85,11 +89,11 @@ namespace UnitTests
             var actualEntity = await _context.CheckIns.Include(c => c.DogCheckIns).FirstAsync(c => c.Id == id);
 
             Assert.Equal(RepositoryEnums.ResponseType.Created, response);
-            Assert.Equal(5, id);
             Assert.Single(actualEntity.DogCheckIns);
             Assert.Equal(dogId, actualEntity.DogCheckIns.First().DogId);
             Assert.Equal(userId, actualEntity.UserId);
             Assert.Equal(facilityId, actualEntity.PlaceId);
+            Assert.Equal(mood, actualEntity.Mood);
             Assert.True(dateBefore < actualEntity.CheckInDate);
             Assert.True(actualEntity.CheckInDate < dateAfter);
             Assert.Null(actualEntity.CheckOutDate);
@@ -120,53 +124,53 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task GetCheckIns_Valid_Facility_Only_Active_Checkins_Returns_Expected()
-        {
-            var facilityId = 1;
-            var onlyActiveCheckIns = true;
-            var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
-            var dtoRequest = new GetCheckInListDTO
-            {
-                PaginationRequest = paginationRequest,
-                PlaceId = facilityId,
-                OnlyActiveCheckIns = onlyActiveCheckIns
-            };
-
-            var actual = await _repo.GetCheckIns(dtoRequest);
-
-            Assert.Equal(3, actual.CheckIns.Count);
-            Assert.True(actual.CheckIns.All(c => c.CheckedOut == null));
-            var checkIn = actual.CheckIns.First();
-            Assert.Single(checkIn.Dogs);
-            var dog = checkIn.Dogs.First();
-            Assert.Null(checkIn.CheckedOut);
-            Assert.Equal(1, checkIn.User.UserId);
-            Assert.Equal("test1", checkIn.User.FirstName);
-            Assert.Equal("user1", checkIn.User.LastName);
-            Assert.Equal("", checkIn.User.ProfilePictureUrl);
-            Assert.Equal(1, dog.Id);
-            Assert.Equal(1, dog.Breed);
-            Assert.False(dog.IsGenderMale);
-        }
-
-        [Fact]
         public async Task GetCheckIns_Valid_Facility_All_Checkins_Returns_Expected()
         {
             var facilityId = 1;
             var onlyActiveCheckIns = false;
-            var paginationRequest = new PaginationRequest { ItemsPerPage = 10, Page = 0 };
-            var dtoRequest = new GetCheckInListDTO
+            var paginationRequest = new DateTimePaginationRequest { ItemsPerPage = 10, Page = 0, LastDate = DateTime.UtcNow.AddDays(1), LastId = -1 };
+            var dtoRequest = new CheckInListDTOPaginationRequest
             {
                 PaginationRequest = paginationRequest,
                 PlaceId = facilityId,
                 OnlyActiveCheckIns = onlyActiveCheckIns
             };
             var actual = await _repo.GetCheckIns(dtoRequest);
-            var count= await _context.CheckIns.CountAsync();
+            var count = await _context.CheckIns.Where(c => c.PlaceId == facilityId).CountAsync();
 
-            Assert.Equal(count, actual.CheckIns.Count);
-            Assert.True(actual.CheckIns.Exists(c => c.CheckedOut == null));
-            Assert.True(actual.CheckIns.Exists(c => c.CheckedOut != null));
+            Assert.Equal(count, actual.Result.Count);
+            Assert.True(actual.Result.Any(c => c.CheckedOutDate == null));
+            Assert.True(actual.Result.Any(c => c.CheckedOutDate != null));
+        }
+
+        [Fact]
+        public async Task GetCheckIns_Valid_Facility_Only_Active_Checkins_Returns_Expected()
+        {
+            var facilityId = 1;
+            var onlyActiveCheckIns = true;
+            var paginationRequest = new DateTimePaginationRequest { ItemsPerPage = 10, Page = 0, LastDate = DateTime.UtcNow.AddDays(1), LastId = -1 };
+            var dtoRequest = new CheckInListDTOPaginationRequest
+            {
+                PaginationRequest = paginationRequest,
+                PlaceId = facilityId,
+                OnlyActiveCheckIns = onlyActiveCheckIns
+            };
+
+            var actual = await _repo.GetCheckIns(dtoRequest);
+
+            Assert.Equal(3, actual.Result.Count);
+            Assert.True(actual.Result.All(c => c.CheckedOutDate == null));
+            var checkIn = actual.Result.FirstOrDefault(c => c.Id == 1);
+            Assert.Single(checkIn.Dogs);
+            var dog = checkIn.Dogs[0];
+            Assert.Null(checkIn.CheckedOutDate);
+            Assert.Equal(1, checkIn.User.Id);
+            Assert.Equal("test1", checkIn.User.FirstName);
+            Assert.Equal("user1", checkIn.User.LastName);
+            Assert.Equal("", checkIn.User.ProfilePictureUrl);
+            Assert.Equal(Enums.CheckInMood.Social, checkIn.Mood);
+            Assert.Equal(1, dog.Id);
+            Assert.False(dog.IsGenderMale);
         }
 
         [Fact]
@@ -178,6 +182,8 @@ namespace UnitTests
             Assert.NotNull(actual);
             Assert.Equal(1, actual.Dogs.First().Id);
             Assert.Equal(1, actual.PlaceId);
+            Assert.Equal(Enums.CheckInMood.Social, actual.Mood);
+
         }
 
         [Fact]
@@ -187,6 +193,50 @@ namespace UnitTests
             var actual = await _repo.GetCurrentlyCheckedIn(userId);
 
             Assert.Null(actual);
+        }
+
+        [Fact]
+        public async Task GetStatistics_With_Existing_Check_ins_Returns_Expected()
+        {
+            var placeId = 1;
+            var lookBackDays = 30;
+            var expectedDogCheckIns = 2;
+            var expectedPeopleCheckIns = 4;
+            var today = DateTime.UtcNow.DayOfWeek;
+            var currentHour = DateTime.UtcNow.Hour;
+
+            CheckInStatisticsDetailedDTO actual = await _repo.GetStatisticsAsync(placeId: placeId, lookBackDays: lookBackDays);
+            var actualCurrentDayAndHourResult = actual.IntraDayStatistics[today][currentHour];
+
+            Assert.Equal(expectedDogCheckIns, actual.DogCheckIns);
+            Assert.Equal(expectedPeopleCheckIns, actual.PeopleCheckIns);
+
+            Assert.Equal(expectedPeopleCheckIns, actualCurrentDayAndHourResult.People);
+            Assert.Equal(expectedDogCheckIns, actualCurrentDayAndHourResult.Dogs);
+
+            // Assert that at all days and hours there are no checkins, exluding the today and the current hour that you are reading this :P
+
+            Assert.Single(actual.IntraDayStatistics);
+            Assert.Single(actual.IntraDayStatistics[today]);
+            Assert.Equal(currentHour, actual.IntraDayStatistics[today].Keys.First());
+            Assert.Equal(today, actual.IntraDayStatistics.Keys.First());
+        }
+
+        [Fact]
+        public async Task GetStatistics_With_Existing_Check_ins_But_Not_In_Date_Range_Returns_Empty_Results()
+        {
+            var placeId = 1;
+            var lookBackDays = -1; // makes the repositry add 1 day instead of subtracting 1 day
+            var today = DateTime.UtcNow.DayOfWeek;
+            var currentHour = DateTime.UtcNow.Hour;
+            var expectedDogCheckIns = 0;
+            var expectedPeopleCheckIns = 0;
+
+            CheckInStatisticsDetailedDTO actual = await _repo.GetStatisticsAsync(placeId: placeId, lookBackDays: lookBackDays);
+
+            Assert.Equal(expectedPeopleCheckIns, actual.PeopleCheckIns);
+            Assert.Equal(expectedDogCheckIns, actual.DogCheckIns);
+            Assert.Empty(actual.IntraDayStatistics);
         }
     }
 }

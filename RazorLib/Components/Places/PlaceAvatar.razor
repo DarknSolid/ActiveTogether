@@ -1,0 +1,75 @@
+﻿@using RazorLib.Components.Ratings
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject NavigationManager NavigationManager
+
+
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isSM = b <= Breakpoint.Sm" />
+<MudBreakpointProvider OnBreakpointChanged="(Breakpoint b) => _isXS = b <= Breakpoint.Xs" />
+
+
+<MudButton Target="_blank"
+           Variant="Variant.Text"
+           Color="Color.Inherit"
+           Style="@Style"
+           Class="@Class"
+           OnClick="@(() => NavigationManager.NavigateToPlace(Id, FacilityType))">
+
+    <MudStack Spacing="@Spacing" Row="@(Responsive && _isXS ? false : true)" AlignItems="AlignItems.Center" Justify="Justify.Center">
+        <MudPaper Elevation="3" Style=@(Large ? "height:90px; width:90px; border-radius: 50%;" : "height:45px; width:45px; border-radius: 50%;")>
+            <MudImage ObjectFit="ObjectFit.Cover" Src="@ImageUrl" Style="height:100%; width:100%; border-radius: 50%;" />
+        </MudPaper>
+
+        <MudStack Spacing="1" Justify="Justify.FlexStart">
+            <MudText Align="@(Responsive && _isXS ? Align.Center : Align.Left)" Typo="@(Large ? Typo.h6 : Typo.subtitle2)">@Name</MudText>
+            @if (Rating.HasValue && RatingCount.HasValue)
+            {
+                <RatingReadOnly Rating="@Rating.Value" RatingCount="@RatingCount.Value" />
+            }
+        </MudStack>
+
+    </MudStack>
+
+</MudButton>
+
+
+@code {
+    [Parameter]
+    public bool Large { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Name { get; set; }
+    [Parameter, EditorRequired]
+    public int Id { get; set; }
+    [Parameter, EditorRequired]
+    public FacilityType FacilityType { get; set; }
+    [Parameter, EditorRequired]
+    public string ImageUrl { get; set; }
+    [Parameter]
+    public int Spacing { get; set; } = 5;
+
+    [Parameter]
+    public float? Rating { get; set; }
+    [Parameter]
+    public int? RatingCount { get; set; }
+
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public bool Responsive { get; set; }
+
+    private bool _isSM;
+    private bool _isXS;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Style = "text-transform:none;" + Style;
+    }
+
+
+
+}

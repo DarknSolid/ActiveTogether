@@ -1,0 +1,47 @@
+﻿@using ModelLib.DTOs.DogPark
+@using ModelLib.DTOs.Dogs
+@using RazorLib.Utils
+@using static EntityLib.Entities.Enums
+
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <div class="d-flex justify-space-between">
+                <MudText Typo="Typo.body1">@DogPark.Name</MudText>
+                <MudText Typo="Typo.subtitle2">@DogPark.RequestDate.ToString("D")</MudText>
+            </div>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">@DogPark.Description</MudText>
+        <MudText Typo="Typo.subtitle2">Facilities:</MudText>
+        <MudText Typo="Typo.body1">@_facilitiesText</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter]
+    public DogParkRequestDetailedDTO DogPark { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private string _facilitiesText;
+
+    protected override void OnInitialized()
+    {
+        var f = DogPark.Facilities.ToList();
+        _facilitiesText = "";
+        for (int i = 0; i < f.Count(); i++)
+        {
+            _facilitiesText += f[i].ToString();
+            if (i < f.Count() - 1)
+            {
+                _facilitiesText += ", ";
+            }
+
+        }
+        base.OnInitialized();
+    }
+}

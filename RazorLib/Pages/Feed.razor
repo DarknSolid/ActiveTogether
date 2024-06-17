@@ -1,0 +1,289 @@
+﻿@attribute [Route(RoutingConstants.FEED)]
+@using ModelLib.ApiDTOs.Pagination;
+@using ModelLib.DTOs.Dogs;
+@using ModelLib.DTOs.Places;
+@using ModelLib.DTOs.Posts;
+@using RazorLib.Components
+@using RazorLib.Components.Dogs
+@using RazorLib.Components.ListViews;
+@using RazorLib.Components.Posts
+@using RazorLib.Components.Users;
+@using RazorLib.Interfaces;
+@using RazorLib.Models;
+@using RazorLib.Utils;
+@using static EntityLib.Entities.Enums;
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inherits UserContext
+
+
+<MudContainer>
+    <MudText Typo="Typo.h4" Class="mt-5 mb-2">Opslag</MudText>
+    <MudDivider Class="mb-5" />
+
+    <MudStack Class="mb-5" Row=true Style="flex-wrap:wrap;" Justify="Justify.Center">
+
+        <MudItem Style="min-width: 200px;">
+            <MudSelect @ref=_areaInputRef T=int ValueChanged=OnAreaFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Område">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<PostArea>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">
+                        <MudStack Style="width:fit-content;" Row=true>
+                            <MudText>@EnumToTextConversion.PostAreaToString(item)</MudText>
+                        </MudStack>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem Style="min-width: 200px;">
+            <MudSelect @ref=_categoryInputRef T=int ValueChanged=OnCategoryFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Kategori">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<PostCategory>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">
+                        <MudStack Style="width:fit-content;" Row=true>
+                            <MudIcon Color=@EnumToTextConversion.PostCategoryToColor(item) Icon=@EnumToTextConversion.PostCategoryToIcon(item) />
+                            <MudText Color=@EnumToTextConversion.PostCategoryToColor(item)>@EnumToTextConversion.PostCategoryToString(item)</MudText>
+                        </MudStack>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem Style="min-width: 200px;">
+            <MudSelect @ref=_raceInputRef T=int ValueChanged=OnRaceFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Race">
+                <MudSelectItem Value="0">Alle</MudSelectItem>
+                @foreach (var item in Enum.GetValues<DogRace>())
+                {
+                    <MudSelectItem Value="@(((int)item)+1)">
+                        <MudStack Style="width:fit-content;" Row=true>
+                            <MudText>@EnumToTextConversion.ApplySpaceOnCapitals(item)</MudText>
+                        </MudStack>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+    </MudStack>
+
+
+    <PostsListView OnPostAreaClicked=OnPostAreaClicked OnPostCategoryClicked=OnPostCategoryClicked @ref=_postsListViewRef CanChoosePostArea=true CanPost=true Filter="_postFilter">
+
+        @if (_isLoggedIn)
+        {
+            @if (AuthenticatedUser.Dogs.Any())
+            {
+                if (_selectedDog is null)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowDogSelectionMenu">Se Relevante Opslag For Din Hund</MudButton>
+                }
+                else
+                {
+                    <MudStack Row=true AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2">Viser Relevante Opslag For</MudText>
+                        <MudButton Variant="Variant.Outlined" OnClick="ClearSelectedDog">Ryd</MudButton>
+                    </MudStack>
+                    <DogCard DisableNavigation=true Dog="@_selectedDog" OnClick="ShowDogSelectionMenu" Class="mb-5">
+                        <MudIcon Icon=@Icons.Material.Outlined.ArrowDropDownCircle Style="align-self:center;" />
+                    </DogCard>
+                }
+            }
+
+        }
+
+    </PostsListView>
+
+
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "category")]
+    public string? CategoryParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "area")]
+    public string? AreaParam { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "race")]
+    public string? RaceParam { get; set; }
+
+    private MudSelect<int> _categoryInputRef;
+    private MudSelect<int> _areaInputRef;
+    private MudSelect<int> _raceInputRef;
+
+    private PostFilter _postFilter;
+
+    private PostsListView _postsListViewRef;
+
+    private DogListDTO? _selectedDog;
+
+    public Feed()
+    {
+        _postFilter = new();
+        _postFilter.IncludePlaceDetails = true;
+    }
+
+    private async Task ShowDogSelectionMenu()
+    {
+        var (didAccept, dogsToCheckIn) = await DialogServiceExtender
+                .ShowMyDogsListViewSelection(
+                    DialogService,
+                    ApiClient,
+                    "Se relevante opslag for",
+                    true,
+                    "Vælg",
+                    AuthenticatedUser.Dogs
+                );
+        if (dogsToCheckIn.Any())
+        {
+            var prev = _selectedDog;
+            _selectedDog = dogsToCheckIn.First();
+            if (prev is null || prev.Race != _selectedDog.Race)
+            {
+                await OnPostRaceClicked(_selectedDog.Race);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task ClearSelectedDog()
+    {
+        _selectedDog = null;
+        await OnRaceFilterChanged(0);
+        _raceInputRef.Value = 0;
+        await _raceInputRef.ForceUpdate();
+    }
+
+    private async Task OnPostRaceClicked(DogRace race)
+    {
+        var raceInt = ((int)race) + 1;
+        await OnRaceFilterChanged(raceInt);
+        _raceInputRef.Value = raceInt;
+        await _raceInputRef.ForceUpdate();
+    }
+
+    private async Task OnPostAreaClicked(PostArea area)
+    {
+        var areaInt = ((int)area) + 1;
+        await OnAreaFilterChanged(areaInt);
+        _areaInputRef.Value = areaInt;
+        await _areaInputRef.ForceUpdate();
+    }
+
+    private async Task OnPostCategoryClicked(PostCategory category)
+    {
+        var categoryInt = ((int)category) + 1;
+        await OnCategoryFilterChanged(categoryInt);
+        _categoryInputRef.Value = categoryInt;
+        await _categoryInputRef.ForceUpdate();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (CategoryParam is not null)
+        {
+            _postFilter.Category = EnumUtils.TryParse<PostCategory>(CategoryParam);
+        }
+        if (AreaParam is not null)
+        {
+            _postFilter.Area = EnumUtils.TryParse<PostArea>(AreaParam);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            if (_postFilter.Category is not null)
+            {
+                _categoryInputRef.Value = ((int)_postFilter.Category) + 1;
+            }
+            if (_postFilter.Area is not null)
+            {
+                _areaInputRef.Value = ((int)_postFilter.Area) + 1;
+            }
+        }
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return base.OnParametersSetAsync();
+    }
+
+    public async Task OnCategoryFilterChanged(int enumIndex)
+    {
+        var prev = _postFilter.Category;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _postFilter.Category = null;
+        }
+        else
+        {
+            _postFilter.Category = (PostCategory)enumIndex;
+        }
+        if (prev != _postFilter.Category)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task OnAreaFilterChanged(int enumIndex)
+    {
+        var prev = _postFilter.Area;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _postFilter.Area = null;
+        }
+        else
+        {
+            _postFilter.Area = (PostArea)enumIndex;
+        }
+        if (prev != _postFilter.Area)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public async Task OnRaceFilterChanged(int enumIndex)
+    {
+        var prev = _postFilter.DogRace;
+        enumIndex--;
+        if (enumIndex == -1)
+        {
+            _postFilter.DogRace = null;
+        }
+        else
+        {
+            _postFilter.DogRace = (DogRace)enumIndex;
+        }
+        if (prev != _postFilter.DogRace)
+        {
+            UpdateQueryParameters();
+            await ResetListView();
+        }
+    }
+
+    public void UpdateQueryParameters()
+    {
+        NavigationManager.NavigateToFeed(_postFilter);
+    }
+
+    private async Task ResetListView()
+    {
+        _postsListViewRef._listViewRef.Reset();
+        await _postsListViewRef._listViewRef.FetchPagination();
+    }
+
+}
