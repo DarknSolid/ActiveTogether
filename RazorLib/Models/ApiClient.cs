@@ -6,7 +6,6 @@ using ModelLib.ApiDTOs;
 using ModelLib.DTOs.DogPark;
 using Newtonsoft.Json;
 using ModelLib.DTOs.Reviews;
-using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.CheckIns;
 using ModelLib.Repositories;
 using ModelLib.DTOs.Authentication;
@@ -18,7 +17,6 @@ using MudBlazor;
 using ModelLib.DTOs.Places;
 using ModelLib.DTOs.Users;
 using ModelLib.DTOs.Posts;
-using EntityLib.Entities.PostsAndComments;
 
 namespace RazorLib.Models
 {
@@ -93,44 +91,6 @@ namespace RazorLib.Models
             var url = ApiEndpoints.POST_CREATE_REVIEW;
             var (response, obj) = await PostAsync<ReviewCreateDTO, ReviewCreatedDTO?>(url, reviewCreateDTO);
             return obj;
-        }
-
-        public async Task<List<DogListDTO>> GetMyDogsAsync()
-        {
-            var user = await GetUserInfo();
-            return await GetDogsAsync(user.Id);
-        }
-
-        public async Task<DogDetailedDTO> GetDogDetailedAsync(int id)
-        {
-            var url = ApiEndpoints.GET_DETAILED_DOG + id;
-            return await _httpClient.GetFromJsonAsync<DogDetailedDTO>(url);
-        }
-
-        public async Task<int?> CreateDogAsync(DogCreateDTO dto)
-        {
-            var url = ApiEndpoints.POST_CREATE_DOG;
-            var (response, obj) = await PostAsync<DogCreateDTO, int>(url, dto);
-            return obj;
-        }
-
-        public async Task<IDictionary<int, string>> GetDogBreedsAsync()
-        {
-            var url = ApiEndpoints.GET_DOG_BREEDS;
-            return await _httpClient.GetFromJsonAsync<IDictionary<int, string>>(url);
-        }
-
-        public async Task<bool> UpdateDogAsync(DogUpdateDTO dto)
-        {
-            var url = ApiEndpoints.Update_DOG;
-            var result = await PutAsync<DogUpdateDTO, object>(url, dto);
-            return result.Item1.IsSuccessStatusCode;
-        }
-
-        public async Task<List<DogListDTO>> GetDogsAsync(int userId)
-        {
-            var url = ApiEndpoints.GET_LIST_DOGS + userId;
-            return await GetAsJsonAsync<List<DogListDTO>>(url) ?? new List<DogListDTO>();
         }
 
         public async Task<bool> DeleteDogAsync(int dogId)

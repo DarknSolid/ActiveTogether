@@ -39,13 +39,6 @@ namespace EntityLib.Entities
             OfferService = 3,
         }
 
-        public enum DogWeightClass
-        {
-            Small=1,
-            Medium=2,
-            Large=3
-        }
-
         public enum CheckInMood
         {
             Playful=1,
@@ -76,14 +69,6 @@ namespace EntityLib.Entities
             Indoor=1,
             Outdoor=2,
             Agility=3
-        }
-
-        public enum DogRace
-        {
-            Labrador = 0,
-            Rottweiler = 1,
-            SpringerSpaniel = 2,
-            CockerSpaniel = 3,
         }
     }
 }

@@ -17,6 +17,5 @@ namespace EntityLib.Entities.Identity
         public ICollection<Review> Reviews { get; set; }
         public ICollection<Friendship> Friends { get; set; }
         public ICollection<Company> Companies { get; set; }
-        public ICollection<Dog> Dogs { get; set; }
     }
 }

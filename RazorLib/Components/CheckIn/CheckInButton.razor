@@ -2,8 +2,6 @@
 @using Microsoft.JSInterop
 @using ModelLib.DTOs.Authentication;
 @using ModelLib.DTOs.CheckIns
-@using ModelLib.DTOs.Dogs
-@using RazorLib.Components.Dogs
 @using RazorLib.Interfaces
 @using RazorLib.Models
 @using static EntityLib.Entities.Enums
@@ -99,17 +97,7 @@
     {
         if (CanCheckIn())
         {
-            // show select dog dialogue
-            var (didAccept1, dogsToCheckIn) = await DialogServiceExtender
-                .ShowMyDogsListViewSelection(
-                    DialogService,
-                    ApiClient,
-                    "Which dogs did you bring?",
-                    false,
-                    "Next"
-                );
 
-            if (!didAccept1) return;
             var (didAccept2, selectedMood) = await DialogServiceExtender.ShowMoodListViewSelection(
                 DialogService,
                 ApiClient,
@@ -123,7 +111,6 @@
             var dto = new CheckInCreateDTO
                 {
                     PlaceId = FacilityId,
-                    DogsToCheckIn = dogsToCheckIn.Select(d => d.Id).ToList(),
                     Mood = selectedMood.FirstOrDefault(CheckInMood.None)
                 };
 

@@ -1,5 +1,4 @@
 ﻿@using ModelLib.DTOs.DogPark
-@using ModelLib.DTOs.Dogs
 @using RazorLib.Components.CardBases
 @using RazorLib.Components.Ratings
 @using RazorLib.Utils
@@ -17,7 +16,7 @@
     </MudCardHeader>
     <MudCardContent>
         <div class="d-flex flex-row gap-1">
-            <RatingReadOnly Rating="@(PlaceListDTO?.Rating ?? 0)"/>
+            <RatingReadOnly Rating="@(PlaceListDTO?.Rating ?? 0)" RatingCount="@(PlaceListDTO?.RatingCount ?? 0)"/>
             <MudText Typo="Typo.subtitle1">(@(PlaceListDTO?.RatingCount ?? 0))</MudText>
             <MudText Typo="Typo.subtitle1">@(_distanceKilometers) km</MudText>
         </div>

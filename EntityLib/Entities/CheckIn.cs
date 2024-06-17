@@ -24,7 +24,6 @@ namespace EntityLib.Entities
 
         public ApplicationUser User { get; set; }
         public Place Place { get; set; }
-        public ICollection<DogCheckIn> DogCheckIns { get; set; }
 
 
     }

@@ -1,6 +1,5 @@
 ﻿@using ModelLib.DTOs.Posts;
 @using ModelLib.DTOs.Reviews
-@using RazorLib.Components.Dogs
 @using RazorLib.Components.Instructors
 @using RazorLib.Components.Places
 @using RazorLib.Components.Users;
@@ -58,13 +57,6 @@
     </MudStack>
 
     <div class="px-5">
-
-        @if (Post.DogInfo is not null)
-        {
-            <div class="mb-5" style="width:fit-content">
-                <DogCard Class="pa-3" Dog="@Post.DogInfo" />
-            </div>
-        }
 
         @*Category area:*@
         @if (Post.Area is not null || Post.Category is not null)

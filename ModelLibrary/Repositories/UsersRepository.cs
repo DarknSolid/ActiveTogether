@@ -3,15 +3,8 @@ using EntityLib.Entities.Identity;
 using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs;
 using ModelLib.ApiDTOs.Pagination;
-using ModelLib.DTOs;
 using ModelLib.DTOs.Authentication;
-using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Users;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace ModelLib.Repositories
@@ -87,7 +80,6 @@ namespace ModelLib.Repositories
         public async Task<UserDetailedDTO?> GetUserAsync(int targetUserId, int? authorizedUserId = null)
         {
             var entity = await _context.Users
-                .Include(u => u.Dogs)
                 .Select(u => new
                 {
                     u.Id,
@@ -96,7 +88,6 @@ namespace ModelLib.Repositories
                     u.FullNameNormalized,
                     u.ProfileImageUrl,
                     u.Email,
-                    u.Dogs
                 })
                 .FirstOrDefaultAsync(u => u.Id == targetUserId);
             if (entity == null)
@@ -119,24 +110,9 @@ namespace ModelLib.Repositories
                 CompanyName = company?.CompanyName,
                 CompanyProfilePictureUrl = company?.CompanyProfilePictureUrl,
                 ProfilePictureUrl = entity.ProfileImageUrl,
-                Dogs = entity.Dogs.Select(d => new DogListDTO
-                {
-                    Id = d.Id,
-                    Name = d.Name,
-                    Race = d.Race,
-                    Birth = d.Birth,
-                    IsGenderMale = d.IsGenderMale,
-                    ProfilePictureUrl = d.ProfilePictureUrl
-                    
-                }).ToList()
             };
 
             dto.ProfilePictureUrl = (await _blobStorageRepository.GetPublicImageUrl(dto.ProfilePictureUrl)).Item2?.ToString();
-
-            foreach(var d in dto.Dogs)
-            {
-                d.ProfilePictureUrl = (await _blobStorageRepository.GetPublicImageUrl(d.ProfilePictureUrl)).Item2?.ToString();
-            }
 
             if (authorizedUserId != null)
             {

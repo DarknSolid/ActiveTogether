@@ -1,8 +1,6 @@
 ﻿@using EntityLib.Entities
-@using ModelLib.DTOs.Dogs
 @using NpgsqlTypes
 @using RazorLib.Components
-@using RazorLib.Components.Dogs
 @using RazorLib.Components.ListViews
 @using RazorLib.Interfaces
 
@@ -35,22 +33,6 @@
         (async () => moods.ToList())
     );
         return (didAccept, result);
-    }
-
-
-    public static async Task<(bool, List<DogListDTO>)> ShowMyDogsListViewSelection(IDialogService service, IApiClient apiClient, string title, bool onlySingleSelect, string btnAcceptText, IList<DogListDTO>? dogSelection = null)
-    {
-        Func<DogListDTO, RenderFragment, RenderFragment> dogCardBuilder = ((DogListDTO dto, RenderFragment childContent) => @<DogCard Dog="dto" ChildContent="childContent" ClickAble=true DisableNavigation=true/>);
-
-        return await ShowListViewSelection<ItemSelectionDialogue<DogListDTO>, DogListDTO>(
-            service,
-            title,
-            onlySingleSelect,
-            btnAcceptText,
-            dogCardBuilder,
-            (async () => await apiClient.GetMyDogsAsync()),
-            dogSelection
-        );
     }
 
     /// <summary>

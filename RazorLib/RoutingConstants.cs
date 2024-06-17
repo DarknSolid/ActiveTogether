@@ -20,9 +20,6 @@ namespace RazorLib
         public const string REVIEWS = "reviews/";
         public const string CREATE_REVIEW = "create-review/";
         public const string UPDATE_REVIEW = "update-review/";
-        public const string MY_DOGS = "my-dogs/";
-        public const string CREATE_DOG = "create-dog/";
-        public const string DOG_DETAILS = "dog-detials/";
         public const string SEARCH_USERS = "users/";
         public const string USER = "user/";
         public const string FRIEND_REQUESTS = "friend-requests/";

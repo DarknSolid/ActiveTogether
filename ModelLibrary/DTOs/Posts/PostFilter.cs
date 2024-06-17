@@ -9,7 +9,5 @@ namespace ModelLib.DTOs.Posts
         public PostCategory? Category { get; set; }
         public int? PlaceId { get; set; }
         public bool IncludePlaceDetails { get; set; }
-        public int? DogId { get; set; }
-        public DogRace? DogRace { get; set; }
     }
 }

@@ -1,10 +1,8 @@
 ﻿@attribute [Route(RoutingConstants.FEED)]
 @using ModelLib.ApiDTOs.Pagination;
-@using ModelLib.DTOs.Dogs;
 @using ModelLib.DTOs.Places;
 @using ModelLib.DTOs.Posts;
 @using RazorLib.Components
-@using RazorLib.Components.Dogs
 @using RazorLib.Components.ListViews;
 @using RazorLib.Components.Posts
 @using RazorLib.Components.Users;
@@ -53,46 +51,10 @@
             </MudSelect>
         </MudItem>
 
-        <MudItem Style="min-width: 200px;">
-            <MudSelect @ref=_raceInputRef T=int ValueChanged=OnRaceFilterChanged MaxHeight="200" AnchorOrigin="Origin.BottomCenter" Label="Race">
-                <MudSelectItem Value="0">Alle</MudSelectItem>
-                @foreach (var item in Enum.GetValues<DogRace>())
-                {
-                    <MudSelectItem Value="@(((int)item)+1)">
-                        <MudStack Style="width:fit-content;" Row=true>
-                            <MudText>@EnumToTextConversion.ApplySpaceOnCapitals(item)</MudText>
-                        </MudStack>
-                    </MudSelectItem>
-                }
-            </MudSelect>
-        </MudItem>
-
     </MudStack>
 
 
     <PostsListView OnPostAreaClicked=OnPostAreaClicked OnPostCategoryClicked=OnPostCategoryClicked @ref=_postsListViewRef CanChoosePostArea=true CanPost=true Filter="_postFilter">
-
-        @if (_isLoggedIn)
-        {
-            @if (AuthenticatedUser.Dogs.Any())
-            {
-                if (_selectedDog is null)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowDogSelectionMenu">Se Relevante Opslag For Din Hund</MudButton>
-                }
-                else
-                {
-                    <MudStack Row=true AlignItems="AlignItems.Center">
-                        <MudText Typo="Typo.body2">Viser Relevante Opslag For</MudText>
-                        <MudButton Variant="Variant.Outlined" OnClick="ClearSelectedDog">Ryd</MudButton>
-                    </MudStack>
-                    <DogCard DisableNavigation=true Dog="@_selectedDog" OnClick="ShowDogSelectionMenu" Class="mb-5">
-                        <MudIcon Icon=@Icons.Material.Outlined.ArrowDropDownCircle Style="align-self:center;" />
-                    </DogCard>
-                }
-            }
-
-        }
 
     </PostsListView>
 
@@ -109,63 +71,17 @@
     [SupplyParameterFromQuery(Name = "area")]
     public string? AreaParam { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery(Name = "race")]
-    public string? RaceParam { get; set; }
-
     private MudSelect<int> _categoryInputRef;
     private MudSelect<int> _areaInputRef;
-    private MudSelect<int> _raceInputRef;
 
     private PostFilter _postFilter;
 
     private PostsListView _postsListViewRef;
 
-    private DogListDTO? _selectedDog;
-
     public Feed()
     {
         _postFilter = new();
         _postFilter.IncludePlaceDetails = true;
-    }
-
-    private async Task ShowDogSelectionMenu()
-    {
-        var (didAccept, dogsToCheckIn) = await DialogServiceExtender
-                .ShowMyDogsListViewSelection(
-                    DialogService,
-                    ApiClient,
-                    "Se relevante opslag for",
-                    true,
-                    "Vælg",
-                    AuthenticatedUser.Dogs
-                );
-        if (dogsToCheckIn.Any())
-        {
-            var prev = _selectedDog;
-            _selectedDog = dogsToCheckIn.First();
-            if (prev is null || prev.Race != _selectedDog.Race)
-            {
-                await OnPostRaceClicked(_selectedDog.Race);
-                StateHasChanged();
-            }
-        }
-    }
-
-    private async Task ClearSelectedDog()
-    {
-        _selectedDog = null;
-        await OnRaceFilterChanged(0);
-        _raceInputRef.Value = 0;
-        await _raceInputRef.ForceUpdate();
-    }
-
-    private async Task OnPostRaceClicked(DogRace race)
-    {
-        var raceInt = ((int)race) + 1;
-        await OnRaceFilterChanged(raceInt);
-        _raceInputRef.Value = raceInt;
-        await _raceInputRef.ForceUpdate();
     }
 
     private async Task OnPostAreaClicked(PostArea area)
@@ -250,25 +166,6 @@
             _postFilter.Area = (PostArea)enumIndex;
         }
         if (prev != _postFilter.Area)
-        {
-            UpdateQueryParameters();
-            await ResetListView();
-        }
-    }
-
-    public async Task OnRaceFilterChanged(int enumIndex)
-    {
-        var prev = _postFilter.DogRace;
-        enumIndex--;
-        if (enumIndex == -1)
-        {
-            _postFilter.DogRace = null;
-        }
-        else
-        {
-            _postFilter.DogRace = (DogRace)enumIndex;
-        }
-        if (prev != _postFilter.DogRace)
         {
             UpdateQueryParameters();
             await ResetListView();

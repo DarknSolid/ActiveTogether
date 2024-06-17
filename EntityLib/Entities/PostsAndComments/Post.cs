@@ -25,9 +25,6 @@ namespace EntityLib.Entities.PostsAndComments
         public PostArea? Area { get; set; }
         public PostCategory? Category { get; set; }
 
-        [ForeignKey(nameof(Entities.Dog))]
-        public int? DogId { get; set; }
-
         public ICollection<PostLike>? PostLikes { get; set; }
         public ICollection<PostComment>? PostComments { get; set; }
 
@@ -38,6 +35,5 @@ namespace EntityLib.Entities.PostsAndComments
 
         public ApplicationUser User { get; set; }
         public Place? Place { get; set; }
-        public Dog? Dog { get; set; }
     }
 }

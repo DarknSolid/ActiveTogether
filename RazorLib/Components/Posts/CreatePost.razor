@@ -1,12 +1,10 @@
 ﻿@using EntityLib.Entities;
 @using Microsoft.AspNetCore.Components.Forms;
 @using ModelLib.ApiDTOs;
-@using ModelLib.DTOs.Dogs;
 @using ModelLib.DTOs.Posts;
 @using ModelLib;
 @using RazorLib.Components.Avatars
 @using RazorLib.Components.CustomMudComponents
-@using RazorLib.Components.Dogs
 @using RazorLib.Components.FileSelection
 @using RazorLib.Components.Users;
 @using RazorLib.Interfaces;
@@ -38,21 +36,6 @@
                 <MudDivider Light="true" />
             </MudStack>
 
-            @if (_selectedDog is null)
-            {
-                <MudStack Style="width:100%;" AlignItems="AlignItems.Center">
-                    <MudButton Style="width:fit-content;" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="ShowDogSelectionMenu">Tilføj din Hund</MudButton>
-                </MudStack>
-            }
-            else
-            {
-                <MudText Align="Align.Center" Typo="Typo.h6">Du skriver på vegne af:</MudText>
-
-                <MudStack Row=true Style="flex-wrap: wrap;" Justify="Justify.Center" AlignItems="AlignItems.Center">
-                    <DogCard Dog="@_selectedDog" DisableNavigation=true />
-                    <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="RemoveSelectedDog" Style="height:fit-content;" />
-                </MudStack>
-            }
 
             <div style="max-height:500px; overflow-y:scroll; overflow-x:hidden">
                 <div class="mb-5" style="max-height:300px; overflow-y:scroll;">
@@ -133,8 +116,6 @@
     [Parameter]
     public PostArea? DefaultPostArea { get; set; }
 
-    private DogListDTO? _selectedDog;
-
     private bool _showOverlay;
     private bool _loading;
     private PostCreateDTO _model;
@@ -157,30 +138,6 @@
     public CreatePost()
     {
         _model = new();
-    }
-
-    private void RemoveSelectedDog()
-    {
-        _selectedDog = null;
-        _model.DogId = null;
-    }
-
-    private async Task ShowDogSelectionMenu()
-    {
-        var (didAccept1, dogsToCheckIn) = await DialogServiceExtender
-                .ShowMyDogsListViewSelection(
-                    DialogService,
-                    ApiClient,
-                    "Hvem skriver du opslaget på vegne af?",
-                    true,
-                    "Vælg"
-                );
-        if (dogsToCheckIn.Any())
-        {
-            _model.DogId = dogsToCheckIn.First().Id;
-            _selectedDog = dogsToCheckIn.First();
-            StateHasChanged();
-        }
     }
 
     protected override void OnParametersSet()
@@ -310,7 +267,6 @@
             _browserFiles = null;
             _currentFileBeingUploaded = 0;
             _currentUploadPercent = 0;
-            _selectedDog = null;
             await OnPostCreated(createdResult.PostId.Value);
         }
         else

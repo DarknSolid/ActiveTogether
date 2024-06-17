@@ -81,10 +81,6 @@ namespace RazorLib
             navigationManager.NavigateTo(RoutingConstants.DISCOVER + facilityType.ToString());
         }
 
-        public static void NavigateToMyDogs(this NavigationManager navigationManager)
-        {
-            navigationManager.NavigateTo(RoutingConstants.MY_DOGS);
-        }
 
         public static void NavigateToFeed(this NavigationManager navigationManager, PostFilter? postFilter = null)
         {
@@ -93,7 +89,6 @@ namespace RazorLib
             {
                 queryParameters.Add(postFilter.Category.HasValue ? "category=" + postFilter.Category.ToString() : null);
                 queryParameters.Add(postFilter.Area.HasValue ? "area=" + postFilter.Area.ToString() : null);
-                queryParameters.Add(postFilter.DogRace.HasValue ? "race=" + postFilter.DogRace.ToString() : null);
             }
 
             string queryParametersString = "";
@@ -103,21 +98,6 @@ namespace RazorLib
             }
 
             navigationManager.NavigateTo(RoutingConstants.FEED + "?" + queryParametersString);
-        }
-
-        public static void NavigateToCreateDog(this NavigationManager navigationManager, int? dogId = null)
-        {
-            var url = RoutingConstants.CREATE_DOG;
-            if (dogId.HasValue)
-            {
-                url += dogId.Value;
-            }
-            navigationManager.NavigateTo(url);
-        }
-
-        public static void NavigateToDogDetails(this NavigationManager navigationManager, int dogId)
-        {
-            navigationManager.NavigateTo(RoutingConstants.DOG_DETAILS + dogId);
         }
 
         public static void NavigateToPlace(this NavigationManager navigationManager, int placeId, FacilityType facilityType)

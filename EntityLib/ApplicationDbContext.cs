@@ -17,12 +17,8 @@ namespace Entities
         public DbSet<Place> Places { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<CheckIn> CheckIns { get; set; }
-        public DbSet<DogCheckIn> DogCheckIns { get; set; }
-
         public DbSet<DogPark> DogParks { get; set; }
         public DbSet<PendingDogPark> PendingDogParks { get; set; }
-
-        public DbSet<Dog> Dogs { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<InstructorCompanyFacility> InstructorCompanyFacilities { get; set; }
@@ -69,9 +65,6 @@ namespace Entities
 
             #region CheckIn
             builder.Entity<CheckIn>()
-                .HasMany(c => c.DogCheckIns)
-                .WithOne(dc => dc.CheckIn);
-            builder.Entity<CheckIn>()
                 .HasOne(c => c.User)
                 .WithMany(u => u.CheckIns);
             builder.Entity<CheckIn>()
@@ -81,14 +74,6 @@ namespace Entities
 
             builder.Entity<CheckIn>()
                 .HasIndex(r => new { r.PlaceId, r.CheckInDate });
-            #endregion
-
-            #region DogCheckIn
-            builder.Entity<DogCheckIn>()
-                .HasKey(d => new { d.DogId, d.CheckInId });
-            builder.Entity<DogCheckIn>()
-                .HasOne(dc => dc.Dog).WithMany(d => d.CheckIns);
-
             #endregion
 
             #region Friends
@@ -106,15 +91,6 @@ namespace Entities
             builder.Entity<ApplicationUser>().HasIndex(u => new { u.FullNameNormalized, u.Id });
 
             builder.Entity<ApplicationUser>().Property(p => p.CreatedAt).HasDefaultValueSql("now()");
-
-            #endregion
-
-            #region Dogs
-            builder.Entity<Dog>()
-                .Property(d => d.Race)
-                .HasConversion<int>();
-
-            builder.Entity<Dog>().Property(p => p.CreatedAt).HasDefaultValueSql("now()");
 
             #endregion
 

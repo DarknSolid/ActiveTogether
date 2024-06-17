@@ -14,13 +14,10 @@ namespace EntityLib
 
         public DbSet<Review> Reviews { get; set; }
 
-        public DbSet<Dog> Dogs { get; set; }
-
         public DbSet<ApplicationUser> Users {get;set;}
         public DbSet<Friendship> Friendships { get; set; }
 
         public DbSet<CheckIn> CheckIns { get; set; }
-        public DbSet<DogCheckIn> DogCheckIns { get; set; }
 
         public DbSet<Company> Companies { get; set; }
         public DbSet<InstructorCompanyFacility> InstructorCompanyFacilities { get; set; }

@@ -1,6 +1,5 @@
 ﻿
 using EntityLib.Entities.AbstractClasses;
-using ModelLib.DTOs.Dogs;
 using static EntityLib.Entities.Enums;
 
 namespace ModelLib.DTOs.Posts
@@ -23,7 +22,6 @@ namespace ModelLib.DTOs.Posts
         public string? PlaceImageUrl { get; set; }
         public FacilityType? PlaceFacilityType { get; set; }
         public int TotalComments { get; set; }
-        public DogListDTO? DogInfo { get; set; }
         public IList<LikeDetailedDTO> Likes { get; set; } = new List<LikeDetailedDTO>();
     }
 }

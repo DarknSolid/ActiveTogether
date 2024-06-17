@@ -1,5 +1,4 @@
-﻿using ModelLib.DTOs.Dogs;
-using static EntityLib.Entities.Enums;
+﻿using static EntityLib.Entities.Enums;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace ModelLib.DTOs.Authentication
@@ -14,6 +13,5 @@ namespace ModelLib.DTOs.Authentication
         public FacilityType? CompanyType { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyProfilePictureUrl { get; set; }
-        public IList<DogListDTO> Dogs { get; set; }
     }
 }

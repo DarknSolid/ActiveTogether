@@ -1,11 +1,8 @@
 ﻿using EntityLib;
-using EntityLib.Entities;
 using EntityLib.Entities.PostsAndComments;
 using Microsoft.EntityFrameworkCore;
 using ModelLib.ApiDTOs.Pagination;
-using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Posts;
-using NetTopologySuite.Triangulate.QuadEdge;
 using static ModelLib.Repositories.RepositoryEnums;
 
 namespace ModelLib.Repositories
@@ -46,7 +43,6 @@ namespace ModelLib.Repositories
                 Area = postCreateDTO.Area,
                 Category = postCreateDTO.Category,
                 PlaceId = postCreateDTO.PlaceId,
-                DogId = postCreateDTO.DogId
             };
             _context.Posts.Add(entity);
             await _context.SaveChangesAsync();
@@ -82,9 +78,8 @@ namespace ModelLib.Repositories
         {
             var post = await _context.Posts
                 .Include(p => p.User)
-                .Include(p => p.Dog)
                 .Where(p => p.Id == id)
-                .Select(p => new PostDetailedDTOQueryHelper
+                .Select(p => new PostDetailedDTO
                 {
                     Body = p.Body,
                     DateTime = p.DateTime,
@@ -96,22 +91,11 @@ namespace ModelLib.Repositories
                     UserImageUrl = p.User.ProfileImageUrl,
                     Area = p.Area,
                     Category = p.Category,
-                    Dog = p.Dog
                 })
                 .FirstOrDefaultAsync();
 
             if (post is not null)
             {
-                if (post.Dog is not null)
-                {
-                    post.DogInfo = new DogListDTO
-                    {
-                        Id = post.Dog.Id,
-                        Name = post.Dog.Name,
-                        ProfilePictureUrl = post.Dog.ProfilePictureUrl,
-                        Race = post.Dog.Race,
-                    };
-                }
                 await SetPostImageUrls(post);
 
             }
@@ -122,7 +106,6 @@ namespace ModelLib.Repositories
         {
             var query = _context.Posts
                 .Include(p => p.User)
-                .Include(p => p.Dog)
                 .Include(p => p.PostLikes)
                 .Include(p => p.PostComments)
                 .Include(p => p.User.Companies)
@@ -150,18 +133,9 @@ namespace ModelLib.Repositories
                 {
                     query = query.Where(p => p.PlaceId == filter.PlaceId);
                 }
-                if (filter.DogId is not null)
-                {
-                    query = query.Where(p => p.DogId == filter.DogId);
-                }
-                if (filter.DogRace is not null)
-                {
-                    query = query.Where(p => p.DogId != null && p.Dog.Race == filter.DogRace);
-                }
-
             }
 
-            var select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTOQueryHelper
+            var select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTO
             {
                 Likes = p.PostLikes.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
                 {
@@ -184,12 +158,11 @@ namespace ModelLib.Repositories
                 p.User.Companies.Any() ?
                     _context.Places.Where(c => c.Id == p.User.Companies.First().PlaceId).Select(p => p.FacilityType).First() :
                     null,
-                Dog = p.Dog
 
             });
             if (request.Filter is not null && request.Filter.IncludePlaceDetails)
             {
-                select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTOQueryHelper
+                select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTO
                 {
                     Likes = p.PostLikes.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
                     {
@@ -215,28 +188,16 @@ namespace ModelLib.Repositories
                         p.User.Companies.Any() ?
                             _context.Places.Where(c => c.Id == p.User.Companies.First().PlaceId).Select(p => p.FacilityType).First() :
                             null,
-                    Dog = p.Dog
                 });
             }
 
             var paginationResult = await RepositoryUtils.PaginateByDateAsync(query, select, request);
 
-            foreach (var post in paginationResult.Result)
+            if (request.Filter is not null && request.Filter.IncludePlaceDetails)
             {
-                if (request.Filter is not null && request.Filter.IncludePlaceDetails)
+                foreach (var post in paginationResult.Result)
                 {
                     post.PlaceImageUrl = (await _blobStorageRepository.GetPublicImageUrl(post.PlaceImageUrl)).Item2?.ToString() ?? post.PlaceImageUrl;
-                }
-                if (post.Dog != null)
-                {
-                    post.DogInfo = new DogListDTO
-                    {
-                        Id = post.Dog.Id,
-                        Name = post.Dog.Name,
-                        ProfilePictureUrl = post.Dog.ProfilePictureUrl,
-                        Race = post.Dog.Race,
-                        Birth = post.Dog.Birth
-                    };
                 }
             }
 
@@ -265,10 +226,6 @@ namespace ModelLib.Repositories
             if (post.MediaUrls != null)
             {
                 post.MediaUrls = post.MediaUrls.Select(async m => (await _blobStorageRepository.GetPublicImageUrl(m)).Item2?.ToString()).Select(m => m.Result).Where(m => m is not null).ToArray();
-            }
-            if (post.DogInfo != null)
-            {
-                post.DogInfo.ProfilePictureUrl = (await _blobStorageRepository.GetPublicImageUrl(post.DogInfo.ProfilePictureUrl)).Item2?.ToString();
             }
         }
 
@@ -393,11 +350,6 @@ namespace ModelLib.Repositories
                 comment.UserImageUrl = (await _blobStorageRepository.GetPublicImageUrl(comment.UserImageUrl)).Item2?.ToString() ?? comment.UserImageUrl;
             }
             return comment;
-        }
-
-        private class PostDetailedDTOQueryHelper : PostDetailedDTO
-        {
-            public Dog? Dog { get; set; }
         }
     }
 }

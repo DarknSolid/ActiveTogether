@@ -1,7 +1,6 @@
 ﻿using EntityLib.Entities.Identity;
 using EntityLib;
 using Microsoft.AspNetCore.Identity;
-using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Reviews;
 using ModelLib.Repositories;
 using static EntityLib.Entities.Enums;
@@ -16,20 +15,17 @@ namespace DatabaseSeeding
     {
         private readonly IDogParkRepository _dogParkRepository;
         private readonly IReviewsRepository _reviewsRepository;
-        private readonly IDogRepository _dogRepository;
         private readonly ICheckInRepository _checkInRepository;
         private readonly IApplicationDbContext _applicationDbContext;
 
         public DatabaseSeeder(
             IDogParkRepository dogParkRepository,
             IReviewsRepository reviewsRepository,
-            IDogRepository dogRepository,
             ICheckInRepository checkInRepository,
             IApplicationDbContext applicationDbContext)
         {
             _dogParkRepository = dogParkRepository;
             _reviewsRepository = reviewsRepository;
-            _dogRepository = dogRepository;
             _checkInRepository = checkInRepository;
             _applicationDbContext = applicationDbContext;
         }
@@ -40,7 +36,6 @@ namespace DatabaseSeeding
 
             Console.WriteLine("Clearing Database Entities...");
             //await RoleManager.Roles.ForEachAsync(async (r) => await RoleManager.DeleteAsync(r));
-            _applicationDbContext.Dogs.RemoveRange(_applicationDbContext.Dogs);
             _applicationDbContext.Reviews.RemoveRange(_applicationDbContext.Reviews);
             _applicationDbContext.DogParks.RemoveRange(_applicationDbContext.DogParks);
             _applicationDbContext.Places.RemoveRange(_applicationDbContext.Places);
@@ -64,23 +59,6 @@ namespace DatabaseSeeding
             //Console.WriteLine($"Gave {devUser.UserName} the \"{RoleConstants.ADMIN}\" role");
             Console.WriteLine("done");
 
-            Console.WriteLine("Creating Dogs");
-            List<int> dogBreeds = new();
-            var weightClasses = Enum.GetValues<DogWeightClass>();
-            foreach (var user in await _applicationDbContext.Users.ToListAsync())
-            {
-                await _dogRepository.CreateAsync(user.Id, new DogCreateDTO
-                {
-                    Name = "DOggie" + user.Id,
-                    Description = "My cute dog",
-                    Birth = DateTime.UtcNow,
-                    Race = Enum.GetValues<DogRace>()[user.Id % Enum.GetValues<DogRace>().Length],
-                    IsGenderMale = user.Id % 2 == 0,
-                    WeightClass = weightClasses[user.Id % weightClasses.Length]
-                });
-            }
-            Console.WriteLine("done");
-
             Console.WriteLine($"Creating {dogParkCreateDTOs.Count} DogParks with check-ins and reviews...");
             using (var progressBar = new ProgressBar())
             {
@@ -95,7 +73,6 @@ namespace DatabaseSeeding
                         var userId = dummyUsers[j].Id;
                         await _checkInRepository.CheckIn(userId, new CheckInCreateDTO
                         {
-                            DogsToCheckIn = new(),
                             Mood = moods[userId % moods.Length],
                             PlaceId = id
                         });

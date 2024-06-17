@@ -74,13 +74,6 @@ namespace UnitTests
                 CreateReview(1, 2)
             );
 
-            builder.Entity<Dog>().HasData(
-                CreateDog(1, 1),
-                CreateDog(2, 2),
-                CreateDog(3, 3),
-                CreateDog(4, 4)
-            );
-
             builder.Entity<CheckIn>().HasData(
                 new CheckIn { Id = 1, CheckInDate = DateTime.UtcNow, PlaceId = 1, UserId = 1, Mood = Enums.CheckInMood.Social },
                 new CheckIn { Id = 2, CheckInDate = DateTime.UtcNow, PlaceId = 1, UserId = 2, Mood = Enums.CheckInMood.Social },
@@ -88,11 +81,6 @@ namespace UnitTests
                 new CheckIn { Id = 4, CheckInDate = DateTime.UtcNow, CheckOutDate = DateTime.UtcNow, PlaceId = 1, UserId = 2, Mood = Enums.CheckInMood.Social },
                 new CheckIn { Id = 5, CheckInDate = DateTime.UtcNow, CheckOutDate = DateTime.UtcNow, PlaceId = 2, UserId = 2, Mood = Enums.CheckInMood.Social }
             );
-
-            builder.Entity<DogCheckIn>().HasData(
-                new DogCheckIn { CheckInId = 1, DogId = 1 },
-                new DogCheckIn { CheckInId = 2, DogId = 2 }
-                );
 
             builder.Entity<Friendship>().HasData(
                 new Friendship { RequesterId = 3, RequesteeId = 1, IsAccepted = false },
@@ -114,20 +102,6 @@ namespace UnitTests
         private InstructorCompanyFacility CreateInstructorCompanyFacility(int companyId, InstructorFacility facility)
         {
             return new InstructorCompanyFacility { InstructorCompanyId = companyId, InstructorFacility = facility };
-        }
-
-        private Dog CreateDog(int id, int userId)
-        {
-            return new Dog
-            {
-                Id = id,
-                UserId = userId,
-                Birth = DateTime.UtcNow,
-                Description = "",
-                Name = "dog" + id,
-                IsGenderMale = false,
-                WeightClass = DogWeightClass.Medium,
-            };
         }
 
         private Review CreateReview(int userId, int placeId)

@@ -19,55 +19,21 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task CheckIn_Invalid_Dog_Returns_NotFound()
-        {
-            var userId = 3;
-            var facilityId = 1;
-            var createDto = new CheckInCreateDTO
-            {
-                DogsToCheckIn = new() { 0 },
-                PlaceId = facilityId
-            };
-
-            var (response, id) = await _repo.CheckIn(userId, createDto);
-
-            Assert.Equal(RepositoryEnums.ResponseType.NotFound, response);
-            Assert.Equal(-1, id);
-        }
-
-        [Fact]
         public async Task CheckIn_If_Checked_In_Returns_Conflict()
         {
             var userId = 2;
             var facilityId = 1;
             var createDto = new CheckInCreateDTO
             {
-                DogsToCheckIn = new(),
                 PlaceId = facilityId
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
 
-            Assert.Equal(RepositoryEnums.ResponseType.Conflict, response);
+            Assert.Equal(ResponseType.Conflict, response);
             Assert.Equal(-1, id);
         }
 
-        [Fact]
-        public async Task CheckIn_With_Others_Dog_Returns_Conflict()
-        {
-            var userId = 3;
-            var facilityId = 1;
-            var createDto = new CheckInCreateDTO
-            {
-                DogsToCheckIn = new() { 2 },
-                PlaceId = facilityId
-            };
-
-            var (response, id) = await _repo.CheckIn(userId, createDto);
-
-            Assert.Equal(RepositoryEnums.ResponseType.Conflict, response);
-            Assert.Equal(-1, id);
-        }
 
         [Fact]
         public async Task CheckIn_With_Valid_Data_Returns_Created_And_Correct_Data()
@@ -79,18 +45,15 @@ namespace UnitTests
             var dateBefore = DateTime.UtcNow;
             var createDto = new CheckInCreateDTO
             {
-                DogsToCheckIn = new() { dogId },
                 PlaceId = facilityId,
                 Mood = mood
             };
 
             var (response, id) = await _repo.CheckIn(userId, createDto);
             var dateAfter = DateTime.UtcNow;
-            var actualEntity = await _context.CheckIns.Include(c => c.DogCheckIns).FirstAsync(c => c.Id == id);
+            var actualEntity = await _context.CheckIns.FirstAsync(c => c.Id == id);
 
-            Assert.Equal(RepositoryEnums.ResponseType.Created, response);
-            Assert.Single(actualEntity.DogCheckIns);
-            Assert.Equal(dogId, actualEntity.DogCheckIns.First().DogId);
+            Assert.Equal(ResponseType.Created, response);
             Assert.Equal(userId, actualEntity.UserId);
             Assert.Equal(facilityId, actualEntity.PlaceId);
             Assert.Equal(mood, actualEntity.Mood);
@@ -161,16 +124,13 @@ namespace UnitTests
             Assert.Equal(3, actual.Result.Count);
             Assert.True(actual.Result.All(c => c.CheckedOutDate == null));
             var checkIn = actual.Result.FirstOrDefault(c => c.Id == 1);
-            Assert.Single(checkIn.Dogs);
-            var dog = checkIn.Dogs[0];
+
             Assert.Null(checkIn.CheckedOutDate);
             Assert.Equal(1, checkIn.User.Id);
             Assert.Equal("test1", checkIn.User.FirstName);
             Assert.Equal("user1", checkIn.User.LastName);
             Assert.Equal("", checkIn.User.ProfilePictureUrl);
             Assert.Equal(Enums.CheckInMood.Social, checkIn.Mood);
-            Assert.Equal(1, dog.Id);
-            Assert.False(dog.IsGenderMale);
         }
 
         [Fact]
@@ -180,7 +140,6 @@ namespace UnitTests
             var actual = await _repo.GetCurrentlyCheckedIn(userId);
 
             Assert.NotNull(actual);
-            Assert.Equal(1, actual.Dogs.First().Id);
             Assert.Equal(1, actual.PlaceId);
             Assert.Equal(Enums.CheckInMood.Social, actual.Mood);
 
@@ -212,7 +171,6 @@ namespace UnitTests
             Assert.Equal(expectedPeopleCheckIns, actual.PeopleCheckIns);
 
             Assert.Equal(expectedPeopleCheckIns, actualCurrentDayAndHourResult.People);
-            Assert.Equal(expectedDogCheckIns, actualCurrentDayAndHourResult.Dogs);
 
             // Assert that at all days and hours there are no checkins, exluding the today and the current hour that you are reading this :P
 

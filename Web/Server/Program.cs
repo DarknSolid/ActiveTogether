@@ -98,7 +98,6 @@ builder.Services.AddSingleton<IBlobStorageRepository, BlobStorageRepository>();
 
 builder.Services.AddScoped<IDogParkRepository, DogParkRepository>();
 builder.Services.AddScoped<IReviewsRepository, ReviewsRepository>();
-builder.Services.AddScoped<IDogRepository, DogRepository>();
 builder.Services.AddScoped<IPlacesRepository, PlacesRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<IFriendshipsRepository, FriendshipsRepository>();

@@ -4,7 +4,6 @@ using ModelLib.DTOs;
 using ModelLib.DTOs.Authentication;
 using ModelLib.DTOs.CheckIns;
 using ModelLib.DTOs.DogPark;
-using ModelLib.DTOs.Dogs;
 using ModelLib.DTOs.Instructors;
 using ModelLib.DTOs.Places;
 using ModelLib.DTOs.Posts;
@@ -53,16 +52,6 @@ namespace RazorLib.Interfaces
         public Task<ReviewDetailedDTO> GetReviewAsync(int userId, int placeId);
         public Task<PaginationResult<ReviewDetailedDTO>> GetReviewsAsync(ReviewsDTOPaginationRequest request);
         public Task<ReviewCreatedDTO?> CreateReviewAsync(ReviewCreateDTO reviewCreateDTO);
-        #endregion
-
-        #region Dogs
-        public Task<List<DogListDTO>> GetMyDogsAsync();
-        public Task<List<DogListDTO>> GetDogsAsync(int userId);
-        public Task<DogDetailedDTO> GetDogDetailedAsync(int id);
-        public Task<int?> CreateDogAsync(DogCreateDTO dto);
-        public Task<bool> DeleteDogAsync(int dogId);
-        public Task<bool> UpdateDogAsync(DogUpdateDTO dto);
-        public Task<IDictionary<int, string>> GetDogBreedsAsync();
         #endregion
 
         #region Checkins
