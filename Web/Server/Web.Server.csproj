@@ -4,11 +4,11 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>88d376f4-88c4-4486-bc26-1334ccd076f5</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UserSecretsId>2e7decf2-3e54-48a3-8d71-b36251aa0f22</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
