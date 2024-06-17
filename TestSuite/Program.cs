@@ -1,5 +1,5 @@
 ﻿using Azure.Identity;
-using Azure.Storage.Blobs;
+using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using DatabaseSeeding;
 using DatabaseSeeding.Dataextractors;
@@ -10,6 +10,7 @@ using EntityLib.Entities.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ModelLib.DTOs.DogPark;
 using ModelLib.Repositories;
 using ModelLib.Utils;
 
@@ -41,9 +42,15 @@ services.AddDefaultIdentity<ApplicationUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 services.AddScoped<IDogParkRepository, DogParkRepository>();
 services.AddScoped<IReviewsRepository, ReviewsRepository>();
-services.AddScoped<IDogRepository, DogRepository>();
 services.AddScoped<ICheckInRepository, CheckInRepository>();
 services.AddScoped<IPlacesRepository, PlacesRepository>();
+
+services.AddSingleton(options =>
+{
+    var accountName = config["AZURE_STORAGE_ACCOUNT_NAME"];
+    var accountKey = config["AZURE_STORAGE_ACCOUNT_KEY"];
+    return new StorageSharedKeyCredential(accountName, accountKey);
+});
 services.AddScoped<DatabaseSeeder>();
 services.AddSingleton(options =>
 {
@@ -58,16 +65,16 @@ var serviceProvider = services.BuildServiceProvider();
 
 var openStreetMapExtractor = new OpenStreetMapExtractor();
 //var ways = openStreetMapExtractor.Run(osmFilePath, saveFolderPath);
-var ways = openStreetMapExtractor.LoadPreviousExtraction(saveFilePath);
+//var ways = openStreetMapExtractor.LoadPreviousExtraction(saveFilePath);
 
-var dogParkCreateDTOs = DTOConverter.ConvertToDogParkCreateDTO(ways);
+//var dogParkCreateDTOs = DTOConverter.ConvertToDogParkCreateDTO(ways);
 
 // take all of the first x bottom right parks:
-dogParkCreateDTOs = dogParkCreateDTOs
-    .OrderByDescending(dto => dto.Point.X)
-    .ThenByDescending(dto => dto.Point.Y)
-    .Take(300)
-    .ToList();
+//dogParkCreateDTOs = dogParkCreateDTOs
+//    .OrderByDescending(dto => dto.Point.X)
+//    .ThenByDescending(dto => dto.Point.Y)
+//    .Take(300)
+//    .ToList();
 
 var seeder = serviceProvider.GetRequiredService<DatabaseSeeder>();
-await seeder.SeedDatabase(dogParkCreateDTOs);
+await seeder.SeedDatabase(new List<DogParkCreateDTO>());
