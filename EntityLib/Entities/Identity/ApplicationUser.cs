@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static EntityLib.Entities.Enums;
+using NetTopologySuite.Geometries;
 
 namespace EntityLib.Entities.Identity
 {
-    public class ApplicationUser : IdentityUser<int>
+    public class ApplicationUser : IdentityUser<int>, EntityWithLocation
     {
         [Required]
         public string FirstName { get; set; }
@@ -24,6 +25,10 @@ namespace EntityLib.Entities.Identity
         public DateTime Birth { get; set; }
         // is either a blob URL or third party url, from e.g. Facebook or Google
         public string? ProfileImageUrl { get; set; }
+
+        [Required]
+        [Column(TypeName = "geometry (point)")]
+        public Point Location { get; set; }
 
         [Required]
         public bool AtLeastThirteenYearsOld { get; set; }
