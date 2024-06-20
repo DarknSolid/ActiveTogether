@@ -9,7 +9,7 @@ namespace ModelLib.DTOs.Companies
 {
     public class CompanyUserInfoDTO
     {
-        public FacilityType CompanyType { get; set; }
+        public PlaceType CompanyType { get; set; }
         public int CompanyId { get; set; }
         public string CompanyName { get; set; }
         public string? CompanyProfilePictureUrl { get; set; }

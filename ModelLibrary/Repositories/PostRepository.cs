@@ -106,7 +106,7 @@ namespace ModelLib.Repositories
         {
             var query = _context.Posts
                 .Include(p => p.User)
-                .Include(p => p.PostLikes)
+                .Include(p => p.Reactions)
                 .Include(p => p.PostComments)
                 .Include(p => p.User.Companies)
                 .AsQueryable();
@@ -137,7 +137,7 @@ namespace ModelLib.Repositories
 
             var select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTO
             {
-                Likes = p.PostLikes.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
+                Likes = p.Reactions.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
                 {
                     UserId = l.UserId,
                     UserName = l.User.FirstName + " " + l.User.LastName
@@ -164,7 +164,7 @@ namespace ModelLib.Repositories
             {
                 select = (IQueryable<Post> q) => q.Select(p => new PostDetailedDTO
                 {
-                    Likes = p.PostLikes.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
+                    Likes = p.Reactions.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
                     {
                         UserId = l.UserId,
                         UserName = l.User.FirstName + " " + l.User.LastName
@@ -181,7 +181,7 @@ namespace ModelLib.Repositories
                     Area = p.Area,
                     Category = p.Category,
                     PlaceId = p.PlaceId,
-                    PlaceImageUrl = p.Place.ProfileImageBlobUrl,
+                    PlaceImageUrl = p.Place.ImageUrls,
                     PlaceName = p.Place.Name,
                     PlaceFacilityType = p.Place.FacilityType,
                     UserProfession =
@@ -258,13 +258,13 @@ namespace ModelLib.Repositories
         {
             var query = _context.PostComments
                     .Include(p => p.User)
-                    .Include(p => p.CommentLikes)
+                    .Include(p => p.Reactions)
                     .Where(p => p.PostId == request.PostId)
                     .AsQueryable();
 
             var select = (IQueryable<PostComment> q) => q.Select(p => new CommentDetailedDTO
             {
-                Likes = p.CommentLikes.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
+                Likes = p.Reactions.Where(l => l.IsLike).Select(l => new LikeDetailedDTO
                 {
                     UserId = l.UserId,
                     UserName = l.User.FirstName + " " + l.User.LastName
@@ -288,8 +288,8 @@ namespace ModelLib.Repositories
 
         public async Task LikePost(int userId, int postId)
         {
-            await Like(userId, postId, _context.PostLikes, () =>
-            _context.PostLikes.Add(new PostLike
+            await Like(userId, postId, _context.Reactions, () =>
+            _context.Reactions.Add(new Reaction
             {
                 IsLike = true,
                 TargetId = postId,
@@ -326,14 +326,14 @@ namespace ModelLib.Repositories
         public async Task<CommentDetailedDTO?> GetComment(int commentId)
         {
             var comment = await _context.PostComments
-                .Include(p => p.CommentLikes)
+                .Include(p => p.Reactions)
                 .Include(p => p.User)
                 .Where(p => p.Id == commentId)
                 .Select(p => new CommentDetailedDTO
                 {
                     DateTime = DateTime.Now,
                     Id = p.Id,
-                    Likes = p.CommentLikes.Where(p => p.IsLike).Select(p => new LikeDetailedDTO
+                    Likes = p.Reactions.Where(p => p.IsLike).Select(p => new LikeDetailedDTO
                     {
                         UserId = p.UserId,
                         UserName = p.User.FirstName + " " + p.User.LastName,

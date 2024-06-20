@@ -209,7 +209,7 @@ namespace ModelLib.Repositories
                 Bounds = dogParkRequestDTO.Bounds is null ? null : new NpgsqlPolygon(dogParkRequestDTO.Bounds),
                 SquareKilometers = dogParkRequestDTO.SquareKilometers,
                 Facilities = dogParkRequestDTO.Facilities.ToList(),
-                FacilityType = Enums.FacilityType.DogPark
+                FacilityType = Enums.PlaceType.DogPark
             };
 
             _context.PendingDogParks.Add(entity);
@@ -219,7 +219,7 @@ namespace ModelLib.Repositories
 
         public async Task<DistancePaginationResult<DogParkListDTO>> GetParksAsync(DogParksDTOPaginationRequest request)
         {
-            var query = _context.Places.Where(p => p.FacilityType == FacilityType.DogPark);
+            var query = _context.Places.Where(p => p.FacilityType == PlaceType.DogPark);
             var point = new Point(request.PaginationRequest.SearchArea.Center.Lng, request.PaginationRequest.SearchArea.Center.Lat);
             var select = (IQueryable<Place> q) => q.Select(p => new DogParkListDTO
             {
@@ -238,7 +238,7 @@ namespace ModelLib.Repositories
 
         public async Task<IEnumerable<DogParkListDTO>> GetParksInAreaAsync(SearchAreaDTO searchArea)
         {
-            var query = _context.Places.Where(p => p.FacilityType == FacilityType.DogPark);
+            var query = _context.Places.Where(p => p.FacilityType == PlaceType.DogPark);
             var places = _placesRepository.GetPlacesInArea(query, searchArea: searchArea);
             return await places
                 .Select(p => new DogParkListDTO

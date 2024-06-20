@@ -23,10 +23,10 @@ namespace UnitTests
             builder.Entity<DogTraining>().Ignore(d => d.TrainingTimes);
 
             builder.Entity<Place>().HasData(
-                CreatePlace(1, FacilityType.DogPark),
-                CreatePlace(2, FacilityType.DogPark),
-                CreatePlace(3, FacilityType.DogPark),
-                CreatePlace(4, FacilityType.DogInstructor)
+                CreatePlace(1, PlaceType.DogPark),
+                CreatePlace(2, PlaceType.DogPark),
+                CreatePlace(3, PlaceType.DogPark),
+                CreatePlace(4, PlaceType.DogInstructor)
             );
 
             builder.Entity<Company>().HasData(
@@ -136,7 +136,7 @@ namespace UnitTests
             return new DogPark { PlaceId = placeId, SquareKilometers = 1, AuthorId = authorId, DateAdded = dateAdded ?? DateTime.UtcNow };
         }
 
-        private Place CreatePlace(int id, FacilityType facilityType)
+        private Place CreatePlace(int id, PlaceType facilityType)
         {
             return new Place
             {
@@ -156,7 +156,7 @@ namespace UnitTests
                 RequesterId = requesterId,
                 Name = "",
                 Description = "",
-                FacilityType = FacilityType.DogPark,
+                FacilityType = PlaceType.DogPark,
                 Location = new Point(new Coordinate(0, 0)),
                 RequestDate = requestDate,
                 SquareKilometers = 1

@@ -9,7 +9,12 @@ namespace EntityLib.Entities.PostsAndComments
     public class PostComment : DateAndIntegerId
     {
         [Key]
-        override public int Id { get; set; }
+        public int Id { get; set; }
+
+        [Required]
+        [Column("CreatedAt")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public DateTime DateTime { get; set; }
 
         [Required]
         [ForeignKey(nameof(Post))]
@@ -23,12 +28,7 @@ namespace EntityLib.Entities.PostsAndComments
         [StringLength(PostConstants.MaxContentLength)]
         public string Text { get; set; }
 
-        [Required]
-        [Column("CreatedAt")]
-        override public DateTime DateTime { get; set; }
-
-        public ICollection<CommentLike>? CommentLikes { get; set; }
-
+        public ICollection<Reaction>? Reactions { get; set; }
         public ApplicationUser User { get; set; }
         public Post Post { get; set; }
     }

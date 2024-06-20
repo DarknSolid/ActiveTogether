@@ -47,7 +47,7 @@ namespace ModelLib.Repositories
         public async Task<(ResponseType, int)> CreateInstructorAsync(int userId, InstructorCreateDTO createDto)
         {
             var existingEntity = await _context.Places.
-                FirstOrDefaultAsync(p => p.FacilityType == Enums.FacilityType.DogInstructor && p.Name == createDto.Name);
+                FirstOrDefaultAsync(p => p.FacilityType == Enums.PlaceType.DogInstructor && p.Name == createDto.Name);
 
             if (existingEntity != null)
             {
@@ -80,7 +80,7 @@ namespace ModelLib.Repositories
             {
                 Name = createDto.Name,
                 Description = createDto.Description,
-                FacilityType = Enums.FacilityType.DogInstructor,
+                FacilityType = Enums.PlaceType.DogInstructor,
                 Location = new(x: createDto.Point.X, y: createDto.Point.Y),
                 Company = new Company()
                 {
@@ -106,7 +106,7 @@ namespace ModelLib.Repositories
                 );
                 if (url != null)
                 {
-                    place.ProfileImageBlobUrl = url;
+                    place.ImageUrls = url;
                     await _context.SaveChangesAsync();
                 }
             }
@@ -140,7 +140,7 @@ namespace ModelLib.Repositories
                     (
                         c => c.ApplicationUserId == userId &&
                         c.PlaceId == updateDto.InstructorCompanyId &&
-                        c.Place.FacilityType == Enums.FacilityType.DogInstructor
+                        c.Place.FacilityType == Enums.PlaceType.DogInstructor
                     );
             if (existingEntity == null)
             {
@@ -219,13 +219,13 @@ namespace ModelLib.Repositories
                 {
                     await _blobStorageRepository
                         .DeletePublicImageAsync(path, existingEntity.PlaceId);
-                    existingEntity.Place.ProfileImageBlobUrl = null;
+                    existingEntity.Place.ImageUrl = null;
                 }
                 else
                 {
                     var (_, url) = await _blobStorageRepository
                         .UploadPublicImageAsync(updateDto.ProfileImage, path, existingEntity.PlaceId);
-                    existingEntity.Place.ProfileImageBlobUrl = url;
+                    existingEntity.Place.ImageUrl = url;
                 }
             }
 
@@ -254,7 +254,7 @@ namespace ModelLib.Repositories
                 .Include(c => c.InstructorCategories)
                 .Include(c => c.InstructorFacilities)
                 .Include(c => c.User)
-                .Where(c => c.PlaceId == instructorId && c.Place.FacilityType == FacilityType.DogInstructor)
+                .Where(c => c.PlaceId == instructorId && c.Place.FacilityType == PlaceType.DogInstructor)
                 .Select(c => new InstructorDetailedDTO
                 {
                     Categories = c.InstructorCategories.Select(c => c.InstructorCategory),
@@ -272,7 +272,7 @@ namespace ModelLib.Repositories
                     Location = new(c.Place.Location.X, c.Place.Location.Y),
                     OwnerId = c.ApplicationUserId,
                     CompanyURL = c.CompanyURL,
-                    ProfileImgUrl = c.Place.ProfileImageBlobUrl,
+                    ProfileImgUrl = c.Place.ImageUrl,
                     CoverImgUrl = c.CoverImageBlobUrl,
                     CurrentReviewStatus = reviewStatus,
                     Id = instructorId,
@@ -300,7 +300,7 @@ namespace ModelLib.Repositories
         public async Task<IEnumerable<DogTrainerListDTO>> GetInstructorsInAreaAsync(SearchAreaDTO searchArea)
         {
             var query = _context.Places
-                .Where(p => p.FacilityType == FacilityType.DogInstructor);
+                .Where(p => p.FacilityType == PlaceType.DogInstructor);
 
             var places = _placesRepository.GetPlacesInArea(query, searchArea: searchArea);
             var placeDTOs = await places
@@ -312,7 +312,7 @@ namespace ModelLib.Repositories
                     RatingCount = _context.Reviews.Where(r => r.PlaceId == p.Id).Count(),
                     Id = p.Id,
                     Facility = p.FacilityType,
-                    ProfileImgUrl = p.ProfileImageBlobUrl,
+                    ProfileImgUrl = p.ImageUrl,
                 })
                 .ToListAsync();
 
@@ -329,7 +329,7 @@ namespace ModelLib.Repositories
             var query = _context.Places
                 .Include(p => p.Company)
                 .Include(p => p.Company.InstructorCategories)
-                .Where(p => p.FacilityType == FacilityType.DogInstructor);
+                .Where(p => p.FacilityType == PlaceType.DogInstructor);
 
             //filters
             if (request.SearchFilter is not null)
@@ -347,7 +347,7 @@ namespace ModelLib.Repositories
                 Location = new(p.Location.X, p.Location.Y),
                 Rating = _context.Reviews.Where(r => r.PlaceId == p.Id).Average(p => p.Rating),
                 RatingCount = _context.Reviews.Where(r => r.PlaceId == p.Id).Count(),
-                ProfileImgUrl = p.ProfileImageBlobUrl,
+                ProfileImgUrl = p.ImageUrls,
                 CoverImgUrl = p.Company.CoverImageBlobUrl,
                 Id = p.Id,
                 Facility = p.FacilityType,
@@ -428,7 +428,7 @@ namespace ModelLib.Repositories
                 InstructorRatingCount = _context.Reviews.Where(r => r.PlaceId == entity.InstructorCompanyId).Count(),
                 Description = entity.Description,
                 Category = entity.Category,
-                InstructorCompanyLogoUri = (await _blobStorageRepository.GetPublicImageUrl(entity.InstructorCompany.Place.ProfileImageBlobUrl)).Item2?.ToString(),
+                InstructorCompanyLogoUri = (await _blobStorageRepository.GetPublicImageUrl(entity.InstructorCompany.Place.ImageUrls)).Item2?.ToString(),
                 InstructorCompanyName = entity.InstructorCompany.Place.Name,
                 Location = new LatLng(lat: entity.Location.Y, lng: entity.Location.X),
                 MaxParticipants = entity.MaxParticipants,
@@ -494,7 +494,7 @@ namespace ModelLib.Repositories
                 InstructorCompanyId = d.InstructorCompanyId,
                 Category = d.Category,
                 Id = d.Id,
-                InstructorCompanyLogoUri = d.InstructorCompany.Place.ProfileImageBlobUrl, //TODO
+                InstructorCompanyLogoUri = d.InstructorCompany.Place.ImageUrls, //TODO
                 InstructorCompanyName = d.InstructorCompany.Place.Name,
                 MaxParticipants = d.MaxParticipants,
                 Price = d.Price,
@@ -528,7 +528,7 @@ namespace ModelLib.Repositories
                 {
                     InstructorCompanyId = instructorCompanyId,
                     FirstTrainingDate = d.TrainingTimes[0],
-                    InstructorCompanyLogoUri = d.InstructorCompany.Place.ProfileImageBlobUrl,
+                    InstructorCompanyLogoUri = d.InstructorCompany.Place.ImageUrls,
                     InstructorCompanyName = d.InstructorCompany.Place.Name,
                     TrainingTimes = d.TrainingTimes.Length / 2,
                     Id = d.Id,
@@ -656,7 +656,7 @@ namespace ModelLib.Repositories
                     Price = d.Price,
                     TrainingTimes = d.TrainingTimes.Length / 2,
                     InstructorCompanyId = d.InstructorCompanyId,
-                    InstructorCompanyLogoUri = d.InstructorCompany.Place.ProfileImageBlobUrl,
+                    InstructorCompanyLogoUri = d.InstructorCompany.Place.ImageUrls,
                     InstructorCompanyName = d.InstructorCompany.Place.Name,
                     CoverImgUrl = d.CoverImgageBlobUrl,
                 }).ToListAsync();
@@ -706,7 +706,7 @@ namespace ModelLib.Repositories
             var result = new Dictionary<int, string>();
             var dtos = await _context.Companies
                 .Include(c => c.Place)
-                .Where(c => c.Place.FacilityType == FacilityType.DogInstructor)
+                .Where(c => c.Place.FacilityType == PlaceType.DogInstructor)
                 .Select(c => new { c.PlaceId, c.Place.Name })
                 .ToListAsync();
 

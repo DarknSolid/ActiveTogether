@@ -1,12 +1,13 @@
 ﻿using EntityLib.Entities.AbstractClasses;
+using EntityLib.Entities.Constants;
 using EntityLib.Entities.Identity;
+using EntityLib.Entities.PostsAndComments;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static EntityLib.Entities.Enums;
 
-namespace EntityLib.Entities.PostsAndComments
+namespace EntityLib.Entities.Chatting
 {
-    public class Post : DateAndIntegerId
+    public class Message : DateAndIntegerId
     {
         [Key]
         public int Id { get; set; }
@@ -17,23 +18,15 @@ namespace EntityLib.Entities.PostsAndComments
         public DateTime DateTime { get; set; }
 
         [Required]
-        [ForeignKey(nameof(ApplicationUser))]
+        [ForeignKey(nameof(User))]
         public int UserId { get; set; }
 
-        [ForeignKey(nameof(Place))]
-        public int? PlaceId { get; set; }
-
-        public string? Body { get; set; }
-
+        [StringLength(PostConstants.MaxContentLength)]
+        public string? Text { get; set; }
         public string[]? MediaUrls { get; set; }
-
-        public PostArea? Area { get; set; }
-        public Interests? Category { get; set; }
-
-        public ICollection<Reaction>? Reactions { get; set; }
-        public ICollection<PostComment>? PostComments { get; set; }
-
         public ApplicationUser User { get; set; }
-        public Place? Place { get; set; }
+        public ICollection<Reaction> Reactions { get; set; }
+        public ICollection<ChatMember> LastReadMembers { get; set; }
+
     }
 }

@@ -6,6 +6,9 @@ using EntityLib.Entities.Constants;
 using Microsoft.EntityFrameworkCore;
 using EntityLib.Entities.AbstractClasses;
 using EntityLib.Entities.PostsAndComments;
+using EntityLib.Entities.Identity;
+using EntityLib.Entities.Chatting;
+using EntityLib.Entities.EventsAndMeetups;
 
 namespace EntityLib.Entities
 {
@@ -14,12 +17,16 @@ namespace EntityLib.Entities
     {
         [Required]
         [Key]
-        public override int Id { get; set; }
+        public int Id { get; set; }
+
         [Required]
         [Column(TypeName = "geometry (point)")]
-        public override Point Location { get; set; }
+        public Point Location { get; set; }
+
         [Required]
-        public Enums.FacilityType FacilityType { get; set; }
+        public Enums.PlaceType PlaceType { get; set; }
+
+        public Enums.Interests? PlaceSubType { get; set; }
 
         [Required]
         [MaxLength(PlaceConstants.NameMaxLength)]
@@ -28,14 +35,25 @@ namespace EntityLib.Entities
         [Required]
         [MaxLength(PlaceConstants.DescriptionMaxLength)]
         public string? Description { get; set; }
-        public string? ProfileImageBlobUrl { get; set; }
+        public string[]? ImageUrls { get; set; }
+
+        [ForeignKey(nameof(ApplicationUser))]
+        public int? CreatedById { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public DateTime CreatedAt { get; set; }
+
+        public ApplicationUser CreatedBy { get; set; }
 
         public ICollection<CheckIn>? CheckIns { get; set; }
 
         public ICollection<Review>? Reviews { get; set; }
 
-        public Company Company { get; set; }
+        public Company? Company { get; set; }
 
         public ICollection<Post>? Posts { get; set; }
+        public ICollection<Chat>? Chats { get; set; }
+        public ICollection<Gathering> Meetups { get; set; }
+        public ICollection<Gathering> MeetupReferences { get; set; }
     }
 }

@@ -1,5 +1,9 @@
 ﻿using EntityLib.Entities;
+using EntityLib.Entities.Chatting;
+using EntityLib.Entities.EventsAndMeetups;
+using EntityLib.Entities.Gatherings;
 using EntityLib.Entities.Identity;
+using EntityLib.Entities.Matching;
 using EntityLib.Entities.PostsAndComments;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,8 +30,15 @@ namespace EntityLib
 
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }
-        public DbSet<PostLike> PostLikes { get; set; }
-        public DbSet<CommentLike> CommentLikes { get; set; }
+        public DbSet<Reaction> Reactions { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Chat> Chat { get; set; }
+        public DbSet<ChatMember> ChatMembers { get; set; }
+        public DbSet<Match> Matches { get; set; }
+        public DbSet<Like> Likes { get; set; }
+        public DbSet<Gathering> Meetups { get; set; }
+        public DbSet<GatheringParticipant> MeetupParticipants { get; set; }
+        public DbSet<Event> Events { get; set; }
 
         public Task SaveChangesAsync();
     }

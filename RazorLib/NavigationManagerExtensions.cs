@@ -38,7 +38,7 @@ namespace RazorLib
 
         public static void NavigateToHome(this NavigationManager navigationManager)
         {
-            navigationManager.NavigateToDiscover(FacilityType.DogInstructor);
+            navigationManager.NavigateToDiscover(PlaceType.DogInstructor);
         }
 
         public static void NavigateToRegister(this NavigationManager navigationManager)
@@ -76,7 +76,7 @@ namespace RazorLib
             navigationManager.NavigateTo(RoutingConstants.UPDATE_REVIEW + $"{placeId}/{userId}/{revieweeName}/{true}");
         }
 
-        public static void NavigateToDiscover(this NavigationManager navigationManager, FacilityType facilityType)
+        public static void NavigateToDiscover(this NavigationManager navigationManager, PlaceType facilityType)
         {
             navigationManager.NavigateTo(RoutingConstants.DISCOVER + facilityType.ToString());
         }
@@ -100,12 +100,12 @@ namespace RazorLib
             navigationManager.NavigateTo(RoutingConstants.FEED + "?" + queryParametersString);
         }
 
-        public static void NavigateToPlace(this NavigationManager navigationManager, int placeId, FacilityType facilityType)
+        public static void NavigateToPlace(this NavigationManager navigationManager, int placeId, PlaceType facilityType)
         {
             switch (facilityType)
             {
-                case FacilityType.DogInstructor: NavigateToDogInstructor(navigationManager, placeId); break;
-                case FacilityType.DogPark: NavigateToDogParkDetails(navigationManager, placeId); break;
+                case PlaceType.DogInstructor: NavigateToDogInstructor(navigationManager, placeId); break;
+                case PlaceType.DogPark: NavigateToDogParkDetails(navigationManager, placeId); break;
                 default: throw new NotImplementedException($"{facilityType} has not been defined in the navigation switch clause");
             }
         }

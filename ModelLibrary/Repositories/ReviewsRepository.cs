@@ -70,7 +70,7 @@ namespace ModelLib.Repositories
                 return new(ResponseType.NotFound, null);
             }
 
-            if (place.FacilityType == FacilityType.DogPark &&
+            if (place.FacilityType == PlaceType.DogPark &&
                 !await _checkInRepository.HasCheckedOutBeforeAsync(userId, dto.Id))
             {
                 return (ResponseType.Conflict, null);

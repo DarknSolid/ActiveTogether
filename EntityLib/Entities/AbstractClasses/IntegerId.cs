@@ -1,8 +1,8 @@
 ﻿
 namespace EntityLib.Entities.AbstractClasses
 {
-    public abstract class IntegerId
+    public interface IntegerId
     {
-        abstract public int Id { get; set; }
+        public int Id { get; set; }
     }
 }

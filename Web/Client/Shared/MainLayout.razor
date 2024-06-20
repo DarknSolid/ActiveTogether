@@ -50,7 +50,7 @@
                             <MudStack Row="true" Justify="Justify.SpaceEvenly" Style="height: 100%; align-items: center;">
                                 <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" IconColor=@(Color.Inherit) Icon="@Icons.Material.Outlined.Info" Href="@(RoutingConstants.ABOUT)"><MudText>Om DoggoWorld</MudText></MudNavLink>
                                 <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.FEED)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Filled.Newspaper"><MudText>Opslag</MudText></MudNavLink>
-                                <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogInstructor))" IconColor=@(Color.Inherit) Icon="@Images.IconWhistleOutlined"><MudText>Hundetræning</MudText></MudNavLink>
+                                <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (PlaceType.DogInstructor))" IconColor=@(Color.Inherit) Icon="@Images.IconWhistleOutlined"><MudText>Hundetræning</MudText></MudNavLink>
                                 @*<MudNavLink Style="width:fit-content;" Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogPark))" Icon="@Icons.Filled.Forest"><MudText>Hundeparker</MudText> </MudNavLink>*@
                                 @if (_userInfo?.HasCompany ?? false)
                                 {
@@ -105,7 +105,7 @@
                     {
                         <MudNavLink Style="width:fit-content; color:white;" Match="NavLinkMatch.All" Href="@(RoutingConstants.FEED)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Filled.Newspaper">Hyggehjørnet</MudNavLink>
                         <MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.ABOUT)" IconColor=@(Color.Inherit) Icon="@Icons.Material.Outlined.Info">Om DoggoWorld</MudNavLink>
-                        <MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogInstructor))" IconColor="@Color.Inherit" Icon="@Icons.Filled.Attribution">Hundetræning</MudNavLink>
+                        <MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (PlaceType.DogInstructor))" IconColor="@Color.Inherit" Icon="@Icons.Filled.Attribution">Hundetræning</MudNavLink>
                         @*<MudNavLink Match="NavLinkMatch.All" Href="@(RoutingConstants.DISCOVER + (FacilityType.DogPark))" Icon="@Icons.Filled.Forest">Hundeparker</MudNavLink>*@
                     }
                     @if (_isLoggedIn && _userInfo.HasCompany)
@@ -176,7 +176,7 @@
     public MainLayout()
     {
         _facilityTypeThemes = new();
-        _theme = _facilityTypeThemes.GetTheme(FacilityType.DogPark);
+        _theme = _facilityTypeThemes.GetTheme(PlaceType.DogPark);
         //_theme.Palette.AppbarBackground = new MudColor("#FFF");
         _theme.Palette.Primary = "#00CBA6";
         _theme.Palette.AppbarBackground = _theme.Palette.Primary;
@@ -248,7 +248,7 @@
     {
         await ApiClient.LogOut();
         await UserManager.Delete();
-        NavigationManager.NavigateToDiscover(FacilityType.DogInstructor);
+        NavigationManager.NavigateToDiscover(PlaceType.DogInstructor);
     }
 
     private void OnBreakpointChanged(Breakpoint breakPoint)

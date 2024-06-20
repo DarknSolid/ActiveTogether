@@ -22,7 +22,7 @@ namespace EntityLib.Entities
         public DateTime RequestDate { get; set; }
 
         [Required]
-        public FacilityType FacilityType { get; set; }
+        public PlaceType FacilityType { get; set; }
 
         [Required]
         [Column(TypeName = "geometry (point)")]

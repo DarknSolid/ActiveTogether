@@ -53,7 +53,7 @@
 
         @if (_user.HasCompany)
         {
-            @if (_user.CompanyType == FacilityType.DogInstructor)
+            @if (_user.CompanyType == PlaceType.DogInstructor)
             {
                 <MudText Typo="Typo.h6">@(_isUserMe ? $"Du er Hundetræner hos:" : $"{_user.FirstName} er Hundetræner hos:")</MudText>
             }

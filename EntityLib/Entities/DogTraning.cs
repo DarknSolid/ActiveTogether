@@ -12,11 +12,11 @@ namespace EntityLib.Entities
     public class DogTraining : EntityWithLocation
     {
         [Key]
-        override public int Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [Column(TypeName = "geometry (point)")]
-        override public Point Location { get; set; }
+        public Point Location { get; set; }
 
         [ForeignKey(nameof(Company))]
         public int InstructorCompanyId { get; set; }

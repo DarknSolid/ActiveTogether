@@ -15,7 +15,7 @@
 
         <div class="one mud-ripple">1</div>
 
-        <div class="two mud-ripple" @onclick="(e) => OnMenuClicked(FacilityType.DogPark)">
+        <div class="two mud-ripple" @onclick="(e) => OnMenuClicked(PlaceType.DogPark)">
             <ButtonIconText Size="Size.Large" Style="@_menuButtonStyle" Icon="@Icons.Filled.Forest" Text="Parks" />
         </div>
 
@@ -27,7 +27,7 @@
 
         <div class="six mud-ripple">6</div>
 
-        <div class="seven mud-ripple" @onclick="(e) => OnMenuClicked(FacilityType.DogInstructor)">
+        <div class="seven mud-ripple" @onclick="(e) => OnMenuClicked(PlaceType.DogInstructor)">
             <ButtonIconText Size="Size.Large" Style="@_menuButtonStyle" Icon="@Icons.Filled.Attribution" Text="Instructors" />
         </div>
 
@@ -41,11 +41,11 @@
     public Action OnClose { get; set; }
 
     [Parameter, EditorRequired]
-    public Action<FacilityType> OnFacilitySelected { get; set; }
+    public Action<PlaceType> OnFacilitySelected { get; set; }
 
     private readonly string _menuButtonStyle = "color: var(--mud-palette-text); margin-top: -75px; pointer-events:none";
 
-    private void OnMenuClicked(FacilityType facilityType)
+    private void OnMenuClicked(PlaceType facilityType)
     {
         OnFacilitySelected(facilityType);
         OnClose();

@@ -1,4 +1,5 @@
-﻿using EntityLib.Entities.Identity;
+﻿using EntityLib.Entities.Gatherings;
+using EntityLib.Entities.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -28,7 +29,8 @@ namespace EntityLib.Entities
 
         public Place Place { get; set; }
         public ApplicationUser User { get; set; }
-        public ICollection<InstructorCompanyCategory> InstructorCategories { get; set; }
-        public ICollection<InstructorCompanyFacility> InstructorFacilities { get; set; }
+        public ICollection<InstructorCompanyCategory>? InstructorCategories { get; set; }
+        public ICollection<InstructorCompanyFacility>? InstructorFacilities { get; set; }
+        public ICollection<Event>? Events { get; set; }
     }
 }

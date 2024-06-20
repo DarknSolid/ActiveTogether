@@ -10,7 +10,7 @@ namespace ModelLib.DTOs.Authentication
         public FriendShipStatus FriendShipStatus { get; set; }
         public bool HasCompany { get; set; }
         public int? CompanyId { get; set; }
-        public FacilityType? CompanyType { get; set; }
+        public PlaceType? CompanyType { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyProfilePictureUrl { get; set; }
     }

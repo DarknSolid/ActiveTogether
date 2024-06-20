@@ -5,7 +5,7 @@ namespace RazorLib.Models
 {
     public class FacilityTypeThemes
     {
-        private Dictionary<FacilityType, MudTheme> _facilityToTheme;
+        private Dictionary<PlaceType, MudTheme> _facilityToTheme;
 
         public FacilityTypeThemes()
         {
@@ -20,15 +20,15 @@ namespace RazorLib.Models
 
             _facilityToTheme = new()
             {
-                { FacilityType.None, new BaseTheme() },
-                {FacilityType.DogPark, dogParkTheme },
-                {FacilityType.DogInstructor, instructorTheme }
+                { PlaceType.None, new BaseTheme() },
+                {PlaceType.DogPark, dogParkTheme },
+                {PlaceType.DogInstructor, instructorTheme }
             };
         }
 
-        public MudTheme GetTheme(FacilityType facilityType)
+        public MudTheme GetTheme(PlaceType facilityType)
         {
-            return _facilityToTheme.GetValueOrDefault(facilityType, _facilityToTheme[FacilityType.None]);
+            return _facilityToTheme.GetValueOrDefault(facilityType, _facilityToTheme[PlaceType.None]);
         }
 
         private class BaseTheme : MudTheme

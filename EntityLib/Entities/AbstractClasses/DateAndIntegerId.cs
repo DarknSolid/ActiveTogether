@@ -1,8 +1,8 @@
 ﻿
 namespace EntityLib.Entities.AbstractClasses
 {
-    public abstract class DateAndIntegerId : IntegerId
+    public interface DateAndIntegerId : IntegerId
     {
-        abstract public DateTime DateTime { get; set; }
+        public DateTime DateTime { get; set; }
     }
 }

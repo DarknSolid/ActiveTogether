@@ -14,7 +14,7 @@
 @code {
 
     [Parameter, EditorRequired]
-    public FacilityType FacilityType { get; set; }
+    public PlaceType FacilityType { get; set; }
 
     [Parameter]
     public string? FacilityTypeString { get; set; }
@@ -24,18 +24,18 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        var _facilityType = EntityLib.Entities.Enums.FacilityType.DogInstructor;
+        var _facilityType = EntityLib.Entities.Enums.PlaceType.DogInstructor;
         if (FacilityTypeString is not null)
         {
-            _facilityType = Enum.Parse<FacilityType>(FacilityTypeString);
+            _facilityType = Enum.Parse<PlaceType>(FacilityTypeString);
         }
 
         switch (_facilityType)
         {
-            case FacilityType.DogInstructor:
+            case PlaceType.DogInstructor:
                 DiscoverContent = @<RazorLib.Components.Discover.DiscoverInstructors MapSearchHeaderText="Find Hundetrænere"/>;
                 break;
-            case FacilityType.DogPark:
+            case PlaceType.DogPark:
                 DiscoverContent = @<RazorLib.Components.Discover.DiscoverDogParks MapSearchHeaderText="Find Hundeparker"/>;
                 break;
             default:

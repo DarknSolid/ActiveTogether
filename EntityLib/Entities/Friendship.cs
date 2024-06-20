@@ -7,7 +7,7 @@ namespace EntityLib.Entities
     public class Friendship : IntegerId
     {
         [Key]
-        override public int Id { get; set; }
+        public int Id { get; set; }
         [Required]
         public int RequesterId { get; set; }
         [Required]

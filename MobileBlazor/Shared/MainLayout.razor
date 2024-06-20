@@ -138,7 +138,7 @@
                     position: relative;";
 
     private MenuButton _selectedMenu;
-    private FacilityType _selectedFacilityType;
+    private PlaceType _selectedFacilityType;
 
     private MudTheme _theme;
 
@@ -155,12 +155,12 @@
     public MainLayout()
     {
         _selectedMenu = MenuButton.Discover;
-        _selectedFacilityType = FacilityType.DogPark;
+        _selectedFacilityType = PlaceType.DogPark;
         _facilityTypeThemes = new();
         _theme = _facilityTypeThemes.GetTheme(_selectedFacilityType);
     }
 
-    private void SetSelectedFacilityType(FacilityType facilityType)
+    private void SetSelectedFacilityType(PlaceType facilityType)
     {
         _selectedFacilityType = facilityType;
         _theme = _facilityTypeThemes.GetTheme(facilityType);

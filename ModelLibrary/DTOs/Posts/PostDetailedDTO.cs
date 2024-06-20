@@ -8,7 +8,7 @@ namespace ModelLib.DTOs.Posts
     {
         override public int Id { get; set; }
         public int UserId { get; set; }
-        public FacilityType? UserProfession { get; set; }
+        public PlaceType? UserProfession { get; set; }
         public string UserFirstName { get; set; }
         public string UserLastName { get; set; }
         public string? UserImageUrl { get; set; }
@@ -20,7 +20,7 @@ namespace ModelLib.DTOs.Posts
         public int? PlaceId { get; set; }
         public string? PlaceName { get; set; }
         public string? PlaceImageUrl { get; set; }
-        public FacilityType? PlaceFacilityType { get; set; }
+        public PlaceType? PlaceFacilityType { get; set; }
         public int TotalComments { get; set; }
         public IList<LikeDetailedDTO> Likes { get; set; } = new List<LikeDetailedDTO>();
     }

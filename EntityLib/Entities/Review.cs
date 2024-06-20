@@ -30,8 +30,13 @@ namespace EntityLib.Entities
         [MaxLength(2000)]
         public string Description { get; set; }
 
+        [Required]
         [Column("CreatedAt")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         override public DateTime DateTime { get; set; }
+
+        public string[]? MediaUrls { get; set; }
+
         public ApplicationUser User { get; set; }
         public Place Place { get; set; }
 

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EntityLib.Entities.AbstractClasses
 {
-    public abstract class EntityWithLocation
+    public interface EntityWithLocation
     {
         [Key]
         abstract public int Id { get; set; }

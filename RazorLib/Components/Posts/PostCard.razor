@@ -237,12 +237,12 @@
         _userProfession = GetUserProfessionText(Post.UserProfession);
     }
 
-    private string? GetUserProfessionText(FacilityType? facilityType)
+    private string? GetUserProfessionText(PlaceType? facilityType)
     {
         switch (facilityType)
         {
             case null: return null;
-            case FacilityType.DogInstructor: return "Hundetræner";
+            case PlaceType.DogInstructor: return "Hundetræner";
             default: return facilityType.ToString();
         }
     }
