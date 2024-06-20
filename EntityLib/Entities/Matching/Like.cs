@@ -19,14 +19,14 @@ namespace EntityLib.Entities.Matching
         public bool IsIndividualLike { get; set; }
 
         [Required]
-        public int TargetOneId { get; set; }
+        public int LikerId { get; set; }
         [Required]
-        public int TargetTwoId { get; set; }
+        public int LikeeId { get; set; }
 
         [Required]
         public bool IsAccepted { get; set; }
 
-        public ApplicationUser Requester { get; set; }
-        public ApplicationUser Requestee { get; set; }
+        public ApplicationUser Liker { get; set; }
+        public ApplicationUser Likee { get; set; }
     }
 }

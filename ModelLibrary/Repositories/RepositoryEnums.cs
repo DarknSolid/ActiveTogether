@@ -16,7 +16,8 @@ namespace ModelLib.Repositories
             Created,
             NotFound,
             Deleted,
-            Unauthorized
+            Unauthorized,
+            Duplicate,
         }
 
         public enum FriendShipStatus

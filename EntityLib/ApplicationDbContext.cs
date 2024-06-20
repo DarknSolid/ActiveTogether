@@ -182,8 +182,8 @@ namespace Entities
             #endregion
 
             #region Likes
-            builder.Entity<Like>().HasOne(l => l.Requester).WithMany(u => u.LikeRequester);
-            builder.Entity<Like>().HasOne(l => l.Requestee).WithMany(u => u.LikeRequestee);
+            builder.Entity<Like>().HasOne(l => l.Liker).WithMany(u => u.LikeRequester);
+            builder.Entity<Like>().HasOne(l => l.Likee).WithMany(u => u.LikeRequestee);
             #endregion
 
             #region Gatherings

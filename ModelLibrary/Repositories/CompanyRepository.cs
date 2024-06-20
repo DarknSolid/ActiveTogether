@@ -34,7 +34,7 @@ namespace ModelLib.Repositories
                     CompanyId = c.PlaceId,
                     CompanyType = c.Place.FacilityType,
                     CompanyName = c.Place.Name,
-                    CompanyProfilePictureUrl = c.Place.ImageUrls
+                    CompanyProfilePictureUrl = c.Place.ImageUrls[0]
                 })
                 .FirstOrDefaultAsync();
 
